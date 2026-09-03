@@ -1361,6 +1361,21 @@ function getRecentAggressorTarget(npc: NpcCharacter, visibleUsers: EntityId[]) {
     return user;
 }
 
+// VB6 Codigo/AI_NPC.bas (GuardiasAI / PersigueCriminal / PersigueCiudadano):
+// el Guardia Real (npcType 2) solo persigue y ataca criminales; el Guardia del
+// Caos (npcType 8), solo ciudadanos (no criminales). En ambos casos tambien
+// atacan a quien los agredio (flags.AttackedBy), cubierto por
+// getRecentAggressorTarget antes de este filtro.
+function isValidGuardTarget(npc: NpcCharacter, user: PlayerCharacter) {
+    if (!game.isGuardNpc(npc)) {
+        return true;
+    }
+
+    const isCriminal = Number(user.criminal ?? 0) === 1;
+
+    return Number(npc.npcType) === Number(vars.npcType.guardia) ? isCriminal : !isCriminal;
+}
+
 function selectNpcTarget(npc: NpcCharacter, targetPressure: Map<EntityId, number>) {
     const visibleUsers = (vars.areaNpc[npc.id] as EntityId[] | undefined) ?? [];
     const recentAggressorTarget = getRecentAggressorTarget(npc, visibleUsers);
@@ -1380,6 +1395,10 @@ function selectNpcTarget(npc: NpcCharacter, targetPressure: Map<EntityId, number
 
         if (!user || user.cerrado || user.map !== npc.map || user.hp <= 0 || isInvisibleToNpc(user)) {
             removeUserFromNpcArea(npc.id, idUser);
+            continue;
+        }
+
+        if (!isValidGuardTarget(npc, user)) {
             continue;
         }
 
@@ -2224,7 +2243,7 @@ function Npcs(this: NpcsApi) {
                 }
 
                 if (
-                    npc.movement !== 3 ||
+                    (npc.movement !== 3 && !game.isGuardNpc(npc)) ||
                     (!vars.areaNpc[idNpc]?.length &&
                         !getHostileNpcCurrentSummonTarget(npc) &&
                         !getRecentSummonAggressorTarget(npc))
@@ -3041,7 +3060,7 @@ function Npcs(this: NpcsApi) {
             }
 
             game.loopArea(userClient, (target) => {
-                if (target.isNpc && target.movement === 3) {
+                if (target.isNpc && game.isNpcAiTracked(target as RuntimeNpc)) {
                     const index = vars.areaNpc[target.id].indexOf(idUser);
                     if (index > -1) {
                         vars.areaNpc[target.id].splice(index, 1);

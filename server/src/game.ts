@@ -1109,6 +1109,17 @@ function emitNpcFxToArea(npc: GameNpc, fxId: number) {
     });
 }
 
+// Guardias (VB6 Codigo/AI_NPC.bas, GuardiasAI): npcType GuardiaReal (2) y GuardiasCaos (8).
+// Se trackean en areaNpc como los NPC hostiles (movement=3) para poder perseguir objetivos.
+function isGuardNpc(npc: { npcType?: number } | undefined): boolean {
+    const npcType = Number(npc?.npcType ?? 0);
+    return npcType === vars.npcType.guardia || npcType === vars.npcType.guardiaCaos;
+}
+
+function isNpcAiTracked(npc: { npcType?: number; movement?: number } | undefined): boolean {
+    return Number(npc?.movement ?? 0) === 3 || isGuardNpc(npc);
+}
+
 function canNpcDetectCharacter(user: GameCharacter | undefined) {
     return Boolean(
         user && !isInvisibleAdmin(user) && !isSpellInvisible(user) && (!user.dead || isDeadWorldActive(user)),
@@ -2585,6 +2596,8 @@ export type GameApi = {
     forceDismount: (idUser: EntityId) => void;
     navegar: (idUser: EntityId, idBarco?: number) => void;
     deleteUserToAllNpcs: (idUser: EntityId) => void;
+    isGuardNpc: (npc: { npcType?: number } | undefined) => boolean;
+    isNpcAiTracked: (npc: { npcType?: number; movement?: number } | undefined) => boolean;
     hacerCriminal: (idUser: EntityId) => void;
     setCharacterFaction: (idUser: EntityId, faction: CharacterFaction) => void;
     clearCharacterFaction: (idUser: EntityId) => void;
@@ -5864,7 +5877,7 @@ function Game(this: GameApi) {
                                     }
 
                                     if (
-                                        areaTarget.target.movement == 3 &&
+                                        isNpcAiTracked(areaTarget.target as GameNpc) &&
                                         canNpcDetectCharacter(user) &&
                                         npcArea.indexOf(clientId) < 0
                                     ) {
@@ -6159,7 +6172,7 @@ function Game(this: GameApi) {
                     withUserClient(target.id, (targetClient) => {
                         handleProtocol.deleteCharacter(clientId, targetClient);
                     });
-                } else if (target.isNpc && vars.npcs[target.id].movement == 3) {
+                } else if (target.isNpc && isNpcAiTracked(vars.npcs[target.id] as GameNpc)) {
                     const index = vars.areaNpc[target.id].indexOf(clientId);
 
                     if (index > -1) {
@@ -9810,10 +9823,13 @@ function Game(this: GameApi) {
      * @param  {[type]} idUser [description]
      * @return {[type]}        [description]
      */
+    this.isGuardNpc = isGuardNpc;
+    this.isNpcAiTracked = isNpcAiTracked;
+
     this.deleteUserToAllNpcs = function (idUser: EntityId) {
         try {
             loopAreaByUserId(idUser, function (target: AreaTarget) {
-                if (target.isNpc && target.movement == 3) {
+                if (target.isNpc && isNpcAiTracked(target as GameNpc)) {
                     const index = vars.areaNpc[target.id].indexOf(idUser);
 
                     if (index > -1) {
@@ -9838,7 +9854,7 @@ function Game(this: GameApi) {
             const shouldBeVisibleToNpcs = canNpcDetectCharacter(user);
 
             game.loopArea(ws, function (target: AreaTarget) {
-                if (!target.isNpc || vars.npcs[target.id]?.movement != 3) {
+                if (!target.isNpc || !isNpcAiTracked(vars.npcs[target.id] as GameNpc | undefined)) {
                     return;
                 }
 
