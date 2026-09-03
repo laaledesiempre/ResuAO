@@ -77,6 +77,7 @@ export const CLIENT_PACKET_ID = {
     selfMapMetaDelta: 79,
     spellVisual: 80,
     entityVitalsDelta: 81,
+    updateAtributos: 82,
 } as const;
 
 export type PanelShare = {
@@ -201,6 +202,7 @@ export const SERVER_PACKET_ID = {
     closeTrade: 190,
     marketAction: 239,
     retosAction: 248,
+    assignAttributePoint: 250,
 } as const;
 
 export interface CharacterSnapshot {
@@ -250,6 +252,7 @@ export interface CharacterSnapshot {
     attrFuerza?: number;
     attrInteligencia?: number;
     attrConstitucion?: number;
+    puntosAtributo?: number;
     minHit?: number;
     maxHit?: number;
     buffAgilidadSeconds?: number;
@@ -471,6 +474,7 @@ export interface PlayerHudState {
     attrFuerza?: number;
     attrInteligencia?: number;
     attrConstitucion?: number;
+    puntosAtributo?: number;
     minHit?: number;
     maxHit?: number;
     buffAgilidadSeconds?: number;
@@ -777,6 +781,16 @@ export type ParsedServerPacket =
     | {
           type: "updateFuerza";
           payload: { fuerza: number; buffSecondsRemaining: number };
+      }
+    | {
+          type: "updateAtributos";
+          payload: {
+              puntosAtributo: number;
+              attrFuerza: number;
+              attrAgilidad: number;
+              attrInteligencia: number;
+              attrConstitucion: number;
+          };
       }
     | { type: "openBail"; payload: BailOffer }
     | { type: "openCrafting"; payload: CraftingState }
@@ -1129,6 +1143,9 @@ function parseCharacter(
         snapshot.invisibleSpellRemainingMs = reader.canReadBytes(4)
             ? reader.getInt()
             : undefined;
+        snapshot.puntosAtributo = reader.canReadBytes(1)
+            ? reader.getByte()
+            : 0;
     } else {
         snapshot.privileges = reader.getByte();
         snapshot.heading = reader.getByte();
@@ -1786,6 +1803,17 @@ function parseServerPacketById(
                     buffSecondsRemaining: reader.getShort(),
                 },
             };
+        case CLIENT_PACKET_ID.updateAtributos:
+            return {
+                type: "updateAtributos",
+                payload: {
+                    puntosAtributo: reader.getByte(),
+                    attrFuerza: reader.getByte(),
+                    attrAgilidad: reader.getByte(),
+                    attrInteligencia: reader.getByte(),
+                    attrConstitucion: reader.getByte(),
+                },
+            };
         case CLIENT_PACKET_ID.openBail:
             return {
                 type: "openBail",
@@ -2230,6 +2258,14 @@ export function createToggleHiddenSkillPacket(): ArrayBuffer {
     return writer.toArrayBuffer();
 }
 
+// IDs segun eAtributos del VB6 (Declares.bas): 1=Fuerza, 2=Agilidad,
+// 3=Inteligencia, 4=Carisma (no existe en Resu), 5=Constitucion.
+export function createAssignAttributePointPacket(attrId: number): ArrayBuffer {
+    const writer = new PacketWriter(SERVER_PACKET_ID.assignAttributePoint);
+    writer.writeByte(attrId);
+    return writer.toArrayBuffer();
+}
+
 export function createCraftItemPacket(
     profession: "carpentry" | "blacksmith" | "tailoring",
     itemId: number,
@@ -2288,6 +2324,7 @@ export function toPlayerHudState(snapshot: CharacterSnapshot): PlayerHudState {
         attrFuerza: snapshot.attrFuerza,
         attrInteligencia: snapshot.attrInteligencia,
         attrConstitucion: snapshot.attrConstitucion,
+        puntosAtributo: snapshot.puntosAtributo,
         minHit: snapshot.minHit,
         maxHit: snapshot.maxHit,
         buffAgilidadSeconds: snapshot.buffAgilidadSeconds,

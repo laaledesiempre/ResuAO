@@ -375,6 +375,7 @@ export type HandleProtocolApi = {
         maxMana: number,
         client: RuntimeClient,
     ) => void;
+    updateAtributos: (character: ProtocolCharacter, client: RuntimeClient) => void;
     actMyLevel: (idUser: EntityId, client: RuntimeClient) => void;
     actExp: (exp: number, client: RuntimeClient) => void;
     actGold: (gold: number, client: RuntimeClient) => void;
@@ -1114,6 +1115,7 @@ const handleServer: HandleProtocolApi = {
         }
 
         pkg.writeInt(invisibilitySpellRemainingMs);
+        pkg.writeByte(character.puntosAtributo ?? 0);
     },
 
     sendNpc(npc) {
@@ -1231,6 +1233,16 @@ const handleServer: HandleProtocolApi = {
         pkg.writeShort(maxHp);
         pkg.writeShort(mana);
         pkg.writeShort(maxMana);
+        socket.send(client);
+    },
+
+    updateAtributos(character, client) {
+        pkg.setPackageID(pkg.clientPacketID.updateAtributos);
+        pkg.writeByte(character.puntosAtributo ?? 0);
+        pkg.writeByte(character.attrFuerza);
+        pkg.writeByte(character.attrAgilidad);
+        pkg.writeByte(character.attrInteligencia);
+        pkg.writeByte(character.attrConstitucion);
         socket.send(client);
     },
 

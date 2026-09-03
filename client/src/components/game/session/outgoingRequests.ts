@@ -2,6 +2,7 @@
 // The 21 React effects (one per request prop) become explicit methods the
 // UI calls directly. The use-item queueing logic is unchanged.
 import {
+    createAssignAttributePointPacket,
     createBuyItemPacket,
     createChangeBankTabPacket,
     createCloseTradePacket,
@@ -362,6 +363,16 @@ export function createOutgoingRequests(options: OutgoingRequestsOptions) {
 
         useItemClick(slot: number) {
             queueUseItem("click", slot);
+        },
+
+        assignAttributePoint(attrId: number) {
+            const socket = getSocket(websocketRef);
+            if (!socket) {
+                return;
+            }
+
+            socket.send(createAssignAttributePointPacket(attrId));
+            recordClientGameAction("assign_attribute_point", { attrId });
         },
 
         useItemU(slot: number) {

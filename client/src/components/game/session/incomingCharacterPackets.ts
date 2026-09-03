@@ -842,6 +842,35 @@ export async function handleIncomingCharacterPacket({
             });
             return true;
 
+        case "updateAtributos":
+            if (ctx.pendingUserSnapshotRef.current) {
+                ctx.pendingUserSnapshotRef.current = {
+                    ...ctx.pendingUserSnapshotRef.current,
+                    puntosAtributo: packet.payload.puntosAtributo,
+                    attrFuerza: packet.payload.attrFuerza,
+                    attrAgilidad: packet.payload.attrAgilidad,
+                    attrInteligencia: packet.payload.attrInteligencia,
+                    attrConstitucion: packet.payload.attrConstitucion,
+                };
+            }
+
+            if (engine?.user) {
+                engine.user.puntosAtributo = packet.payload.puntosAtributo;
+                engine.user.attrFuerza = packet.payload.attrFuerza;
+                engine.user.attrAgilidad = packet.payload.attrAgilidad;
+                engine.user.attrInteligencia = packet.payload.attrInteligencia;
+                engine.user.attrConstitucion = packet.payload.attrConstitucion;
+            }
+
+            ctx.mergeHud({
+                puntosAtributo: packet.payload.puntosAtributo,
+                attrFuerza: packet.payload.attrFuerza,
+                attrAgilidad: packet.payload.attrAgilidad,
+                attrInteligencia: packet.payload.attrInteligencia,
+                attrConstitucion: packet.payload.attrConstitucion,
+            });
+            return true;
+
         case "partyState":
         case "clanState":
         case "navegando":

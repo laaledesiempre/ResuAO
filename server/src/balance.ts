@@ -7,6 +7,12 @@ const MAX_EXP_LEVEL = 50;
 const LAST_LEGACY_EXP_LEVEL = 46;
 const MAX_GOLD = 2147483647;
 
+// VB6 Declares.bas: MAXATRIBUTOS = 40 / MINATRIBUTOS = 6.
+const MAX_ATRIBUTOS = 40;
+// El VB6 (ao-libre) no otorga puntos de atributo por nivel (solo skillpoints);
+// este valor es una decision de Resu, no un valor portado del VB6.
+const ATTRIBUTE_POINTS_PER_LEVEL = 5;
+
 const DEFAULT_CLASS_PROGRESS: Record<
     number,
     { vida: number; manaInicial: number; multMana: number; hitPre36: number; hitPost36: number }
@@ -91,6 +97,8 @@ const getLegacyExpNextLevelForLevel = (level: number): number => {
 module.exports = {
     MAX_LEVEL,
     MAX_EXP_LEVEL,
+    MAX_ATRIBUTOS,
+    ATTRIBUTE_POINTS_PER_LEVEL,
     clampLevel,
     clampGold,
     getMaxHpForLevel,

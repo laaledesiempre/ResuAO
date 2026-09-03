@@ -20,6 +20,7 @@ const game = require("./game");
 const login = require("./login") as LoginApi;
 const socket = require("./socket") as SocketApi;
 const funct = require("./functions");
+const balance = require("./balance");
 const vars = require("./vars");
 const command = require("./commands");
 const chatAuditLogger = require("./chatAuditLogger");
@@ -1037,6 +1038,7 @@ dictionaryServer[pkg.serverPacketID.retosAction] = retosAction;
 dictionaryServer[pkg.serverPacketID.toggleHiddenSkill] = toggleHiddenSkill;
 dictionaryServer[pkg.serverPacketID.useItemU] = useItemU;
 dictionaryServer[pkg.serverPacketID.craftItem] = craftItem;
+dictionaryServer[pkg.serverPacketID.assignAttributePoint] = assignAttributePoint;
 
 function Protocol(this: ProtocolApi) {
     try {
@@ -1240,6 +1242,71 @@ function toggleHiddenSkill(ws: RuntimeClient) {
     user.hiddenSkillExpiresAt = now + getHiddenSkillDurationMs(user);
 
     handleProtocol.console("Te ocultas entre las sombras.", "white", 0, 0, ws);
+}
+
+// El VB6 (ao-libre) no tiene asignacion de puntos de atributo (los dados son
+// fijos desde la creacion); este flujo es una decision de Resu. Los limites
+// MAXATRIBUTOS=40 si vienen del VB6 (Declares.bas).
+// IDs segun eAtributos del VB6 (Declares.bas): 1=Fuerza, 2=Agilidad,
+// 3=Inteligencia, 4=Carisma (no existe en Resu), 5=Constitucion.
+const ASSIGNABLE_ATTRIBUTES: Record<number, { field: string; label: string }> = {
+    1: { field: "attrFuerza", label: "Fuerza" },
+    2: { field: "attrAgilidad", label: "Agilidad" },
+    3: { field: "attrInteligencia", label: "Inteligencia" },
+    5: { field: "attrConstitucion", label: "Constitucion" },
+};
+
+function assignAttributePoint(ws: RuntimeClient) {
+    try {
+        if (!game.existPjOrClose(ws)) {
+            return;
+        }
+
+        if (!pkg.canReadBytes(1)) {
+            return;
+        }
+
+        const attrId = pkg.getByte();
+        const attr = ASSIGNABLE_ATTRIBUTES[attrId];
+
+        if (!attr) {
+            return;
+        }
+
+        const user = getCharacterById(ws.id!) as any;
+
+        if (!user) {
+            return;
+        }
+
+        if ((user.puntosAtributo ?? 0) <= 0) {
+            handleProtocol.console("No tienes puntos de atributo disponibles.", "white", 0, 0, ws);
+            return;
+        }
+
+        if ((user[attr.field] ?? 0) >= balance.MAX_ATRIBUTOS) {
+            handleProtocol.console("No puedes tener mas de " + balance.MAX_ATRIBUTOS + " puntos en " + attr.label + ".", "white", 0, 0, ws);
+            return;
+        }
+
+        user[attr.field] = (user[attr.field] ?? 0) + 1;
+        user.puntosAtributo = (user.puntosAtributo ?? 0) - 1;
+
+        // Si hay un buff de fuerza/agilidad activo, el backup tambien sube para
+        // que al expirar el buff no se pierda el punto asignado.
+        if (attr.field === "attrFuerza" && (user.cooldownFuerza ?? 0) > 0) {
+            user.bkAttrFuerza = (user.bkAttrFuerza ?? 0) + 1;
+        }
+
+        if (attr.field === "attrAgilidad" && (user.cooldownAgilidad ?? 0) > 0) {
+            user.bkAttrAgilidad = (user.bkAttrAgilidad ?? 0) + 1;
+        }
+
+        handleProtocol.console("Has asignado 1 punto a " + attr.label + ".", "white", 0, 0, ws);
+        handleProtocol.updateAtributos(user, ws);
+    } catch (err) {
+        funct.dumpError(err);
+    }
 }
 
 function clearPendingMoveTimer(user: RuntimeCharacter & { pendingMoveTimerId?: ReturnType<typeof setTimeout> | null }) {
