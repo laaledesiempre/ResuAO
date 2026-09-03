@@ -2094,6 +2094,103 @@ async function inspectLegacyFrontendUsage(targetName: string, ws: RuntimeClient)
     );
 }
 
+const ENTRENADOR_DISTANCIA_MAXIMA = 10; // VB6 HandleTrainList (Protocol.bas): Distancia > 10 -> "Estas demasiado lejos."
+
+function findNearestEntrenador(user: CommandCharacter): RuntimeNpc | undefined {
+    let nearest: RuntimeNpc | undefined;
+    let nearestDist = Number.POSITIVE_INFINITY;
+
+    for (const npcId of Object.keys(vars.npcs)) {
+        const npc = vars.npcs[npcId] as RuntimeNpc | undefined;
+
+        if (!npc || Number(npc.npcType) !== Number(vars.npcType.entrenador) || npc.map !== user.map) {
+            continue;
+        }
+
+        // Distancia del VB6 (Matematicas.bas): |dx| + |dy| (el mapa ya se filtro).
+        const dist = Math.abs(npc.pos.x - user.pos.x) + Math.abs(npc.pos.y - user.pos.y);
+
+        if (dist < nearestDist) {
+            nearestDist = dist;
+            nearest = npc;
+        }
+    }
+
+    return nearestDist <= ENTRENADOR_DISTANCIA_MAXIMA ? nearest : undefined;
+}
+
+function handleEntrenar(user: CommandCharacter, nextText: string, ws: RuntimeClient) {
+    if (user.dead) {
+        // Texto del VB6 (Lenguajes/spanish.json MENSAJE_USER_MUERTO, TEXTO 2).
+        handleProtocol.console("No puedes realizar esta accion estando muerto.", "white", 0, 0, ws as CommandClient);
+        return;
+    }
+
+    const trainer = findNearestEntrenador(user);
+
+    if (!trainer) {
+        handleProtocol.console("No hay ningun entrenador cerca.", "white", 0, 0, ws as CommandClient);
+        return;
+    }
+
+    const datTrainer = vars.datNpc[Number(trainer.templateNpcIndex ?? 0)] as
+        | { criaturas?: Array<{ npcIndex?: number; name?: string }> }
+        | undefined;
+    const criaturas = (Array.isArray(datTrainer?.criaturas) ? datTrainer.criaturas : []).filter(
+        (criatura) => Number(criatura?.npcIndex ?? 0) > 0,
+    );
+
+    if (criaturas.length === 0) {
+        handleProtocol.console("Este entrenador no tiene criaturas disponibles.", "white", 0, 0, ws as CommandClient);
+        return;
+    }
+
+    const arg = nextText.trim();
+
+    if (!arg) {
+        handleProtocol.console("Criaturas del entrenador:", "white", 0, 0, ws as CommandClient);
+
+        criaturas.forEach((criatura, index) => {
+            handleProtocol.console(`${index + 1}) ${criatura.name ?? "Criatura"}`, "white", 0, 0, ws as CommandClient);
+        });
+
+        handleProtocol.console("Escribe /ENTRENAR <numero> para invocarla.", "white", 0, 0, ws as CommandClient);
+        return;
+    }
+
+    const petIndex = Number.parseInt(arg, 10);
+
+    if (!Number.isInteger(petIndex) || petIndex < 1 || petIndex > criaturas.length) {
+        handleProtocol.console("Uso: /entrenar [numero de criatura].", "white", 0, 0, ws as CommandClient);
+        return;
+    }
+
+    const spawnedId = npcs.spawnTrainerCreature(trainer.id, petIndex);
+
+    if (spawnedId === -1) {
+        // Texto exacto del VB6 (Protocol.bas HandleTrain), chat sobre la cabeza del entrenador en vbWhite.
+        npcs.loopArea(trainer.id, (target: RuntimeCharacter & { id: EntityId }) => {
+            const targetClient = getClient(target.id);
+
+            if (targetClient) {
+                handleProtocol.dialog(
+                    trainer.id,
+                    "No puedo traer mas criaturas, mata las existentes.",
+                    "",
+                    "white",
+                    0,
+                    targetClient,
+                );
+            }
+        });
+        return;
+    }
+
+    if (!spawnedId) {
+        handleProtocol.console("No hay espacio para invocar la criatura.", "white", 0, 0, ws as CommandClient);
+    }
+}
+
 const command: CommandApi = {
     async msg(msg, ws) {
         try {
@@ -2711,6 +2808,11 @@ const command: CommandApi = {
                 case "/meditar":
                     game.accionMeditar(clientId);
                     break;
+
+                case "/entrenar": {
+                    handleEntrenar(user, nextText, ws);
+                    break;
+                }
 
                 case "/fianza": {
                     if (!userInSafeZone) {

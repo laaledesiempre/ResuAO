@@ -1,6 +1,6 @@
 import type { RuntimeCharacter } from "./types/runtime";
 
-type ChatAuditChannel = "local" | "global" | "private" | "party" | "clan";
+type ChatAuditChannel = "local" | "yell" | "global" | "private" | "party" | "clan";
 
 type ChatAuditLogInput = {
     channel: ChatAuditChannel;
