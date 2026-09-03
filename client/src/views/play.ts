@@ -350,17 +350,17 @@ export function renderPlay(
         { className: "side-panel", "data-panel": "hechizos" },
         spellsList,
     );
-    const statsList = el("div", { className: "stats-list" });
-    const statsPanel = el(
+    const socialList = el("div", { className: "stats-list" });
+    const socialPanel = el(
         "div",
-        { className: "side-panel", "data-panel": "stats" },
-        statsList,
+        { className: "side-panel", "data-panel": "social" },
+        socialList,
     );
 
     const tabDefs = [
         { id: "inventario", label: "Inventario", panel: inventoryPanel },
         { id: "hechizos", label: "Hechizos", panel: spellsPanel },
-        { id: "stats", label: "Stats", panel: statsPanel },
+        { id: "social", label: "Social", panel: socialPanel },
     ] as const;
 
     const tabButtons = tabDefs.map((def) => {
@@ -412,7 +412,7 @@ export function renderPlay(
             { className: "side-panels" },
             inventoryPanel,
             spellsPanel,
-            statsPanel,
+            socialPanel,
         ),
     );
 
@@ -731,26 +731,26 @@ export function renderPlay(
         }
     };
 
-    const renderStats = (hud: PlayerHudState) => {
-        statsList.replaceChildren(
-            statRow("Fuerza", `${hud.attrFuerza ?? "--"}`),
-            statRow("Agilidad", `${hud.attrAgilidad ?? "--"}`),
-            statRow("Inteligencia", `${hud.attrInteligencia ?? "--"}`),
-            statRow("Constitución", `${hud.attrConstitucion ?? "--"}`),
+    const renderSocial = (hud: PlayerHudState) => {
+        const memberRow = (
+            member: { nameCharacter: string; map: number; online: boolean },
+            extra?: string,
+        ) =>
             statRow(
-                "Golpe",
-                `${hud.minHit ?? "--"} / ${hud.maxHit ?? "--"}`,
-            ),
-            statRow("Nivel", `${hud.level ?? "--"}`),
-            statRow(
-                "Experiencia",
-                `${hud.exp ?? 0} / ${hud.expNextLevel ?? "--"}`,
-            ),
-            statRow("Oro", `${hud.gold ?? 0}`),
-            statRow(
-                "Posición",
-                `${hud.pos.x},${hud.pos.y} (mapa ${hud.map ?? "?"})`,
-            ),
+                `${member.nameCharacter}${extra ?? ""}`,
+                member.online ? `mapa ${member.map}` : "offline",
+            );
+        const partyMembers = hud.partyMembers ?? [];
+        const clanMembers = hud.clanMembers ?? [];
+        socialList.replaceChildren(
+            el("div", { className: "stat-label social-section" }, "Party"),
+            ...(partyMembers.length
+                ? partyMembers.map((m) => memberRow(m, m.isLeader ? " ★" : ""))
+                : [statRow("Sin party", "")]),
+            el("div", { className: "stat-label social-section" }, "Clan"),
+            ...(clanMembers.length
+                ? clanMembers.map((m) => memberRow(m))
+                : [statRow("Sin clan", "")]),
         );
     };
 
@@ -811,7 +811,7 @@ export function renderPlay(
         }
         renderInventory(hud);
         renderSpells(hud);
-        renderStats(hud);
+        renderSocial(hud);
     };
 
     inventoryCapObserver = new ResizeObserver(() => layoutInventoryCap());

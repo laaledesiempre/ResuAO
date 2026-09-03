@@ -1188,6 +1188,14 @@ body.side-resizing {
     gap: 6px;
 }
 
+.social-section {
+    padding: 6px 8px 0;
+}
+
+.social-section + .stat-row {
+    margin-top: 2px;
+}
+
 .stat-row {
     display: flex;
     justify-content: space-between;
