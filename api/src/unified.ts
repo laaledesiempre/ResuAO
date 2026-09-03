@@ -140,8 +140,12 @@ async function main(): Promise<void> {
                 const isApiPath = SPA_FALLBACK_EXCLUDED_PREFIXES.some(
                     (prefix) => c.req.path.startsWith(prefix),
                 );
+                // Requests that look like files ("/maps/mapa_1.json") must get
+                // a real 404, not the SPA HTML: the client's asset loader
+                // relies on 404s to fall back to alternate asset paths.
+                const looksLikeFile = path.posix.extname(c.req.path) !== "";
 
-                if (c.req.method === "GET" && !isApiPath) {
+                if (c.req.method === "GET" && !isApiPath && !looksLikeFile) {
                     return c.html(indexHtml);
                 }
 
