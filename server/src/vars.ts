@@ -37,6 +37,8 @@ function Vars(this: any) {
     this.dobleExp = false;
     this.dobleGold = false;
     this.subastasHabilitadas = true;
+    // VB6 Declares.bas: Lloviendo global, toggled por el comando GM /LLUVIA.
+    this.lloviendo = false;
 
     this.timing = {
         gameplayTickMs: 50,

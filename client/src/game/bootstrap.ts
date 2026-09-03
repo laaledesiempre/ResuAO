@@ -36,6 +36,8 @@ export type StartGameOptions = {
     onCraftingState?: (state: CraftingState | null) => void;
     onTrainerState?: (state: TrainerState | null) => void;
     onNotice?: (notice: { text: string; durationMs: number }) => void;
+    onMapMusic?: (musicNum: number, map: number) => void;
+    onRainToggle?: () => void;
     debug?: boolean;
 };
 
@@ -107,6 +109,8 @@ export function startGame(options: StartGameOptions): GameHandle {
             onCraftingState: options.onCraftingState,
             onTrainerState: options.onTrainerState,
             onNotice: options.onNotice,
+            onMapMusic: options.onMapMusic,
+            onRainToggle: options.onRainToggle,
         },
     });
 

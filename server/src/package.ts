@@ -116,6 +116,7 @@ const clientPacketID = {
     entityVitalsDelta: 81,
     updateAtributos: 82,
     trainerState: 83,
+    rainToggle: 84,
 } as const;
 
 const serverPacketID = {
