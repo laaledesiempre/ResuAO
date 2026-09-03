@@ -390,6 +390,24 @@ CREATE INDEX IF NOT EXISTS idx_market_listings_expires_at_active
 CREATE INDEX IF NOT EXISTS idx_market_claims_owner_created
     ON market_claims(owner_character_id, created_at ASC);
 
+-- Correo entre jugadores (VB6 ModCorreo.bas / charfile [CORREO]): mensajes
+-- con remitente, texto, items adjuntos serializados ("objIndex-cantidad@"),
+-- flag de leido y fecha en formato display del VB6.
+CREATE TABLE IF NOT EXISTS character_correo (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    character_id UUID NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+    remitente TEXT NOT NULL,
+    mensaje TEXT NOT NULL,
+    item TEXT NOT NULL DEFAULT '',
+    item_count INTEGER NOT NULL DEFAULT 0 CHECK (item_count >= 0),
+    leido BOOLEAN NOT NULL DEFAULT FALSE,
+    fecha TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_character_correo_character_created
+    ON character_correo(character_id, created_at ASC);
+
 CREATE TABLE IF NOT EXISTS auth_sessions (
     token TEXT PRIMARY KEY,
     account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,

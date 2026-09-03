@@ -13,6 +13,7 @@ import type {
     SpellEntry,
     TradeState,
     TrainerState,
+    CorreoState,
 } from "../lib/aowProtocol";
 import type { GraphicData } from "../types/game";
 
@@ -35,6 +36,8 @@ export type StartGameOptions = {
     onBailState?: (state: BailOffer | null) => void;
     onCraftingState?: (state: CraftingState | null) => void;
     onTrainerState?: (state: TrainerState | null) => void;
+    onCorreoState?: (state: CorreoState | null) => void;
+    onCorreoPicOn?: () => void;
     onNotice?: (notice: { text: string; durationMs: number }) => void;
     debug?: boolean;
 };
@@ -69,6 +72,10 @@ export type GameHandle = {
     ) => void;
     trainerAction: (
         action: "list" | "invoke",
+        payload?: Record<string, unknown>,
+    ) => void;
+    correoAction: (
+        action: "list" | "send" | "delete",
         payload?: Record<string, unknown>,
     ) => void;
     resolveIconGraphic: (grhIndex: number) => GraphicData | null;
@@ -106,6 +113,8 @@ export function startGame(options: StartGameOptions): GameHandle {
             onBailState: options.onBailState,
             onCraftingState: options.onCraftingState,
             onTrainerState: options.onTrainerState,
+            onCorreoState: options.onCorreoState,
+            onCorreoPicOn: options.onCorreoPicOn,
             onNotice: options.onNotice,
         },
     });
@@ -134,6 +143,8 @@ export function startGame(options: StartGameOptions): GameHandle {
             client.craftItem(profession, itemId, amount),
         trainerAction: (action, payload) =>
             client.trainerAction(action, payload),
+        correoAction: (action, payload) =>
+            client.correoAction(action, payload),
         resolveIconGraphic: (grhIndex) => client.resolveIconGraphic(grhIndex),
         destroy: () => client.destroy(),
     };

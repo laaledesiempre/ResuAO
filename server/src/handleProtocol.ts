@@ -115,6 +115,21 @@ type TrainerStatePayload = {
     max: number;
 };
 
+// Ventana del correo (VB6 frmCorreo / WriteListaCorreo): lista de mensajes
+// del personaje con remitente, texto, items adjuntos, leido y fecha.
+type CorreoStatePayload = {
+    mensajes: Array<{
+        index: number;
+        id: string;
+        remitente: string;
+        mensaje: string;
+        item: string;
+        itemCount: number;
+        leido: boolean;
+        fecha: string;
+    }>;
+};
+
 type AreaItemSnapshot = {
     idItem: number;
     map: number;
@@ -407,6 +422,8 @@ export type HandleProtocolApi = {
     openMarket: (payload: MarketOpenPayload, client: RuntimeClient) => void;
     openRetos: (payload: RetosOpenPayload, client: RuntimeClient) => void;
     openTrainer: (payload: TrainerStatePayload, client: RuntimeClient) => void;
+    openCorreo: (payload: CorreoStatePayload, client: RuntimeClient) => void;
+    correoPicOn: (client: RuntimeClient) => void;
     aprenderSpell: (idUser: EntityId, idPosSpell: number | string) => void;
     closeForce: (idUser: EntityId) => void;
     nameMap: (idUser: EntityId) => void;
@@ -1564,6 +1581,17 @@ const handleServer: HandleProtocolApi = {
     openTrainer(payload, client) {
         pkg.setPackageID(pkg.clientPacketID.trainerState);
         pkg.writeString(JSON.stringify(payload));
+        socket.send(client);
+    },
+
+    openCorreo(payload, client) {
+        pkg.setPackageID(pkg.clientPacketID.correoState);
+        pkg.writeString(JSON.stringify(payload));
+        socket.send(client);
+    },
+
+    correoPicOn(client) {
+        pkg.setPackageID(pkg.clientPacketID.correoPicOn);
         socket.send(client);
     },
 

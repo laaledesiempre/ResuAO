@@ -79,6 +79,8 @@ export const CLIENT_PACKET_ID = {
     entityVitalsDelta: 81,
     updateAtributos: 82,
     trainerState: 83,
+    correoState: 84,
+    correoPicOn: 85,
 } as const;
 
 export type PanelShare = {
@@ -205,6 +207,7 @@ export const SERVER_PACKET_ID = {
     retosAction: 248,
     assignAttributePoint: 250,
     trainerAction: 251,
+    correoAction: 252,
 } as const;
 
 export interface CharacterSnapshot {
@@ -454,6 +457,24 @@ export interface TrainerState {
     criaturas: TrainerCreatureEntry[];
     used: number;
     max: number;
+}
+
+// Ventana del correo (VB6 frmCorreo / WriteListaCorreo): espejo de
+// CorreoStatePayload del server (handleProtocol.openCorreo), serializado
+// como JSON string.
+export interface CorreoMessageEntry {
+    index: number;
+    id: string;
+    remitente: string;
+    mensaje: string;
+    item: string;
+    itemCount: number;
+    leido: boolean;
+    fecha: string;
+}
+
+export interface CorreoState {
+    mensajes: CorreoMessageEntry[];
 }
 
 export interface PlayerHudState {
@@ -857,6 +878,8 @@ export type ParsedServerPacket =
     | { type: "openMarket"; payload: MarketState }
     | { type: "openRetos"; payload: RetosState }
     | { type: "trainerState"; payload: TrainerState }
+    | { type: "correoState"; payload: CorreoState }
+    | { type: "correoPicOn"; payload: null }
     | { type: "closeBail"; payload: null }
     | { type: "openAdminIntervals"; payload: null }
     | { type: "panelSnapshot"; payload: PanelSnapshot }
@@ -1950,6 +1973,15 @@ function parseServerPacketById(
                 payload: JSON.parse(rawState) as TrainerState,
             };
         }
+        case CLIENT_PACKET_ID.correoState: {
+            const rawState = reader.getString();
+            return {
+                type: "correoState",
+                payload: JSON.parse(rawState) as CorreoState,
+            };
+        }
+        case CLIENT_PACKET_ID.correoPicOn:
+            return { type: "correoPicOn", payload: null };
         case CLIENT_PACKET_ID.closeTrade:
             return { type: "closeTrade", payload: null };
         case CLIENT_PACKET_ID.closeBail:
@@ -2361,6 +2393,17 @@ export function createTrainerActionPacket(
     payload: Record<string, unknown> = {},
 ): ArrayBuffer {
     const writer = new PacketWriter(SERVER_PACKET_ID.trainerAction);
+    writer.writeString(JSON.stringify({ action, ...payload }));
+    return writer.toArrayBuffer();
+}
+
+// Correo (VB6 packets Correo/SendCorreo/BorrarCorreo): "list" pide la lista,
+// "send" envia {destinatario, mensaje} y "delete" borra {index} (1-based).
+export function createCorreoActionPacket(
+    action: "list" | "send" | "delete",
+    payload: Record<string, unknown> = {},
+): ArrayBuffer {
+    const writer = new PacketWriter(SERVER_PACKET_ID.correoAction);
     writer.writeString(JSON.stringify({ action, ...payload }));
     return writer.toArrayBuffer();
 }

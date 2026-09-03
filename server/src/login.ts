@@ -13,6 +13,7 @@ const mapInstanceManager = require("./mapInstanceManager");
 const balance = require("./balance");
 const safeZone = require("./safeZone");
 const skills = require("./skills");
+const correo = require("./correo");
 
 function normalizeFaction(value: unknown): CharacterFaction {
     return value === "armada" || value === "caos" ? value : "none";
@@ -953,6 +954,10 @@ function Login(this: LoginApi) {
                     }
 
                     game.setNewAreas(ws);
+
+                    // VB6 TCP.bas (login): If .Correo.NoLeidos > 0 Then
+                    // WriteCorreoPicOn (aviso de mensajes nuevos al loguear).
+                    correo.checkUnreadOnLogin(ws);
                 });
 
                 funct.sendTelegramMessage(

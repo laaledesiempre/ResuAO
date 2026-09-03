@@ -386,11 +386,26 @@ export function renderPlay(
     trainerButton.addEventListener("click", () =>
         game?.trainerAction("list"),
     );
+    // Correo (VB6 frmCorreo): abre la lista de mensajes. El icono de
+    // mensajes nuevos del VB6 (CorreoPicOn) se refleja con un borde.
+    const correoButton = el(
+        "button",
+        { type: "button", className: "gw-action" },
+        "Correo",
+    );
+    const clearCorreoNotify = () => {
+        correoButton.style.outline = "";
+    };
+    correoButton.addEventListener("click", () => {
+        clearCorreoNotify();
+        game?.correoAction("list");
+    });
     const socialActions = el(
         "div",
         { className: "stats-list" },
         el("div", { className: "stat-label social-section" }, "Acciones"),
         el("div", { className: "stat-row" }, trainerButton),
+        el("div", { className: "stat-row" }, correoButton),
     );
     const socialPanel = el(
         "div",
@@ -1258,6 +1273,10 @@ export function renderPlay(
                 onBailState: (state) => windows.setBailState(state),
                 onCraftingState: (state) => windows.setCraftingState(state),
                 onTrainerState: (state) => windows.setTrainerState(state),
+                onCorreoState: (state) => windows.setCorreoState(state),
+                onCorreoPicOn: () => {
+                    correoButton.style.outline = "2px solid #E69500";
+                },
                 onNotice: (notice) => showToast(notice.text, notice.durationMs),
             });
             applyAudioSettings();

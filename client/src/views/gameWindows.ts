@@ -12,6 +12,7 @@ import type {
     TradeItem,
     TradeState,
     TrainerState,
+    CorreoState,
 } from "../lib/aowProtocol";
 import type { GameHandle } from "../game/bootstrap";
 import { inventoryIconLayout } from "../lib/inventoryIcons";
@@ -34,7 +35,14 @@ import {
 
 const ICON_SLOT_SIZE = 36;
 
-type WindowKind = "trade" | "market" | "bail" | "crafting" | "retos" | "trainer";
+type WindowKind =
+    | "trade"
+    | "market"
+    | "bail"
+    | "crafting"
+    | "retos"
+    | "trainer"
+    | "correo";
 
 export type GameWindowsDeps = {
     host: HTMLElement;
@@ -51,6 +59,7 @@ export type GameWindows = {
     setCraftingState: (state: CraftingState | null) => void;
     setRetosState: (state: RetosState | null) => void;
     setTrainerState: (state: TrainerState | null) => void;
+    setCorreoState: (state: CorreoState | null) => void;
     closeAll: () => void;
     destroy: () => void;
 };
@@ -1171,6 +1180,117 @@ export function createGameWindows(deps: GameWindowsDeps): GameWindows {
         );
     };
 
+    // Ventana del correo (VB6 frmCorreo): lista de mensajes con remitente y
+    // fecha; cada fila se expande para leer el texto y tiene boton Borrar
+    // (VB6 BorrarCorreo). El formulario de redaccion envia destinatario +
+    // mensaje (VB6 SendCorreo; el envio de items del VB6 queda fuera).
+    const renderCorreo = (state: CorreoState): void => {
+        const list = el("div", { className: "gw-list" });
+
+        if (!state.mensajes.length) {
+            list.append(
+                el("div", { className: "panel-empty" }, "No hay mensajes."),
+            );
+        }
+
+        for (const mensaje of state.mensajes) {
+            const deleteButton = el(
+                "button",
+                { type: "button", className: "gw-action" },
+                "Borrar",
+            );
+            deleteButton.addEventListener("click", (event) => {
+                event.stopPropagation();
+                deps.getGame()?.correoAction("delete", { index: mensaje.index });
+            });
+
+            const body = el(
+                "div",
+                { className: "gw-correo-body", style: "display:none" },
+                el("div", { className: "gw-correo-text" }, mensaje.mensaje),
+                deleteButton,
+            );
+
+            const head = el(
+                "div",
+                { className: "gw-row" },
+                el(
+                    "div",
+                    { className: "gw-market-group-info" },
+                    el(
+                        "div",
+                        { className: "gw-detail-name" },
+                        `${mensaje.index}) ${mensaje.remitente}`,
+                    ),
+                    el(
+                        "div",
+                        { className: "gw-note" },
+                        mensaje.fecha,
+                    ),
+                ),
+            );
+            head.addEventListener("click", () => {
+                body.style.display =
+                    body.style.display === "none" ? "" : "none";
+            });
+
+            list.append(el("div", { className: "gw-correo-item" }, head, body));
+        }
+
+        const destinatarioInput = el("input", {
+            type: "text",
+            className: "gw-input",
+            placeholder: "Destinatario",
+            maxLength: 50,
+        }) as HTMLInputElement;
+        const mensajeInput = el("textarea", {
+            className: "gw-input gw-correo-compose-text",
+            placeholder: "Mensaje",
+            maxLength: 600,
+            rows: 4,
+        }) as HTMLTextAreaElement;
+        const sendButton = el(
+            "button",
+            { type: "button", className: "gw-action" },
+            "Enviar",
+        );
+        sendButton.addEventListener("click", () => {
+            const destinatario = destinatarioInput.value.trim();
+            const texto = mensajeInput.value.trim();
+
+            if (!destinatario || !texto) {
+                return;
+            }
+
+            deps.getGame()?.correoAction("send", {
+                destinatario,
+                mensaje: texto,
+            });
+            mensajeInput.value = "";
+        });
+
+        openWindow(
+            "correo",
+            el(
+                "div",
+                {},
+                el(
+                    "div",
+                    { className: "gw-head" },
+                    el("h2", { className: "gw-title" }, "Correo"),
+                ),
+                list,
+                el(
+                    "div",
+                    { className: "gw-correo-compose" },
+                    destinatarioInput,
+                    mensajeInput,
+                    sendButton,
+                ),
+            ),
+        );
+    };
+
     // ---------------- public API ----------------
     return {
         setTradeState(state) {
@@ -1212,6 +1332,13 @@ export function createGameWindows(deps: GameWindowsDeps): GameWindows {
             if (state) {
                 renderTrainer(state);
             } else if (openKind === "trainer") {
+                closeCurrent();
+            }
+        },
+        setCorreoState(state) {
+            if (state) {
+                renderCorreo(state);
+            } else if (openKind === "correo") {
                 closeCurrent();
             }
         },

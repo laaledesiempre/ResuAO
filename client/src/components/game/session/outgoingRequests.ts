@@ -17,6 +17,7 @@ import {
     createRetosActionPacket,
     createSellItemPacket,
     createTrainerActionPacket,
+    createCorreoActionPacket,
     createUseItemClickPacket,
     createUseItemUPacket,
     createWithdrawBankGoldPacket,
@@ -507,6 +508,16 @@ export function createOutgoingRequests(options: OutgoingRequestsOptions) {
             if (!socket) return;
             socket.send(createTrainerActionPacket(action, payload ?? {}));
             recordClientGameAction("trainer_action", { action });
+        },
+
+        correoAction(
+            action: "list" | "send" | "delete",
+            payload?: Record<string, unknown>,
+        ) {
+            const socket = getSocket(websocketRef);
+            if (!socket) return;
+            socket.send(createCorreoActionPacket(action, payload ?? {}));
+            recordClientGameAction("correo_action", { action });
         },
 
         craft(
