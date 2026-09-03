@@ -135,6 +135,7 @@ type SelfVitalsDeltaPayload = {
     hunger?: number;
     thirst?: number;
     envenenado?: number;
+    skills?: number[];
 };
 
 type SelfMapMetaDeltaPayload = {
@@ -1114,6 +1115,13 @@ const handleServer: HandleProtocolApi = {
         }
 
         pkg.writeInt(invisibilitySpellRemainingMs);
+
+        // VB6 (Declares.bas): NUMSKILLS = 20 valores de skill (0..100).
+        const characterSkills = Array.isArray(character.skills) ? character.skills : [];
+
+        for (let index = 0; index < 20; index++) {
+            pkg.writeByte(Math.min(100, Math.max(0, Math.floor(Number(characterSkills[index]) || 0))));
+        }
     },
 
     sendNpc(npc) {
@@ -1219,6 +1227,12 @@ const handleServer: HandleProtocolApi = {
 
         if (payload.envenenado !== undefined) {
             pkg.writeByte(payload.envenenado);
+        }
+
+        if (payload.skills) {
+            for (let index = 0; index < 20; index++) {
+                pkg.writeByte(Math.min(100, Math.max(0, Math.floor(Number(payload.skills[index]) || 0))));
+            }
         }
 
         socket.send(client);

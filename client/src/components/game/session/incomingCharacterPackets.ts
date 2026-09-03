@@ -278,6 +278,9 @@ export async function handleIncomingCharacterPacket({
                     ...(packet.payload.envenenado !== undefined
                         ? { envenenado: packet.payload.envenenado }
                         : {}),
+                    ...(packet.payload.skills !== undefined
+                        ? { skills: packet.payload.skills }
+                        : {}),
                 };
             }
 
@@ -292,6 +295,9 @@ export async function handleIncomingCharacterPacket({
                 engine.user.thirst = packet.payload.thirst;
                 if (packet.payload.envenenado !== undefined) {
                     engine.user.envenenado = packet.payload.envenenado;
+                }
+                if (packet.payload.skills !== undefined) {
+                    engine.user.skills = packet.payload.skills;
                 }
             }
 
@@ -318,6 +324,9 @@ export async function handleIncomingCharacterPacket({
                     : {}),
                 ...(packet.payload.envenenado !== undefined
                     ? { envenenado: packet.payload.envenenado }
+                    : {}),
+                ...(packet.payload.skills !== undefined
+                    ? { skills: packet.payload.skills }
                     : {}),
             });
             return true;

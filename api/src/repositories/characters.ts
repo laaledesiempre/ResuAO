@@ -102,6 +102,16 @@ const characterPatchSchema = z
         hunger: z.coerce.number().int().min(0).max(100).optional(),
         thirst: z.coerce.number().int().min(0).max(100).optional(),
         envenenado: z.coerce.number().int().min(0).max(1).optional(),
+        skills: z
+            .array(z.coerce.number().int().min(0).max(100))
+            .max(20)
+            .transform((value) => JSON.stringify(value))
+            .optional(),
+        skillExp: z
+            .array(z.coerce.number().int().min(0))
+            .max(20)
+            .transform((value) => JSON.stringify(value))
+            .optional(),
         idRaza: z.coerce.number().int().optional(),
         idGenero: z.coerce.number().int().optional(),
         muerto: z
@@ -191,6 +201,8 @@ const fieldMap = [
     ["hunger", "hunger"],
     ["thirst", "thirst"],
     ["envenenado", "envenenado"],
+    ["skills", "skills"],
+    ["skillExp", "skill_exp"],
     ["idRaza", "id_raza"],
     ["idGenero", "id_genero"],
     ["muerto", "muerto"],
@@ -229,6 +241,24 @@ const fieldMap = [
     ["jailReason", "jail_reason"],
     ["connected", "connected"],
 ] as const;
+
+function parseSkillsColumn(value: unknown): number[] {
+    if (Array.isArray(value)) {
+        return value.map((entry) => Number(entry)).filter((entry) => Number.isFinite(entry));
+    }
+
+    try {
+        const parsed = JSON.parse(String(value ?? "[]"));
+
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+
+        return parsed.map((entry) => Number(entry)).filter((entry) => Number.isFinite(entry));
+    } catch {
+        return [];
+    }
+}
 
 function toCharacterResponse(
     character: CharacterRecord,
@@ -269,6 +299,8 @@ function toCharacterResponse(
         hunger: character.hunger,
         thirst: character.thirst,
         envenenado: character.envenenado,
+        skills: parseSkillsColumn(character.skills),
+        skillExp: parseSkillsColumn(character.skill_exp),
         idRaza: character.id_raza,
         idGenero: character.id_genero,
         muerto: character.muerto,

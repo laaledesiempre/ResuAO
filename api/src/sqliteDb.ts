@@ -720,6 +720,18 @@ export class SqlitePoolAdapter {
                 "ALTER TABLE characters ADD COLUMN envenenado INTEGER NOT NULL DEFAULT 0",
             );
         }
+
+        if (!characterColumns.some((column) => column.name === "skills")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN skills TEXT NOT NULL DEFAULT '[]'",
+            );
+        }
+
+        if (!characterColumns.some((column) => column.name === "skill_exp")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN skill_exp TEXT NOT NULL DEFAULT '[]'",
+            );
+        }
     }
 }
 

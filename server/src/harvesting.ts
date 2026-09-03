@@ -19,6 +19,7 @@ const vars = require("./vars");
 const handleProtocol = require("./handleProtocol") as HandleProtocolApi;
 const socket = require("./socket") as SocketApi;
 const workingLock = require("./workingLock");
+const skills = require("./skills");
 
 type HarvestingUser = RuntimeCharacter & {
     id: EntityId;
@@ -176,9 +177,15 @@ function resolveRewardItemId(skill: HarvestingSkill, resourceObject: DataObject 
     return IRON_ORE_ITEM_ID;
 }
 
-function getSimulatedSkill(user: HarvestingUser) {
-    return Math.min(100, Math.max(0, Number(user.level ?? 0) * 3));
+function getHarvestingSkillValue(user: HarvestingUser, skill: HarvestingSkill) {
+    return skill === "woodcutting"
+        ? skills.getSkillValue(user, skills.Skill.Talar)
+        : skills.getSkillValue(user, skills.Skill.Mineria);
 }
+
+// VB6 (Trabajo.bas DoTalar/DoMineria): Suerte = Int(-0.00125 * Skill^2 - 0.3 * Skill + 49);
+// exito si RandomNumber(1, Suerte) <= DificultadTalar/DificultadMinar (Server.ini: 6).
+const HARVEST_DIFFICULTY = 6;
 
 function isSafeHarvestingZone(user: HarvestingUser) {
     return safeZone.isSafeZonePosition(user.map, user.pos);
@@ -192,13 +199,13 @@ function getExtractResourceForLevel(level: number) {
 }
 
 function rollHarvestSuccess(user: HarvestingUser, skill: HarvestingSkill) {
-    const simulatedSkill = getSimulatedSkill(user);
-    const luck = Math.max(1, Math.floor(-0.00125 * simulatedSkill * simulatedSkill - 0.3 * simulatedSkill + 49));
+    const skillValue = getHarvestingSkillValue(user, skill);
+    const luck = Math.max(1, Math.floor(-0.00125 * skillValue * skillValue - 0.3 * skillValue + 49));
     const safeZoneBonus = skill === "woodcutting" ? 4 : 2;
     const rollMax = isSafeHarvestingZone(user) ? luck + safeZoneBonus : luck;
     const result = funct.randomIntFromInterval(1, Math.max(1, rollMax));
 
-    return result <= 5;
+    return result <= HARVEST_DIFFICULTY;
 }
 
 function getHarvestAmount(user: HarvestingUser) {
@@ -478,7 +485,16 @@ const harvesting: HarvestingApi = {
 
             state.nextTickAt = now + vars.timing.fishingTickMs;
 
-            if (!rollHarvestSuccess(user, state.skill)) {
+            const harvestSuccess = rollHarvestSuccess(user, state.skill);
+
+            // VB6 (Trabajo.bas): talar/minar sube skill tanto al acertar como al fallar.
+            skills.subirSkill(
+                idUser,
+                state.skill === "woodcutting" ? skills.Skill.Talar : skills.Skill.Mineria,
+                harvestSuccess,
+            );
+
+            if (!harvestSuccess) {
                 continue;
             }
 

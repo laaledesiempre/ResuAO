@@ -27,6 +27,7 @@ const socket = require("./socket") as SocketApi;
 const funct = require("./functions");
 const game = require("./game") as GameApi;
 const handleProtocol = require("./handleProtocol") as HandleProtocolApi;
+const skills = require("./skills");
 
 const AREA_RANGE_X = vars.areaVisionRangeX as number;
 const AREA_RANGE_Y = vars.areaVisionRangeY as number;
@@ -2502,6 +2503,10 @@ function Npcs(this: NpcsApi) {
 
                 const probExito = Math.max(10, Math.min(90, 50 + (npcPoderAtaque - userEvasion) * 0.4));
                 const npcImpacto = funct.randomIntFromInterval(1, 100) <= probExito;
+
+                // VB6 (SistemaCombate.bas NpcAtacaUser): Tacticas sube al evadir
+                // (acerto = true cuando el NPC falla).
+                skills.subirSkill(idUser, skills.Skill.Tacticas, !npcImpacto);
 
                 let dmg: number | "¡Fallas!" = "¡Fallas!";
 

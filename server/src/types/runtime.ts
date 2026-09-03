@@ -267,6 +267,8 @@ export type RuntimeCharacter = {
     lastThirstDecayAt?: number;
     envenenado?: NumericFlag;
     lastVenenoDamageAt?: number;
+    skills?: number[];
+    skillExp?: number[];
     gold?: number;
     privileges?: number;
     invisibleAdmin?: boolean;
