@@ -23,7 +23,7 @@ type CraftingUser = RuntimeCharacter & {
     idItemWeapon?: number | string;
     craftingTarget?: {
         pendingTarget?: boolean;
-        profession?: "blacksmith";
+        profession?: CraftingProfession;
         slot?: number;
         itemId?: number;
     };
@@ -92,6 +92,42 @@ function getProfessionRecipes(profession: CraftingProfession, skill: number) {
 
 function isWithinRange(origin: Position, target: Position, maxDistance: number) {
     return Math.abs(origin.x - target.x) <= maxDistance && Math.abs(origin.y - target.y) <= maxDistance;
+}
+
+// Textos exactos del VB6 (Codigo/Trabajo.bas: CarpinteroTieneMateriales / HerreroTieneMateriales).
+function getMissingMaterialMessage(itemId: number) {
+    switch (itemId) {
+        case 58: // Lena
+            return "No tienes suficiente madera.";
+        case 1006: // LenaElfica
+            return "No tienes suficiente madera elfica.";
+        case 386: // LingoteHierro
+            return "No tienes suficientes lingotes de hierro.";
+        case 387: // LingotePlata
+            return "No tienes suficientes lingotes de plata.";
+        case 388: // LingoteOro
+            return "No tienes suficientes lingotes de oro.";
+        default:
+            return "No tienes suficientes materiales.";
+    }
+}
+
+// Textos exactos del VB6 (Codigo/Trabajo.bas: HerreroConstruirItem / CarpinteroConstruirItem).
+function getCraftSuccessMessage(obj: DataObject | undefined, amount: number) {
+    const single = amount === 1;
+
+    switch (obj?.objType) {
+        case vars.objType.armas:
+            return `Has construido ${single ? "el arma!" : `${amount} armas!`}`;
+        case vars.objType.escudos:
+            return `Has construido ${single ? "el escudo!" : `${amount} escudos!`}`;
+        case vars.objType.cascos:
+            return `Has construido ${single ? "el casco!" : `${amount} cascos!`}`;
+        case vars.objType.armaduras:
+            return `Has construido ${single ? "la armadura!" : `${amount} armaduras`}`;
+        default:
+            return `Has construido ${amount} ${single ? "objeto!" : "objetos!"}`;
+    }
 }
 
 function isValidAnvilTarget(user: CraftingUser, target: Position) {
@@ -397,10 +433,12 @@ const crafting: CraftingApi = {
         if (!hasTool) {
             handleProtocol.console(
                 profession === "carpentry"
-                    ? "Necesitas un serrucho para trabajar carpintería."
+                    ? // Texto exacto del VB6 (Codigo/Trabajo.bas: CarpinteroConstruirItem).
+                      "Debes tener equipado el serrucho para trabajar."
                     : profession === "tailoring"
                       ? "Necesitas un costurero para trabajar sastrería."
-                      : "Necesitas un martillo de herrero para trabajar herrería.",
+                      : // Texto exacto del VB6 (Codigo/Trabajo.bas).
+                        "Debes equiparte el martillo de herrero.",
                 "white",
                 0,
                 0,
@@ -416,8 +454,7 @@ const crafting: CraftingApi = {
 
         for (const material of scaledMaterials) {
             if (countInventoryItem(user, material.itemId) < material.amount) {
-                const materialObj = vars.datObj[material.itemId] as DataObject | undefined;
-                handleProtocol.console(`No tienes suficiente ${materialObj?.name ?? "material"}.`, "white", 0, 0, ws);
+                handleProtocol.console(getMissingMaterialMessage(material.itemId), "white", 0, 0, ws);
                 return;
             }
         }
@@ -437,7 +474,7 @@ const crafting: CraftingApi = {
         await game.persistCharacterItemsById(user.id);
 
         const craftedObj = vars.datObj[recipe.itemId] as DataObject | undefined;
-        handleProtocol.console(`Has fabricado ${safeAmount} ${craftedObj?.name ?? "objeto"}.`, "#86efac", 0, 0, ws);
+        handleProtocol.console(getCraftSuccessMessage(craftedObj, safeAmount), "#86efac", 0, 0, ws);
     },
 
     cancelPendingTarget(idUser) {

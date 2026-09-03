@@ -4,56 +4,104 @@
         "profession": "carpentry",
         "category": "Municion",
         "itemId": 480,
-        "skill": 5,
-        "materials": [{ "itemId": 58, "amount": 1 }]
+        "skill": 20,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 1
+            }
+        ]
     },
     {
         "id": 2,
         "profession": "carpentry",
         "category": "Municion",
         "itemId": 551,
-        "skill": 45,
-        "materials": [{ "itemId": 58, "amount": 2 }]
+        "skill": 40,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 4
+            }
+        ]
     },
     {
         "id": 3,
         "profession": "carpentry",
         "category": "Municion",
         "itemId": 552,
-        "skill": 63,
-        "materials": [{ "itemId": 58, "amount": 3 }]
+        "skill": 65,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 6
+            }
+        ]
     },
     {
         "id": 4,
         "profession": "carpentry",
         "category": "Municion",
         "itemId": 553,
-        "skill": 75,
-        "materials": [{ "itemId": 58, "amount": 6 }]
+        "skill": 90,
+        "materials": [
+            {
+                "itemId": 1006,
+                "amount": 2
+            }
+        ]
     },
     {
         "id": 5,
         "profession": "carpentry",
         "category": "Arcos",
         "itemId": 478,
-        "skill": 10,
-        "materials": [{ "itemId": 58, "amount": 200 }]
+        "skill": 20,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 42
+            }
+        ]
     },
     {
         "id": 6,
         "profession": "carpentry",
         "category": "Arcos",
         "itemId": 663,
-        "skill": 25,
-        "materials": [{ "itemId": 58, "amount": 500 }]
+        "skill": 50,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 175
+            }
+        ]
     },
     {
         "id": 7,
         "profession": "carpentry",
         "category": "Arcos",
         "itemId": 479,
-        "skill": 63,
-        "materials": [{ "itemId": 58, "amount": 900 }]
+        "skill": 40,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 450
+            }
+        ]
+    },
+    {
+        "id": 64,
+        "profession": "carpentry",
+        "category": "Arcos",
+        "itemId": 664,
+        "skill": 75,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 650
+            }
+        ]
     },
     {
         "id": 8,
@@ -61,47 +109,116 @@
         "category": "Arcos",
         "itemId": 665,
         "skill": 100,
-        "materials": [{ "itemId": 1006, "amount": 1000 }]
+        "materials": [
+            {
+                "itemId": 1006,
+                "amount": 500
+            }
+        ]
     },
     {
         "id": 9,
         "profession": "carpentry",
         "category": "Barcos",
         "itemId": 474,
-        "skill": 75,
-        "materials": [{ "itemId": 58, "amount": 25000 }]
+        "skill": 40,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 10000
+            }
+        ]
     },
     {
         "id": 10,
         "profession": "carpentry",
         "category": "Barcos",
         "itemId": 475,
-        "skill": 100,
-        "materials": [{ "itemId": 58, "amount": 30000 }]
+        "skill": 65,
+        "materials": [
+            {
+                "itemId": 1006,
+                "amount": 10000
+            }
+        ]
     },
     {
         "id": 63,
         "profession": "carpentry",
         "category": "Barcos",
         "itemId": 476,
-        "skill": 100,
-        "materials": [{ "itemId": 58, "amount": 40000 }]
+        "skill": 90,
+        "materials": [
+            {
+                "itemId": 1006,
+                "amount": 15000
+            }
+        ]
+    },
+    {
+        "id": 65,
+        "profession": "carpentry",
+        "category": "Instrumentos",
+        "itemId": 362,
+        "skill": 75,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 800
+            }
+        ]
+    },
+    {
+        "id": 66,
+        "profession": "carpentry",
+        "category": "Instrumentos",
+        "itemId": 469,
+        "skill": 75,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 800
+            }
+        ]
+    },
+    {
+        "id": 67,
+        "profession": "carpentry",
+        "category": "Instrumentos",
+        "itemId": 540,
+        "skill": 75,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 800
+            }
+        ]
     },
     {
         "id": 11,
         "profession": "carpentry",
         "category": "Instrumentos",
         "itemId": 696,
-        "skill": 75,
-        "materials": [{ "itemId": 58, "amount": 800 }]
+        "skill": 100,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 1500
+            }
+        ]
     },
     {
         "id": 12,
         "profession": "carpentry",
         "category": "Instrumentos",
         "itemId": 208,
-        "skill": 75,
-        "materials": [{ "itemId": 58, "amount": 1200 }]
+        "skill": 100,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 1500
+            }
+        ]
     },
     {
         "id": 13,
@@ -109,7 +226,12 @@
         "category": "Instrumentos",
         "itemId": 1049,
         "skill": 100,
-        "materials": [{ "itemId": 1006, "amount": 600 }]
+        "materials": [
+            {
+                "itemId": 1006,
+                "amount": 1150
+            }
+        ]
     },
     {
         "id": 14,
@@ -117,15 +239,207 @@
         "category": "Instrumentos",
         "itemId": 1050,
         "skill": 100,
-        "materials": [{ "itemId": 1006, "amount": 900 }]
+        "materials": [
+            {
+                "itemId": 1006,
+                "amount": 1000
+            }
+        ]
     },
     {
         "id": 15,
         "profession": "carpentry",
         "category": "Baculos",
-        "itemId": 659,
-        "skill": 60,
-        "materials": [{ "itemId": 58, "amount": 1200 }]
+        "itemId": 660,
+        "skill": 85,
+        "materials": [
+            {
+                "itemId": 1006,
+                "amount": 2900
+            }
+        ]
+    },
+    {
+        "id": 68,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 163,
+        "skill": 5,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 3
+            }
+        ]
+    },
+    {
+        "id": 69,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 168,
+        "skill": 9,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "id": 70,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 162,
+        "skill": 9,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "id": 71,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 733,
+        "skill": 9,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 25
+            }
+        ]
+    },
+    {
+        "id": 72,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 799,
+        "skill": 9,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 50
+            }
+        ]
+    },
+    {
+        "id": 73,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 788,
+        "skill": 9,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 50
+            }
+        ]
+    },
+    {
+        "id": 74,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 789,
+        "skill": 15,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 60
+            }
+        ]
+    },
+    {
+        "id": 75,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 790,
+        "skill": 15,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 60
+            }
+        ]
+    },
+    {
+        "id": 76,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 791,
+        "skill": 25,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 120
+            }
+        ]
+    },
+    {
+        "id": 77,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 800,
+        "skill": 30,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 200
+            }
+        ]
+    },
+    {
+        "id": 78,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 167,
+        "skill": 56,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 400
+            }
+        ]
+    },
+    {
+        "id": 79,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 756,
+        "skill": 56,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 400
+            }
+        ]
+    },
+    {
+        "id": 80,
+        "profession": "carpentry",
+        "category": "Muebles",
+        "itemId": 748,
+        "skill": 56,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 400
+            }
+        ]
+    },
+    {
+        "id": 81,
+        "profession": "carpentry",
+        "category": "Otros",
+        "itemId": 138,
+        "skill": 12,
+        "materials": [
+            {
+                "itemId": 58,
+                "amount": 70
+            }
+        ]
     },
     {
         "id": 16,
@@ -133,7 +447,12 @@
         "category": "Armas",
         "itemId": 15,
         "skill": 0,
-        "materials": [{ "itemId": 386, "amount": 3 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 3
+            }
+        ]
     },
     {
         "id": 17,
@@ -141,7 +460,12 @@
         "category": "Armas",
         "itemId": 165,
         "skill": 15,
-        "materials": [{ "itemId": 386, "amount": 10 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 10
+            }
+        ]
     },
     {
         "id": 18,
@@ -149,7 +473,12 @@
         "category": "Armas",
         "itemId": 365,
         "skill": 35,
-        "materials": [{ "itemId": 386, "amount": 50 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 50
+            }
+        ]
     },
     {
         "id": 19,
@@ -157,7 +486,12 @@
         "category": "Armas",
         "itemId": 366,
         "skill": 60,
-        "materials": [{ "itemId": 386, "amount": 100 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 100
+            }
+        ]
     },
     {
         "id": 20,
@@ -166,8 +500,14 @@
         "itemId": 367,
         "skill": 100,
         "materials": [
-            { "itemId": 386, "amount": 100 },
-            { "itemId": 387, "amount": 100 }
+            {
+                "itemId": 386,
+                "amount": 100
+            },
+            {
+                "itemId": 387,
+                "amount": 100
+            }
         ]
     },
     {
@@ -176,7 +516,12 @@
         "category": "Armas",
         "itemId": 164,
         "skill": 25,
-        "materials": [{ "itemId": 386, "amount": 50 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 50
+            }
+        ]
     },
     {
         "id": 22,
@@ -184,7 +529,12 @@
         "category": "Armas",
         "itemId": 2,
         "skill": 25,
-        "materials": [{ "itemId": 386, "amount": 20 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 20
+            }
+        ]
     },
     {
         "id": 23,
@@ -192,7 +542,12 @@
         "category": "Armas",
         "itemId": 125,
         "skill": 30,
-        "materials": [{ "itemId": 386, "amount": 30 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 30
+            }
+        ]
     },
     {
         "id": 24,
@@ -200,7 +555,12 @@
         "category": "Armas",
         "itemId": 159,
         "skill": 70,
-        "materials": [{ "itemId": 386, "amount": 55 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 55
+            }
+        ]
     },
     {
         "id": 25,
@@ -208,7 +568,12 @@
         "category": "Armas",
         "itemId": 399,
         "skill": 55,
-        "materials": [{ "itemId": 386, "amount": 100 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 100
+            }
+        ]
     },
     {
         "id": 26,
@@ -216,7 +581,12 @@
         "category": "Armas",
         "itemId": 123,
         "skill": 70,
-        "materials": [{ "itemId": 386, "amount": 50 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 50
+            }
+        ]
     },
     {
         "id": 27,
@@ -224,7 +594,12 @@
         "category": "Armas",
         "itemId": 124,
         "skill": 75,
-        "materials": [{ "itemId": 386, "amount": 90 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 90
+            }
+        ]
     },
     {
         "id": 28,
@@ -232,7 +607,12 @@
         "category": "Armas",
         "itemId": 129,
         "skill": 80,
-        "materials": [{ "itemId": 386, "amount": 105 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 105
+            }
+        ]
     },
     {
         "id": 29,
@@ -240,7 +620,12 @@
         "category": "Armas",
         "itemId": 403,
         "skill": 90,
-        "materials": [{ "itemId": 387, "amount": 105 }]
+        "materials": [
+            {
+                "itemId": 387,
+                "amount": 105
+            }
+        ]
     },
     {
         "id": 30,
@@ -248,7 +633,12 @@
         "category": "Armas",
         "itemId": 1036,
         "skill": 80,
-        "materials": [{ "itemId": 386, "amount": 105 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 105
+            }
+        ]
     },
     {
         "id": 31,
@@ -256,7 +646,12 @@
         "category": "Armaduras",
         "itemId": 195,
         "skill": 76,
-        "materials": [{ "itemId": 386, "amount": 210 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 210
+            }
+        ]
     },
     {
         "id": 32,
@@ -265,9 +660,18 @@
         "itemId": 356,
         "skill": 100,
         "materials": [
-            { "itemId": 386, "amount": 300 },
-            { "itemId": 387, "amount": 200 },
-            { "itemId": 388, "amount": 30 }
+            {
+                "itemId": 386,
+                "amount": 300
+            },
+            {
+                "itemId": 387,
+                "amount": 200
+            },
+            {
+                "itemId": 388,
+                "amount": 30
+            }
         ]
     },
     {
@@ -277,9 +681,18 @@
         "itemId": 854,
         "skill": 100,
         "materials": [
-            { "itemId": 386, "amount": 300 },
-            { "itemId": 387, "amount": 200 },
-            { "itemId": 388, "amount": 30 }
+            {
+                "itemId": 386,
+                "amount": 300
+            },
+            {
+                "itemId": 387,
+                "amount": 200
+            },
+            {
+                "itemId": 388,
+                "amount": 30
+            }
         ]
     },
     {
@@ -289,9 +702,18 @@
         "itemId": 496,
         "skill": 100,
         "materials": [
-            { "itemId": 386, "amount": 550 },
-            { "itemId": 387, "amount": 350 },
-            { "itemId": 388, "amount": 150 }
+            {
+                "itemId": 386,
+                "amount": 550
+            },
+            {
+                "itemId": 387,
+                "amount": 350
+            },
+            {
+                "itemId": 388,
+                "amount": 150
+            }
         ]
     },
     {
@@ -301,9 +723,18 @@
         "itemId": 495,
         "skill": 100,
         "materials": [
-            { "itemId": 386, "amount": 550 },
-            { "itemId": 387, "amount": 350 },
-            { "itemId": 388, "amount": 150 }
+            {
+                "itemId": 386,
+                "amount": 550
+            },
+            {
+                "itemId": 387,
+                "amount": 350
+            },
+            {
+                "itemId": 388,
+                "amount": 150
+            }
         ]
     },
     {
@@ -312,7 +743,12 @@
         "category": "Escudos",
         "itemId": 128,
         "skill": 55,
-        "materials": [{ "itemId": 386, "amount": 30 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 30
+            }
+        ]
     },
     {
         "id": 37,
@@ -320,7 +756,12 @@
         "category": "Escudos",
         "itemId": 133,
         "skill": 90,
-        "materials": [{ "itemId": 387, "amount": 100 }]
+        "materials": [
+            {
+                "itemId": 387,
+                "amount": 100
+            }
+        ]
     },
     {
         "id": 38,
@@ -328,7 +769,12 @@
         "category": "Accesorios",
         "itemId": 699,
         "skill": 75,
-        "materials": [{ "itemId": 387, "amount": 75 }]
+        "materials": [
+            {
+                "itemId": 387,
+                "amount": 75
+            }
+        ]
     },
     {
         "id": 39,
@@ -336,7 +782,12 @@
         "category": "Cascos",
         "itemId": 131,
         "skill": 65,
-        "materials": [{ "itemId": 386, "amount": 105 }]
+        "materials": [
+            {
+                "itemId": 386,
+                "amount": 105
+            }
+        ]
     },
     {
         "profession": "blacksmith",
@@ -344,10 +795,20 @@
         "itemId": 405,
         "skill": 75,
         "materials": [
-            { "itemId": 386, "amount": 180 },
-            { "itemId": 387, "amount": 210 },
-            { "itemId": 388, "amount": 60 }
-        ]
+            {
+                "itemId": 386,
+                "amount": 180
+            },
+            {
+                "itemId": 387,
+                "amount": 210
+            },
+            {
+                "itemId": 388,
+                "amount": 60
+            }
+        ],
+        "id": 41
     },
     {
         "id": 40,
@@ -356,8 +817,14 @@
         "itemId": 814,
         "skill": 100,
         "materials": [
-            { "itemId": 386, "amount": 5 },
-            { "itemId": 387, "amount": 5 }
+            {
+                "itemId": 386,
+                "amount": 5
+            },
+            {
+                "itemId": 387,
+                "amount": 5
+            }
         ]
     },
     {
@@ -366,7 +833,12 @@
         "category": "Objetos",
         "itemId": 3578,
         "skill": 0,
-        "materials": [{ "itemId": 414, "amount": 1 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 1
+            }
+        ]
     },
     {
         "id": 43,
@@ -374,7 +846,12 @@
         "category": "Ropas",
         "itemId": 32,
         "skill": 2,
-        "materials": [{ "itemId": 414, "amount": 1 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 1
+            }
+        ]
     },
     {
         "id": 44,
@@ -382,7 +859,12 @@
         "category": "Ropas",
         "itemId": 240,
         "skill": 0,
-        "materials": [{ "itemId": 414, "amount": 7 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 7
+            }
+        ]
     },
     {
         "id": 45,
@@ -390,7 +872,12 @@
         "category": "Ropas",
         "itemId": 1975,
         "skill": 10,
-        "materials": [{ "itemId": 414, "amount": 20 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 20
+            }
+        ]
     },
     {
         "id": 46,
@@ -398,7 +885,12 @@
         "category": "Ropas",
         "itemId": 2911,
         "skill": 10,
-        "materials": [{ "itemId": 414, "amount": 20 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 20
+            }
+        ]
     },
     {
         "id": 47,
@@ -406,7 +898,12 @@
         "category": "Ropas",
         "itemId": 508,
         "skill": 25,
-        "materials": [{ "itemId": 414, "amount": 30 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 30
+            }
+        ]
     },
     {
         "id": 48,
@@ -414,7 +911,12 @@
         "category": "Ropas",
         "itemId": 196,
         "skill": 35,
-        "materials": [{ "itemId": 414, "amount": 50 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 50
+            }
+        ]
     },
     {
         "id": 49,
@@ -422,7 +924,12 @@
         "category": "Ropas",
         "itemId": 1226,
         "skill": 35,
-        "materials": [{ "itemId": 414, "amount": 50 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 50
+            }
+        ]
     },
     {
         "id": 50,
@@ -431,8 +938,14 @@
         "itemId": 1955,
         "skill": 45,
         "materials": [
-            { "itemId": 414, "amount": 60 },
-            { "itemId": 415, "amount": 5 }
+            {
+                "itemId": 414,
+                "amount": 60
+            },
+            {
+                "itemId": 415,
+                "amount": 5
+            }
         ]
     },
     {
@@ -442,8 +955,14 @@
         "itemId": 1089,
         "skill": 55,
         "materials": [
-            { "itemId": 414, "amount": 70 },
-            { "itemId": 415, "amount": 10 }
+            {
+                "itemId": 414,
+                "amount": 70
+            },
+            {
+                "itemId": 415,
+                "amount": 10
+            }
         ]
     },
     {
@@ -453,8 +972,14 @@
         "itemId": 2857,
         "skill": 55,
         "materials": [
-            { "itemId": 414, "amount": 70 },
-            { "itemId": 415, "amount": 10 }
+            {
+                "itemId": 414,
+                "amount": 70
+            },
+            {
+                "itemId": 415,
+                "amount": 10
+            }
         ]
     },
     {
@@ -464,8 +989,14 @@
         "itemId": 2932,
         "skill": 55,
         "materials": [
-            { "itemId": 414, "amount": 70 },
-            { "itemId": 415, "amount": 10 }
+            {
+                "itemId": 414,
+                "amount": 70
+            },
+            {
+                "itemId": 415,
+                "amount": 10
+            }
         ]
     },
     {
@@ -475,9 +1006,18 @@
         "itemId": 2916,
         "skill": 65,
         "materials": [
-            { "itemId": 414, "amount": 80 },
-            { "itemId": 415, "amount": 15 },
-            { "itemId": 416, "amount": 1 }
+            {
+                "itemId": 414,
+                "amount": 80
+            },
+            {
+                "itemId": 415,
+                "amount": 15
+            },
+            {
+                "itemId": 416,
+                "amount": 1
+            }
         ]
     },
     {
@@ -487,9 +1027,18 @@
         "itemId": 1961,
         "skill": 65,
         "materials": [
-            { "itemId": 414, "amount": 80 },
-            { "itemId": 415, "amount": 15 },
-            { "itemId": 416, "amount": 1 }
+            {
+                "itemId": 414,
+                "amount": 80
+            },
+            {
+                "itemId": 415,
+                "amount": 15
+            },
+            {
+                "itemId": 416,
+                "amount": 1
+            }
         ]
     },
     {
@@ -499,9 +1048,18 @@
         "itemId": 2854,
         "skill": 65,
         "materials": [
-            { "itemId": 414, "amount": 80 },
-            { "itemId": 415, "amount": 15 },
-            { "itemId": 416, "amount": 1 }
+            {
+                "itemId": 414,
+                "amount": 80
+            },
+            {
+                "itemId": 415,
+                "amount": 15
+            },
+            {
+                "itemId": 416,
+                "amount": 1
+            }
         ]
     },
     {
@@ -511,9 +1069,18 @@
         "itemId": 519,
         "skill": 100,
         "materials": [
-            { "itemId": 414, "amount": 45 },
-            { "itemId": 415, "amount": 25 },
-            { "itemId": 416, "amount": 3 }
+            {
+                "itemId": 414,
+                "amount": 45
+            },
+            {
+                "itemId": 415,
+                "amount": 25
+            },
+            {
+                "itemId": 416,
+                "amount": 3
+            }
         ]
     },
     {
@@ -523,9 +1090,18 @@
         "itemId": 1957,
         "skill": 100,
         "materials": [
-            { "itemId": 414, "amount": 45 },
-            { "itemId": 415, "amount": 25 },
-            { "itemId": 416, "amount": 3 }
+            {
+                "itemId": 414,
+                "amount": 45
+            },
+            {
+                "itemId": 415,
+                "amount": 25
+            },
+            {
+                "itemId": 416,
+                "amount": 3
+            }
         ]
     },
     {
@@ -534,7 +1110,12 @@
         "category": "Gorros",
         "itemId": 1778,
         "skill": 10,
-        "materials": [{ "itemId": 414, "amount": 15 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 15
+            }
+        ]
     },
     {
         "id": 60,
@@ -543,9 +1124,18 @@
         "itemId": 3462,
         "skill": 100,
         "materials": [
-            { "itemId": 414, "amount": 300 },
-            { "itemId": 415, "amount": 150 },
-            { "itemId": 416, "amount": 40 }
+            {
+                "itemId": 414,
+                "amount": 300
+            },
+            {
+                "itemId": 415,
+                "amount": 150
+            },
+            {
+                "itemId": 416,
+                "amount": 40
+            }
         ]
     },
     {
@@ -554,7 +1144,12 @@
         "category": "Objetos",
         "itemId": 3822,
         "skill": 0,
-        "materials": [{ "itemId": 414, "amount": 1 }]
+        "materials": [
+            {
+                "itemId": 414,
+                "amount": 1
+            }
+        ]
     },
     {
         "id": 62,
@@ -562,6 +1157,11 @@
         "category": "Gorros",
         "itemId": 3990,
         "skill": 75,
-        "materials": [{ "itemId": 416, "amount": 6 }]
+        "materials": [
+            {
+                "itemId": 416,
+                "amount": 6
+            }
+        ]
     }
 ]

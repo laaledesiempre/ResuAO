@@ -42,7 +42,7 @@ export type SmeltingState = {
 
 export type CraftingTargetState = {
     pendingTarget?: boolean;
-    profession?: "blacksmith";
+    profession?: "blacksmith" | "carpentry" | "tailoring";
     slot?: number;
     itemId?: number;
 };
