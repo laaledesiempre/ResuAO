@@ -354,62 +354,6 @@ type GameNpc = RuntimeNpc & {
     hitExpAwarded?: number;
 };
 
-const STABBING_CHANCE_BY_CLASS: Record<number, number> = {
-    3: 0.08,
-    9: 0.08,
-    8: 0.15,
-    4: 0.24,
-    2: 0.15,
-    6: 0.15,
-    1: 0.08,
-    7: 0.08,
-    10: 0.08,
-    5: 0.08,
-    11: 0.08,
-};
-
-const STABBING_DAMAGE_MOD_BY_CLASS: Record<number, number> = {
-    3: 1.4,
-    9: 1.3,
-    8: 1.4,
-    4: 1.35,
-    2: 1.25,
-    6: 1.25,
-    1: 0.1,
-    7: 0.1,
-    10: 1.1,
-    5: 1.2,
-    11: 1.2,
-};
-
-const STABBING_NPC_MIN_MOD_BY_CLASS: Record<number, number> = {
-    3: 1.4,
-    9: 1.3,
-    8: 1.4,
-    4: 1.6,
-    2: 1.25,
-    6: 1.25,
-    1: 1.2,
-    7: 1.2,
-    10: 1.1,
-    5: 1.2,
-    11: 1.2,
-};
-
-const STABBING_NPC_MAX_MOD_BY_CLASS: Record<number, number> = {
-    3: 1.4,
-    9: 1.3,
-    8: 1.4,
-    4: 1.9,
-    2: 1.25,
-    6: 1.25,
-    1: 1.2,
-    7: 1.2,
-    10: 1.1,
-    5: 1.2,
-    11: 1.2,
-};
-
 const COMBAT_HIT_FX_ID = 14;
 const COMBAT_SHIELD_BLOCK_FX_ID = 88;
 const COMBAT_STABBING_FX_ID = 89;
@@ -7877,6 +7821,7 @@ function Game(this: GameApi) {
                 const isDragonSlayerHit =
                     isDragonSlayerSword(weaponItemId) && Number(npc.npcType ?? 0) === Number(vars.npcType.dragon);
                 let dmg = game.calcularDmg(idUser);
+                let dmgSinDefensa = dmg;
 
                 if (isDragonSlayerHit) {
                     dmg = Math.max(1, npc.hp);
@@ -7896,6 +7841,9 @@ function Game(this: GameApi) {
                         game.quitarUserInvItem(idUser, user.idItemWeapon, 1);
                     }
                 } else {
+                    // VB6 (SistemaCombate.bas UserDanoNpc): los asesinos apunalan
+                    // con el dano base sin descontar la defensa del npc.
+                    dmgSinDefensa = dmg;
                     dmg -= npc.def;
 
                     if (dmg < 1) {
@@ -7912,20 +7860,16 @@ function Game(this: GameApi) {
                 };
 
                 if (!isDragonSlayerHit && npc.hp > 0 && game.puedeApu(idUser)) {
-                    stabResult = game.apuNpc(idUser, idNpc, dmg);
+                    // VB6: la defensa se ignora solo en asesinos (se pasa DanoBase).
+                    stabResult = game.apuNpc(
+                        idUser,
+                        idNpc,
+                        Number(user.idClase) === Number(vars.clases.asesino) ? dmgSinDefensa : dmg,
+                    );
                 }
 
                 if (stabResult.stabbed) {
                     emitNpcFxToArea(npc, COMBAT_STABBING_FX_ID);
-                    withUserClient(idUser, (userClient) => {
-                        handleProtocol.console(
-                            "¡Has apuñalado a " + npc.nameCharacter + " por " + stabResult.totalDamage + "!",
-                            "red",
-                            1,
-                            0,
-                            userClient,
-                        );
-                    });
                 } else {
                     emitNpcFxToArea(npc, COMBAT_HIT_FX_ID);
                     withUserClient(idUser, (userClient) => {
@@ -8186,24 +8130,6 @@ function Game(this: GameApi) {
 
                 if (stabResult.stabbed) {
                     emitCharacterFxToUserArea(idUserAttacked, COMBAT_STABBING_FX_ID);
-                    withUserClient(idUser, (userClient) => {
-                        handleProtocol.console(
-                            "¡Has apuñalado a " + userAttacked.nameCharacter + " por " + stabResult.totalDamage + "!",
-                            "red",
-                            1,
-                            0,
-                            userClient,
-                        );
-                    });
-                    withUserClient(idUserAttacked, (targetClient) => {
-                        handleProtocol.console(
-                            user.nameCharacter + " te ha apuñalado por " + stabResult.totalDamage + "!",
-                            "red",
-                            1,
-                            0,
-                            targetClient,
-                        );
-                    });
                 } else {
                     emitCharacterFxToUserArea(idUserAttacked, COMBAT_HIT_FX_ID);
                     switch (lugarCuerpo) {
@@ -8473,6 +8399,43 @@ function Game(this: GameApi) {
         }
     };
 
+    // VB6 (Trabajo.bas DoApunalar): chance de apunalar segun clase y skill.
+    // Select Case UserList(Userindex).Clase
+    //   Case Assasin: Int(((0.00003*S - 0.002)*S + 0.098)*S + 4.25)
+    //   Case Cleric, Paladin, Pirat: Int(((0.000003*S + 0.0006)*S + 0.0107)*S + 4.93)
+    //   Case Bard: Int(((0.000002*S + 0.0002)*S + 0.032)*S + 4.81)
+    //   Case Else: Int(0.0361*S + 4.39)
+    // Nota: resu no tiene clase Pirata y su Paladin usa el id 8.
+    function getApunalarSuerte(idClase: number, skill: number): number {
+        switch (Number(idClase)) {
+            case vars.clases.asesino:
+                return Math.floor(((0.00003 * skill - 0.002) * skill + 0.098) * skill + 4.25);
+            case vars.clases.clerigo:
+            case vars.clases.paladin:
+                return Math.floor(((0.000003 * skill + 0.0006) * skill + 0.0107) * skill + 4.93);
+            case vars.clases.bardo:
+                return Math.floor(((0.000002 * skill + 0.0002) * skill + 0.032) * skill + 4.81);
+            default:
+                return Math.floor(0.0361 * skill + 4.39);
+        }
+    }
+
+    // VB6: exito si RandomNumber(0, 100) < Suerte; sube skill acierte o falle.
+    function rollApunalar(idUser: EntityId, user: GameCharacter): boolean {
+        const suerte = getApunalarSuerte(Number(user.idClase ?? 0), game.getSkillApu(idUser));
+        const acerto = funct.randomIntFromInterval(0, 100) < suerte;
+
+        skills.subirSkill(idUser, skills.Skill.Apunalar, acerto);
+
+        if (!acerto) {
+            withUserClient(idUser, (userClient) => {
+                handleProtocol.console("No has logrado apunalar a tu enemigo!", "red", 1, 0, userClient);
+            });
+        }
+
+        return acerto;
+    }
+
     /**
      * [apuNpc description]
      * @param  {[type]} idUser [description]
@@ -8493,19 +8456,23 @@ function Game(this: GameApi) {
                 };
             }
 
-            const skillApu = game.getSkillApu(idUser);
-            const baseChance = skillApu * (STABBING_CHANCE_BY_CLASS[user.idClase] ?? STABBING_CHANCE_BY_CLASS[3]);
-            const probExito = clampChance(baseChance);
-
-            const chance = funct.randomIntFromInterval(1, 100);
-
-            if (chance <= probExito) {
-                const minMod = STABBING_NPC_MIN_MOD_BY_CLASS[user.idClase] ?? 1;
-                const maxMod = STABBING_NPC_MAX_MOD_BY_CLASS[user.idClase] ?? minMod;
-                const extraDamage = Math.floor(dmg * (Math.random() * (maxMod - minMod) + minMod));
+            // VB6 DoApunalar: .Stats.MinHp = .Stats.MinHp - Int(dano * 2)
+            if (rollApunalar(idUser, user)) {
+                const extraDamage = Math.floor(dmg * 2);
                 npc.hp -= extraDamage;
 
+                // VB6: Call CalcularDarExp(Userindex, VictimNpcIndex, dano * 2)
                 game.calcularExp(idUser, idNpc, extraDamage);
+
+                withUserClient(idUser, (userClient) => {
+                    handleProtocol.console(
+                        "Has apunalado la criatura por " + extraDamage,
+                        "red",
+                        1,
+                        0,
+                        userClient,
+                    );
+                });
 
                 return {
                     stabbed: true,
@@ -8549,18 +8516,36 @@ function Game(this: GameApi) {
                 };
             }
 
-            const skillApu = game.getSkillApu(idUser);
-            const baseChance = skillApu * (STABBING_CHANCE_BY_CLASS[user.idClase] ?? STABBING_CHANCE_BY_CLASS[3]);
-            const probExito = clampChance(baseChance);
+            // VB6 DoApunalar: asesinos Round(dano * 1.4), el resto Round(dano * 1.5).
+            if (rollApunalar(idUser, user)) {
+                const extraDamage = Math.round(
+                    dmg * (Number(user.idClase) === Number(vars.clases.asesino) ? 1.4 : 1.5),
+                );
+                userAttacked.hp -= extraDamage;
 
-            if (funct.randomIntFromInterval(1, 100) <= probExito) {
-                const tmpDmg = Math.floor(dmg * (STABBING_DAMAGE_MOD_BY_CLASS[user.idClase] ?? 1));
-                userAttacked.hp -= tmpDmg;
+                withUserClient(idUser, (userClient) => {
+                    handleProtocol.console(
+                        "Has apunalado a " + userAttacked.nameCharacter + " por " + extraDamage,
+                        "red",
+                        1,
+                        0,
+                        userClient,
+                    );
+                });
+                withUserClient(idUserAttacked, (targetClient) => {
+                    handleProtocol.console(
+                        "Te ha apunalado " + user.nameCharacter + " por " + extraDamage,
+                        "red",
+                        1,
+                        0,
+                        targetClient,
+                    );
+                });
 
                 return {
                     stabbed: true,
-                    extraDamage: tmpDmg,
-                    totalDamage: dmg + tmpDmg,
+                    extraDamage,
+                    totalDamage: dmg + extraDamage,
                 };
             }
 
@@ -8683,7 +8668,8 @@ function Game(this: GameApi) {
             if (!user) {
                 return 0;
             }
-            return getSimulatedSkill(user);
+            // VB6 (Trabajo.bas DoApunalar): usa UserSkills(eSkill.Apunalar).
+            return skills.getSkillValue(user, skills.Skill.Apunalar);
         } catch (err) {
             funct.dumpError(err);
             return 0;
@@ -8722,6 +8708,8 @@ function Game(this: GameApi) {
 
             let skillApu = game.getSkillApu(idUser);
 
+            // VB6 (Modulo_UsUaRiOs.bas PuedeApunalar): skill Apunalar >=
+            // MIN_APUNALAR (10, Declares.bas) o ser asesino.
             if (skillApu < 10 && user.idClase != vars.clases.asesino) {
                 return false;
             } else {
@@ -8806,10 +8794,9 @@ function Game(this: GameApi) {
                 if (itemWeapon.proyectil) {
                     skill = game.getSkillProyectiles(idUser);
                     modifier = vars.modAtaqueProyectiles[user.idClase];
-                } else if (itemWeapon.apu) {
-                    skill = game.getSkillApu(idUser);
-                    modifier = vars.modAtaqueArmas[user.idClase];
                 } else {
+                    // VB6 (SistemaCombate.bas PoderAtaqueArma): usa siempre el
+                    // skill Armas, incluso con armas apunalables.
                     skill = game.getSkillArmas(idUser);
                     modifier = vars.modAtaqueArmas[user.idClase];
                 }

@@ -37,6 +37,7 @@ const chatAuditLogger = require("./chatAuditLogger");
 const handleProtocol = require("./handleProtocol") as HandleProtocolApi;
 const login = require("./login");
 const runtimeTiming = require("./runtimeTiming");
+const robbing = require("./robbing") as import("./robbing").RobbingApi;
 const balance = require("./balance");
 const mapInstanceManager = require("./mapInstanceManager");
 const npcsInMap = loadAllMapNpcPlacements() as Array<{
@@ -2865,6 +2866,10 @@ const command: CommandApi = {
 
                 case "/meditar":
                     game.accionMeditar(clientId);
+                    break;
+
+                case "/robar":
+                    robbing.handleRobar(clientId);
                     break;
 
                 case "/entrenar": {
