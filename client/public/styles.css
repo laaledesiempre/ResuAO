@@ -1299,6 +1299,67 @@ body.side-resizing {
     background: linear-gradient(180deg, #d9a04a, #a96f1e 55%, #6e4710);
 }
 
+.player-mini-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.mini-bar {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--bg-input);
+    overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+.mini-bar-fill {
+    height: 100%;
+    width: 100%;
+    transition: width 0.3s;
+}
+
+.mini-bar-fill.hunger {
+    background: #b8863b;
+}
+
+.mini-bar-fill.thirst {
+    background: #4f9fb8;
+}
+
+.player-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.player-status:empty {
+    display: none;
+}
+
+.status-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+}
+
+.status-badge.status-debuff {
+    color: #f0a8a0;
+    background: rgba(169, 52, 36, 0.35);
+    border-color: #a93424;
+}
+
+.status-badge.status-buff {
+    color: var(--text-gold);
+    background: color-mix(in srgb, var(--accent) 25%, transparent);
+    border-color: var(--accent);
+}
+
 .hud-stat {
     color: var(--text-dim);
     white-space: nowrap;

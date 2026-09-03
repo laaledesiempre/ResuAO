@@ -597,6 +597,10 @@ function Login(this: LoginApi) {
                 personaje.clanMinJoinLevel = personaje.clanMinJoinLevel ?? null;
                 personaje.clanRole = personaje.clanRole ?? null;
                 personaje.clan = personaje.clanName ? `<${personaje.clanName}>` : "";
+                personaje.hunger = Math.min(100, Math.max(0, Number(personaje.hunger ?? 100)));
+                personaje.thirst = Math.min(100, Math.max(0, Number(personaje.thirst ?? 100)));
+                // VB6: el flag Envenenado se resetea a 0 al loguear.
+                personaje.envenenado = 0;
 
                 if (!personaje.posX) {
                     personaje.posX = 50;
@@ -1100,6 +1104,9 @@ function Login(this: LoginApi) {
             banned: null,
             dead: 0,
             criminal: 0,
+            hunger: 100,
+            thirst: 100,
+            envenenado: 0,
             faction: "none",
             navegando: 0,
             npcMatados: 0,

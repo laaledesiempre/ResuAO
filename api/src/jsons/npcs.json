@@ -6552,7 +6552,8 @@
     "soundClose": 0,
     "poderAtaque": 30,
     "poderEvasion": 10,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "501": {
     "hp": 75,
@@ -6980,7 +6981,8 @@
     "soundClose": 0,
     "poderAtaque": 150,
     "poderEvasion": 70,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "511": {
     "hp": 2750,
@@ -7357,7 +7359,8 @@
     "soundClose": 0,
     "poderAtaque": 150,
     "poderEvasion": 70,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "520": {
     "hp": 320,
@@ -7752,7 +7755,8 @@
     "soundClose": 0,
     "poderAtaque": 30,
     "poderEvasion": 10,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "530": {
     "hp": 200,
@@ -8533,7 +8537,8 @@
     "soundClose": 0,
     "poderAtaque": 150,
     "poderEvasion": 70,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "548": {
     "hp": 6000,
@@ -9180,7 +9185,8 @@
     "soundClose": 0,
     "poderAtaque": 30,
     "poderEvasion": 10,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "565": {
     "hp": 22,
@@ -9230,7 +9236,8 @@
     "soundClose": 0,
     "poderAtaque": 15,
     "poderEvasion": 10,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "567": {
     "hp": 310,
@@ -9397,7 +9404,8 @@
     "soundClose": 0,
     "poderAtaque": 500,
     "poderEvasion": 10,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "574": {
     "hp": 1500,
@@ -11682,7 +11690,8 @@
     "soundClose": 0,
     "poderAtaque": 63,
     "poderEvasion": 32,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "veneno": 1
   },
   "629": {
     "hp": 0,

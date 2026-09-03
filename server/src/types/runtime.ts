@@ -98,7 +98,7 @@ export type InventoryRecord = Record<string, InventoryItem>;
 
 export type SpellRecord = Record<string, SpellSlot>;
 
-export type SpellEffect = "Paraliza" | "Inmoviliza";
+export type SpellEffect = "Paraliza" | "Inmoviliza" | "Envenena";
 
 export type UserSpellEffect =
     | SpellEffect
@@ -106,7 +106,8 @@ export type UserSpellEffect =
     | "Agilidad"
     | "Fuerza"
     | "Invisibilidad"
-    | "RemueveInvisibilidad";
+    | "RemueveInvisibilidad"
+    | "CuraVeneno";
 
 export type CombatResult = number | string;
 
@@ -185,6 +186,8 @@ export type DataObject = {
     porcentaje?: number;
     minModificador?: number;
     maxModificador?: number;
+    minHam?: number;
+    minAgu?: number;
     tipoPocion?: number;
     magicDamageBonus?: number;
     magicPenetration?: number;
@@ -258,6 +261,12 @@ export type RuntimeCharacter = {
     maxMana?: number;
     hp?: number;
     maxHp?: number;
+    hunger?: number;
+    thirst?: number;
+    lastHungerDecayAt?: number;
+    lastThirstDecayAt?: number;
+    envenenado?: NumericFlag;
+    lastVenenoDamageAt?: number;
     gold?: number;
     privileges?: number;
     invisibleAdmin?: boolean;
@@ -436,6 +445,9 @@ export type RuntimeNpc = {
     poderEvasion?: number;
     inmovilizado?: NumericFlag;
     paralizado?: NumericFlag;
+    veneno?: NumericFlag;
+    envenenado?: NumericFlag;
+    lastVenenoDamageAt?: number;
     cooldownAtaque?: number;
     cooldownParalizado?: number;
     nextThinkAt?: number;

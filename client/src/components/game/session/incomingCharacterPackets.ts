@@ -273,6 +273,11 @@ export async function handleIncomingCharacterPacket({
                     mana: packet.payload.mana,
                     tMana: packet.payload.mana,
                     maxMana: packet.payload.maxMana,
+                    hunger: packet.payload.hunger,
+                    thirst: packet.payload.thirst,
+                    ...(packet.payload.envenenado !== undefined
+                        ? { envenenado: packet.payload.envenenado }
+                        : {}),
                 };
             }
 
@@ -283,6 +288,11 @@ export async function handleIncomingCharacterPacket({
                 engine.user.mana = packet.payload.mana;
                 engine.user.tMana = packet.payload.mana;
                 engine.user.maxMana = packet.payload.maxMana;
+                engine.user.hunger = packet.payload.hunger;
+                engine.user.thirst = packet.payload.thirst;
+                if (packet.payload.envenenado !== undefined) {
+                    engine.user.envenenado = packet.payload.envenenado;
+                }
             }
 
             ctx.recordResourceValue(
@@ -300,6 +310,15 @@ export async function handleIncomingCharacterPacket({
                 maxHp: packet.payload.maxHp,
                 mana: packet.payload.mana,
                 maxMana: packet.payload.maxMana,
+                ...(packet.payload.hunger !== undefined
+                    ? { hunger: packet.payload.hunger }
+                    : {}),
+                ...(packet.payload.thirst !== undefined
+                    ? { thirst: packet.payload.thirst }
+                    : {}),
+                ...(packet.payload.envenenado !== undefined
+                    ? { envenenado: packet.payload.envenenado }
+                    : {}),
             });
             return true;
 

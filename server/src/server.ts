@@ -541,6 +541,85 @@ function processPlayerStatusTick(now: number) {
             game.setHiddenSkill(idUser, false);
         }
 
+        if (!user.dead) {
+            if (!(user.lastHungerDecayAt ?? 0)) {
+                user.lastHungerDecayAt = now;
+            }
+
+            if (!(user.lastThirstDecayAt ?? 0)) {
+                user.lastThirstDecayAt = now;
+            }
+
+            const hunger = Number(user.hunger ?? 100);
+            const thirst = Number(user.thirst ?? 100);
+            let hungerThirstChanged = false;
+
+            if (hunger > 0 && now - (user.lastHungerDecayAt ?? now) >= vars.timing.hungerDecayMs) {
+                user.hunger = Math.max(0, hunger - 10);
+                user.lastHungerDecayAt = now;
+                hungerThirstChanged = true;
+            }
+
+            if (thirst > 0 && now - (user.lastThirstDecayAt ?? now) >= vars.timing.thirstDecayMs) {
+                user.thirst = Math.max(0, thirst - 10);
+                user.lastThirstDecayAt = now;
+                hungerThirstChanged = true;
+            }
+
+            const statusClient = getClientById(idUser);
+
+            if (hungerThirstChanged && statusClient) {
+                handleProtocol.selfVitalsDelta(
+                    {
+                        hp: Number(user.hp ?? 0),
+                        maxHp: Number(user.maxHp ?? 0),
+                        mana: Number(user.mana ?? 0),
+                        maxMana: Number(user.maxMana ?? 0),
+                        hunger: Number(user.hunger ?? 100),
+                        thirst: Number(user.thirst ?? 100),
+                    },
+                    statusClient,
+                );
+            }
+
+            // Envenenado (VB6 EfectoVeneno): sin duración, daño cada 500ms
+            // hasta curarse o morir. Hambre/sed en 0 NO dañan HP: solo setean
+            // flags que bloquean regen/skills/aprender hechizos.
+            if (Number(user.envenenado ?? 0) === 1) {
+                if (!(user.lastVenenoDamageAt ?? 0)) {
+                    user.lastVenenoDamageAt = now;
+                }
+
+                if (now - (user.lastVenenoDamageAt ?? now) >= vars.timing.venenoTickMs) {
+                    user.lastVenenoDamageAt = now;
+
+                    const poisonHp = Number(user.hp ?? 0);
+
+                    if (poisonHp > 0) {
+                        const nextHp = poisonHp - funct.randomIntFromInterval(1, 5);
+                        user.hp = Math.max(0, nextHp);
+
+                        if (statusClient) {
+                            handleProtocol.console(
+                                "Estas envenenado, si no te curas moriras.",
+                                "#86D98C",
+                                0,
+                                0,
+                                statusClient,
+                            );
+                            handleProtocol.updateHP(user.hp, statusClient);
+                        }
+
+                        if (nextHp < 1) {
+                            user.hp = 0;
+                            game.putBodyAndHeadDead(idUser);
+                            void game.tirarItemsUser(idUser);
+                        }
+                    }
+                }
+            }
+        }
+
         const isNorthPoleMap = user.map === 286 || user.map === 287 || user.map === 288;
         const currentHp = Number(user.hp ?? 0);
         if (!isNorthPoleMap || user.dead || currentHp <= 0) {

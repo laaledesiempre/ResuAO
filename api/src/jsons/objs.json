@@ -24,13 +24,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 15
   },
   "2": {
     "apu": 0,
@@ -717,13 +716,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 15
   },
   "22": {
     "apu": 0,
@@ -750,13 +748,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 15
   },
   "23": {
     "apu": 0,
@@ -783,13 +780,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 25
   },
   "24": {
     "apu": 0,
@@ -816,13 +812,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 25
   },
   "25": {
     "apu": 0,
@@ -849,13 +844,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 90
   },
   "26": {
     "apu": 0,
@@ -882,13 +876,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 75
   },
   "27": {
     "apu": 0,
@@ -915,13 +908,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 100
   },
   "28": {
     "apu": 0,
@@ -948,13 +940,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 50
   },
   "29": {
     "apu": 0,
@@ -981,13 +972,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 40
   },
   "30": {
     "apu": 0,
@@ -1418,13 +1408,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 90
   },
   "43": {
     "apu": 0,
@@ -1451,13 +1440,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 30
   },
   "44": {
     "apu": 0,
@@ -2145,13 +2133,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 15
   },
   "65": {
     "apu": 0,
@@ -2706,13 +2693,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 40
   },
   "82": {
     "apu": 0,
@@ -4708,13 +4694,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 75
   },
   "140": {
     "apu": 0,
@@ -5335,13 +5320,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 15
   },
   "159": {
     "apu": 0,
@@ -5410,13 +5394,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 60
   },
   "161": {
     "apu": 0,
@@ -5443,13 +5426,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 100
   },
   "162": {
     "apu": 0,
@@ -15803,13 +15785,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 15
   },
   "468": {
     "apu": 0,
@@ -15836,13 +15817,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 30
   },
   "469": {
     "apu": 0,
@@ -16972,13 +16952,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 60
   },
   "499": {
     "apu": 0,
@@ -17865,13 +17844,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 90
   },
   "523": {
     "apu": 0,
@@ -18619,13 +18597,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 75
   },
   "545": {
     "apu": 0,
@@ -18652,13 +18629,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 75
   },
   "546": {
     "apu": 0,
@@ -18685,13 +18661,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 75
   },
   "547": {
     "apu": 0,
@@ -18828,13 +18803,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 60
   },
   "551": {
     "apu": 0,
@@ -19091,13 +19065,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 90
   },
   "558": {
     "apu": 0,
@@ -20927,13 +20900,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 60
   },
   "613": {
     "apu": 0,
@@ -21305,13 +21277,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minAgu": 60
   },
   "623": {
     "apu": 0,
@@ -25991,13 +25962,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 15
   },
   "755": {
     "apu": 0,
@@ -26684,13 +26654,12 @@
     "tipoPocion": 0,
     "indexAbierta": 0,
     "indexCerrada": 0,
-    "maxModificador": 0,
-    "minModificador": 0,
     "magicDamageBonus": 0,
     "magicPenetration": 0,
     "staffDamageBonus": 0,
     "resistenciaMagica": 0,
-    "clasesNoPermitidas": []
+    "clasesNoPermitidas": [],
+    "minHam": 75
   },
   "776": {
     "apu": 0,

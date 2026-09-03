@@ -237,6 +237,9 @@ export interface CharacterSnapshot {
     mana?: number;
     tMana?: number;
     maxMana?: number;
+    hunger?: number;
+    thirst?: number;
+    envenenado?: number;
     adminSummonedBot?: boolean;
     exp?: number;
     expNextLevel?: number;
@@ -461,6 +464,9 @@ export interface PlayerHudState {
     maxHp?: number;
     mana?: number;
     maxMana?: number;
+    hunger?: number;
+    thirst?: number;
+    envenenado?: number;
     attrAgilidad?: number;
     attrFuerza?: number;
     attrInteligencia?: number;
@@ -588,6 +594,9 @@ export interface SelfVitalsDelta {
     maxHp: number;
     mana: number;
     maxMana: number;
+    hunger?: number;
+    thirst?: number;
+    envenenado?: number;
 }
 
 export interface SelfMapMetaDelta {
@@ -1062,6 +1071,13 @@ function parseCharacter(
             ? reader.getShort()
             : snapshot.mana;
         snapshot.maxMana = reader.getShort();
+        if (reader.canReadBytes(4)) {
+            snapshot.hunger = reader.getShort();
+            snapshot.thirst = reader.getShort();
+        }
+        if (reader.canReadBytes(1)) {
+            snapshot.envenenado = reader.getByte();
+        }
         snapshot.privileges = reader.getByte();
         snapshot.exp = reader.getDouble();
         snapshot.expNextLevel = reader.getDouble();
@@ -1297,6 +1313,15 @@ function parseServerPacketById(
                     maxHp: reader.getShort(),
                     mana: reader.getShort(),
                     maxMana: reader.getShort(),
+                    hunger: reader.canReadBytes(4)
+                        ? reader.getShort()
+                        : undefined,
+                    thirst: reader.canReadBytes(2)
+                        ? reader.getShort()
+                        : undefined,
+                    envenenado: reader.canReadBytes(1)
+                        ? reader.getByte()
+                        : undefined,
                 },
             };
         case CLIENT_PACKET_ID.selfMapMetaDelta:
@@ -2256,6 +2281,9 @@ export function toPlayerHudState(snapshot: CharacterSnapshot): PlayerHudState {
         maxHp: snapshot.maxHp,
         mana: snapshot.tMana ?? snapshot.mana,
         maxMana: snapshot.maxMana,
+        hunger: snapshot.hunger,
+        thirst: snapshot.thirst,
+        envenenado: snapshot.envenenado,
         attrAgilidad: snapshot.attrAgilidad,
         attrFuerza: snapshot.attrFuerza,
         attrInteligencia: snapshot.attrInteligencia,

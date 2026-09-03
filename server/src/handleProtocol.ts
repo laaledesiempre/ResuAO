@@ -132,6 +132,9 @@ type SelfVitalsDeltaPayload = {
     maxHp: number;
     mana: number;
     maxMana: number;
+    hunger?: number;
+    thirst?: number;
+    envenenado?: number;
 };
 
 type SelfMapMetaDeltaPayload = {
@@ -1036,6 +1039,9 @@ const handleServer: HandleProtocolApi = {
         pkg.writeShort(character.mana);
         pkg.writeShort(character.mana);
         pkg.writeShort(character.maxMana);
+        pkg.writeShort(character.hunger ?? 100);
+        pkg.writeShort(character.thirst ?? 100);
+        pkg.writeByte(character.envenenado ? 1 : 0);
         pkg.writeByte(character.privileges);
         pkg.writeDouble(character.exp);
         pkg.writeDouble(character.expNextLevel);
@@ -1205,6 +1211,16 @@ const handleServer: HandleProtocolApi = {
         pkg.writeShort(payload.maxHp);
         pkg.writeShort(payload.mana);
         pkg.writeShort(payload.maxMana);
+
+        if (payload.hunger !== undefined && payload.thirst !== undefined) {
+            pkg.writeShort(payload.hunger);
+            pkg.writeShort(payload.thirst);
+        }
+
+        if (payload.envenenado !== undefined) {
+            pkg.writeByte(payload.envenenado);
+        }
+
         socket.send(client);
     },
 

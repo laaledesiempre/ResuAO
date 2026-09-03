@@ -127,6 +127,20 @@ export function renderPlay(
     const hpBar = makeBar(ICON_HEART, "hp");
     const manaBar = makeBar(ICON_FLAME, "mana");
 
+    // Hunger/thirst: two thin discreet strips under the main bars (no text,
+    // tooltip only) so they take almost no vertical space.
+    const makeMiniBar = (fillClass: string, label: string) => {
+        const fill = el("div", { className: `mini-bar-fill ${fillClass}` });
+        const node = el(
+            "div",
+            { className: "mini-bar", title: label },
+            fill,
+        );
+        return { fill, node, label };
+    };
+    const hungerBar = makeMiniBar("hunger", "Hambre");
+    const thirstBar = makeMiniBar("thirst", "Sed");
+
     // Gold/level under the portrait: coin icon + value, "Lv" prefix + value.
     const goldValue = el("span", { className: "hud-stat-value" }, "--");
     const goldStat = el(
@@ -144,6 +158,8 @@ export function renderPlay(
     );
     const posStat = el("span", { className: "player-pos" }, "");
     const xpFill = el("div", { className: "xp-fill" });
+    // Active status effects: paralysis/immobilize badges + buff countdowns.
+    const statusRow = el("div", { className: "player-status" });
 
     let pingStat: HTMLElement | null = null;
     let fpsStat: HTMLElement | null = null;
@@ -193,6 +209,13 @@ export function renderPlay(
                     debugStats,
                 ),
                 el("div", { className: "player-bars" }, hpBar.node, manaBar.node),
+                el(
+                    "div",
+                    { className: "player-mini-bars" },
+                    hungerBar.node,
+                    thirstBar.node,
+                ),
+                statusRow,
                 posStat,
             ),
             el(
@@ -754,6 +777,49 @@ export function renderPlay(
         );
     };
 
+    // Status effects: static badges for paralysis states and live countdowns
+    // for the fuerza/agilidad buffs (refreshed every second, since the server
+    // only sends the buff duration when it changes).
+    const renderStatus = (hud: PlayerHudState | null) => {
+        statusRow.replaceChildren();
+        if (!hud) return;
+        if (hud.paralizado) {
+            statusRow.append(
+                el("span", { className: "status-badge status-debuff" }, "Paralizado"),
+            );
+        }
+        if (hud.inmovilizado) {
+            statusRow.append(
+                el("span", { className: "status-badge status-debuff" }, "Inmovilizado"),
+            );
+        }
+        if (hud.envenenado) {
+            statusRow.append(
+                el("span", { className: "status-badge status-debuff" }, "Envenenado"),
+            );
+        }
+        const buffRemaining = (seconds?: number, updatedAt?: number) => {
+            if (!seconds) return 0;
+            const elapsed = updatedAt ? (Date.now() - updatedAt) / 1000 : 0;
+            return Math.max(0, Math.ceil(seconds - elapsed));
+        };
+        const buffs: Array<[string, number]> = [
+            ["FUE", buffRemaining(hud.buffFuerzaSeconds, hud.buffFuerzaUpdatedAt)],
+            ["AGI", buffRemaining(hud.buffAgilidadSeconds, hud.buffAgilidadUpdatedAt)],
+        ];
+        for (const [label, remaining] of buffs) {
+            if (remaining <= 0) continue;
+            statusRow.append(
+                el(
+                    "span",
+                    { className: "status-badge status-buff" },
+                    `${label} ${remaining}s`,
+                ),
+            );
+        }
+    };
+    const statusTimer = setInterval(() => renderStatus(lastHud), 1000);
+
     const flashClass = (target: HTMLElement, className: string) => {
         target.classList.remove(className);
         // force reflow so the animation restarts on rapid consecutive hits
@@ -792,6 +858,13 @@ export function renderPlay(
         };
         setBar(hpBar, hud.hp, hud.maxHp);
         setBar(manaBar, hud.mana, hud.maxMana);
+        const setMiniBar = (bar: typeof hungerBar, value?: number) => {
+            const v = Math.max(0, Math.min(100, Math.round(value ?? 100)));
+            bar.fill.style.width = `${v}%`;
+            bar.node.title = `${bar.label}: ${v}/100`;
+        };
+        setMiniBar(hungerBar, hud.hunger);
+        setMiniBar(thirstBar, hud.thirst);
         goldValue.textContent = `${hud.gold ?? 0}`;
         goldStat.title = `Oro: ${hud.gold ?? 0}`;
         levelValue.textContent = `${hud.level ?? "--"}`;
@@ -812,6 +885,7 @@ export function renderPlay(
         renderInventory(hud);
         renderSpells(hud);
         renderSocial(hud);
+        renderStatus(hud);
     };
 
     inventoryCapObserver = new ResizeObserver(() => layoutInventoryCap());
@@ -855,6 +929,7 @@ export function renderPlay(
 
     const cleanup = () => {
         destroyed = true;
+        clearInterval(statusTimer);
         musicAudio?.pause();
         document.removeEventListener("keydown", handlePlayKeydown);
         inventoryCapObserver?.disconnect();
@@ -1030,7 +1105,11 @@ export function renderPlay(
     chatForm.addEventListener("submit", (event) => {
         event.preventDefault();
         const message = chatInput.value;
-        if (!message.trim()) return;
+        if (!message.trim()) {
+            // Enter with an empty input: hand focus back to the game.
+            chatInput.blur();
+            return;
+        }
         if (game?.sendChat(message)) {
             chatInput.value = "";
         } else {

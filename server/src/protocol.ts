@@ -612,7 +612,9 @@ function resolveOwnSummonCombatRedirect(ownerId: EntityId, target: AreaTarget | 
 }
 
 function isHostileCombatSpell(datSpell: Record<string, unknown> | undefined) {
-    return Boolean(datSpell && (datSpell.paraliza || datSpell.inmoviliza || datSpell.subeHp === 2));
+    return Boolean(
+        datSpell && (datSpell.paraliza || datSpell.inmoviliza || datSpell.subeHp === 2 || datSpell.envenena),
+    );
 }
 
 function isHealingSpell(datSpell: Record<string, unknown> | undefined) {

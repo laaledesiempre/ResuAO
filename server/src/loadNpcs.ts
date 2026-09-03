@@ -96,6 +96,7 @@ class LoadNpcs {
         tmpNPC.magicResistance = datNpc.magicResistance ?? 0;
         tmpNPC.poderAtaque = datNpc.poderAtaque;
         tmpNPC.poderEvasion = datNpc.poderEvasion;
+        tmpNPC.veneno = Number(datNpc.veneno ?? 0) === 1 ? 1 : 0;
         tmpNPC.snd1 = datNpc.snd1 ?? 0;
         tmpNPC.snd2 = datNpc.snd2 ?? 0;
         tmpNPC.soundClose = datNpc.soundClose ?? 0;

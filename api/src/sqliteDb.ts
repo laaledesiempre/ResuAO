@@ -698,6 +698,28 @@ export class SqlitePoolAdapter {
                 "ALTER TABLE accounts ADD COLUMN must_change_password BOOLEAN NOT NULL DEFAULT FALSE",
             );
         }
+
+        const characterColumns = this.db
+            .prepare("PRAGMA table_info(characters)")
+            .all() as { name: string }[];
+
+        if (!characterColumns.some((column) => column.name === "hunger")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN hunger INTEGER NOT NULL DEFAULT 100",
+            );
+        }
+
+        if (!characterColumns.some((column) => column.name === "thirst")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN thirst INTEGER NOT NULL DEFAULT 100",
+            );
+        }
+
+        if (!characterColumns.some((column) => column.name === "envenenado")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN envenenado INTEGER NOT NULL DEFAULT 0",
+            );
+        }
     }
 }
 

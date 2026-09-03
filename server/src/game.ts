@@ -2001,6 +2001,7 @@ function isSupportSpell(datSpell: Record<string, unknown> | undefined): boolean 
         (Number(datSpell.subeHp ?? 0) === 1 ||
             Number(datSpell.revivir ?? 0) === 1 ||
             datSpell.removerParalisis ||
+            datSpell.curaVeneno ||
             datSpell.invisibilidad ||
             datSpell.subeAg ||
             datSpell.subeFz),
@@ -4192,6 +4193,23 @@ function Game(this: GameApi) {
                     } else if (obj.tipoPocion == vars.typePociones.fuerza) {
                         refreshStrengthBuff(user, obj.minModificador, obj.maxModificador, ws);
                         consumido = true;
+                    } else if (obj.tipoPocion == vars.typePociones.curaVeneno) {
+                        if (Number(user.envenenado ?? 0) === 1) {
+                            user.envenenado = 0;
+                            handleProtocol.console("Te has curado del envenenamiento.", "white", 0, 0, ws);
+                            handleProtocol.selfVitalsDelta(
+                                {
+                                    hp: Number(user.hp ?? 0),
+                                    maxHp: Number(user.maxHp ?? 0),
+                                    mana: Number(user.mana ?? 0),
+                                    maxMana: Number(user.maxMana ?? 0),
+                                    envenenado: 0,
+                                },
+                                ws,
+                            );
+                        }
+
+                        consumido = true;
                     }
 
                     if (!consumido) {
@@ -4218,7 +4236,45 @@ function Game(this: GameApi) {
                     break;
                 }
                 case vars.objType.comida:
-                case vars.objType.bebidas:
+                case vars.objType.bebidas: {
+                    const isFood = obj.objType === vars.objType.comida;
+                    // Restauración fija por objeto (VB6 MinHam/MinAgu), sin random.
+                    const restoreAmount = isFood
+                        ? Number(obj.minHam ?? 0) > 0
+                            ? Number(obj.minHam)
+                            : 25
+                        : Number(obj.minAgu ?? 0) > 0
+                          ? Number(obj.minAgu)
+                          : 30;
+
+                    if (isFood) {
+                        user.hunger = Math.min(100, Number(user.hunger ?? 100) + restoreAmount);
+                    } else {
+                        user.thirst = Math.min(100, Number(user.thirst ?? 100) + restoreAmount);
+                    }
+
+                    handleProtocol.console(
+                        isFood
+                            ? `Comiste ${obj.name}. Recuperas ${restoreAmount} de hambre.`
+                            : `Bebiste ${obj.name}. Recuperas ${restoreAmount} de sed.`,
+                        "white",
+                        0,
+                        0,
+                        ws,
+                    );
+
+                    handleProtocol.selfVitalsDelta(
+                        {
+                            hp: Number(user.hp ?? 0),
+                            maxHp: Number(user.maxHp ?? 0),
+                            mana: Number(user.mana ?? 0),
+                            maxMana: Number(user.maxMana ?? 0),
+                            hunger: Number(user.hunger ?? 100),
+                            thirst: Number(user.thirst ?? 100),
+                        },
+                        ws,
+                    );
+
                     game.quitarUserInvItem(clientId, idPos, 1);
                     await persistCharacterItems(user);
 
@@ -4232,7 +4288,13 @@ function Game(this: GameApi) {
                         }
                     });
                     break;
+                }
                 case vars.objType.pergaminos:
+                    if (Number(user.hunger ?? 100) <= 0 && Number(user.thirst ?? 100) <= 0) {
+                        handleProtocol.console("Estas demasiado hambriento y sediento.", "white", 0, 0, ws);
+                        return;
+                    }
+
                     user.spells = normalizeSpellRecord(user.spells);
 
                     if (
@@ -7025,7 +7087,9 @@ function Game(this: GameApi) {
             }
 
             const datSpell = vars.datSpell[idSpell];
-            const isHostileSpell = Boolean(datSpell.paraliza || datSpell.inmoviliza || datSpell.subeHp == 2);
+            const isHostileSpell = Boolean(
+                datSpell.paraliza || datSpell.inmoviliza || datSpell.subeHp == 2 || datSpell.envenena,
+            );
 
             if (Number(datSpell?.subeHp ?? 0) === 1) {
                 withUserClient(idUser, (userClient) => {
@@ -7041,13 +7105,18 @@ function Game(this: GameApi) {
             }
 
             let dmg = 0;
-            let spellEffect: "Paraliza" | "Inmoviliza" | null = null;
+            let spellEffect: SpellEffect | null = null;
 
             if (isHostileSpell) {
                 markNpcAggressor(idNpc, idUser);
             }
 
-            if (datSpell.paraliza) {
+            if (datSpell.envenena) {
+                npc.envenenado = 1;
+                npc.lastVenenoDamageAt = +Date.now();
+
+                spellEffect = "Envenena";
+            } else if (datSpell.paraliza) {
                 if (npc.npcType == 6) {
                     withUserClient(idUser, (userClient) => {
                         handleProtocol.console(
@@ -7232,7 +7301,7 @@ function Game(this: GameApi) {
             const removesInvisibility = String(datSpell.name ?? "").toLowerCase() === "remover invisibilidad";
             const isOffensiveSpell = Boolean(
                 idUser !== idUserAttacked &&
-                (datSpell.paraliza || datSpell.inmoviliza || datSpell.subeHp == 2 || removesInvisibility),
+                (datSpell.paraliza || datSpell.inmoviliza || datSpell.subeHp == 2 || datSpell.envenena || removesInvisibility),
             );
 
             if (datSpell.invisibilidad && getChallengeManager().isCharacterInActiveMatch(user)) {
@@ -7311,17 +7380,72 @@ function Game(this: GameApi) {
             }
 
             let dmg = 0;
-            let spellEffect:
-                | "Paraliza"
-                | "Inmoviliza"
-                | "Remueve"
-                | "Agilidad"
-                | "Fuerza"
-                | "Invisibilidad"
-                | "RemueveInvisibilidad"
-                | null = null;
+            let spellEffect: UserSpellEffect | null = null;
 
-            if (datSpell.paraliza) {
+            if (datSpell.envenena) {
+                if (idUser == idUserAttacked) {
+                    withUserClient(idUser, (userClient) => {
+                        handleProtocol.console("¡No puedes atacarte a ti mismo!", "white", 1, 0, userClient);
+                    });
+                    return 0;
+                }
+
+                if (Number(userAttacked.envenenado ?? 0) === 1) {
+                    withUserClient(idUser, (userClient) => {
+                        handleProtocol.console("El objetivo ya está envenenado", "white", 1, 0, userClient);
+                    });
+                    return 0;
+                }
+
+                if (!applyOpenWorldAttackRules(user, userAttacked, arenaCombat)) {
+                    return 0;
+                }
+
+                markUsersInPvpCombat(user, userAttacked);
+
+                userAttacked.envenenado = 1;
+                userAttacked.lastVenenoDamageAt = Date.now();
+
+                withUserClient(idUserAttacked, (targetClient) => {
+                    handleProtocol.selfVitalsDelta(
+                        {
+                            hp: Number(userAttacked.hp ?? 0),
+                            maxHp: Number(userAttacked.maxHp ?? 0),
+                            mana: Number(userAttacked.mana ?? 0),
+                            maxMana: Number(userAttacked.maxMana ?? 0),
+                            envenenado: 1,
+                        },
+                        targetClient,
+                    );
+                });
+
+                spellEffect = "Envenena";
+            } else if (datSpell.curaVeneno) {
+                if (Number(userAttacked.envenenado ?? 0) !== 1) {
+                    withUserClient(idUser, (userClient) => {
+                        handleProtocol.console("El objetivo no está envenenado", "white", 1, 0, userClient);
+                    });
+                    return 0;
+                }
+
+                userAttacked.envenenado = 0;
+
+                withUserClient(idUserAttacked, (targetClient) => {
+                    handleProtocol.console("Te has curado del envenenamiento.", "white", 1, 0, targetClient);
+                    handleProtocol.selfVitalsDelta(
+                        {
+                            hp: Number(userAttacked.hp ?? 0),
+                            maxHp: Number(userAttacked.maxHp ?? 0),
+                            mana: Number(userAttacked.mana ?? 0),
+                            maxMana: Number(userAttacked.maxMana ?? 0),
+                            envenenado: 0,
+                        },
+                        targetClient,
+                    );
+                });
+
+                spellEffect = "CuraVeneno";
+            } else if (datSpell.paraliza) {
                 if (idUser == idUserAttacked) {
                     withUserClient(idUser, (userClient) => {
                         handleProtocol.console("¡No puedes atacarte a ti mismo!", "white", 1, 0, userClient);

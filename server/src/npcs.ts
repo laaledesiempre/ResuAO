@@ -70,6 +70,9 @@ type NpcCharacter = RuntimeNpc & {
     moveOffsetY: number;
     inmovilizado: NumericFlag;
     paralizado: NumericFlag;
+    veneno: NumericFlag;
+    envenenado: NumericFlag;
+    lastVenenoDamageAt?: number;
     fxId: number;
     frameFxCounter: number;
     zonaSegura: NumericFlag;
@@ -1791,6 +1794,9 @@ function Npcs(this: NpcsApi) {
             moveOffsetY: 0,
             inmovilizado: 0,
             paralizado: 0,
+            veneno: 0,
+            envenenado: 0,
+            lastVenenoDamageAt: 0,
             fxId: 0,
             frameFxCounter: 0,
             zonaSegura: 0,
@@ -1893,6 +1899,7 @@ function Npcs(this: NpcsApi) {
             npc.def = datNpc.def ?? 0;
             npc.poderAtaque = datNpc.poderAtaque ?? 0;
             npc.poderEvasion = datNpc.poderEvasion ?? 0;
+            npc.veneno = Number(datNpc.veneno ?? 0) === 1 ? 1 : 0;
             npc.snd1 = datNpc.snd1 ?? 0;
             npc.snd2 = datNpc.snd2 ?? 0;
             npc.soundClose = datNpc.soundClose ?? 0;
@@ -2191,6 +2198,19 @@ function Npcs(this: NpcsApi) {
 
                 if (!npc) {
                     continue;
+                }
+
+                // Veneno en NPCs (VB6 EfectoVeneno): daño cada 500ms hasta morir o curarse.
+                if (npc.envenenado === 1 && now - (npc.lastVenenoDamageAt ?? 0) >= vars.timing.venenoTickMs) {
+                    npc.lastVenenoDamageAt = now;
+                    npc.hp -= funct.randomIntFromInterval(1, 5);
+
+                    if (npc.hp < 1) {
+                        this.muereNpc(idNpc);
+                        continue;
+                    }
+
+                    broadcastNpcVitalsDelta(npc);
                 }
 
                 if (isSummonedNpc(npc)) {
@@ -2541,6 +2561,26 @@ function Npcs(this: NpcsApi) {
                     withUserClient(idUser, (userClient) => {
                         handleProtocol.updateHP(user.hp, userClient);
                     });
+
+                    // NPCs con Veneno=1 (VB6): 30% de probabilidad de envenenar al golpear.
+                    if (npc.veneno === 1 && !user.envenenado && funct.randomIntFromInterval(1, 100) <= 30) {
+                        user.envenenado = 1;
+                        user.lastVenenoDamageAt = Date.now();
+
+                        withUserClient(idUser, (userClient) => {
+                            handleProtocol.console("La criatura te ha envenenado!!", "red", 1, 0, userClient);
+                            handleProtocol.selfVitalsDelta(
+                                {
+                                    hp: Number(user.hp ?? 0),
+                                    maxHp: Number(user.maxHp ?? 0),
+                                    mana: Number(user.mana ?? 0),
+                                    maxMana: Number(user.maxMana ?? 0),
+                                    envenenado: 1,
+                                },
+                                userClient,
+                            );
+                        });
+                    }
 
                     this.loopArea(idNpc, (target) => {
                         withUserClient(target.id, (targetClient) => {
