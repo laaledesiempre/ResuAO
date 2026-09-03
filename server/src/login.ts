@@ -601,6 +601,7 @@ function Login(this: LoginApi) {
                 personaje.thirst = Math.min(100, Math.max(0, Number(personaje.thirst ?? 100)));
                 // VB6: el flag Envenenado se resetea a 0 al loguear.
                 personaje.envenenado = 0;
+                personaje.puntosAtributo = Math.max(0, Math.floor(Number(personaje.puntosAtributo ?? 0)));
 
                 if (!personaje.posX) {
                     personaje.posX = 50;
@@ -667,10 +668,19 @@ function Login(this: LoginApi) {
 
                 const raceBalance =
                     typeof personaje.idRaza !== "undefined" ? vars.balanceRazas[personaje.idRaza] : null;
-                const baseAttrFuerza = raceBalance ? 18 + raceBalance.fuerza : personaje.attrFuerza;
-                const baseAttrAgilidad = raceBalance ? 18 + raceBalance.agilidad : personaje.attrAgilidad;
-                const baseAttrInteligencia = raceBalance ? 18 + raceBalance.inteligencia : personaje.attrInteligencia;
-                const baseAttrConstitucion = raceBalance ? 18 + raceBalance.constitucion : personaje.attrConstitucion;
+                // Los atributos persistidos ganan (pueden incluir puntos asignados);
+                // si no hay valor guardado, se usa 18 + modificador de raza (dados VB6: MinDados=18).
+                const persistedOrRaceAttr = (persisted: number | undefined, raceModifier: number | undefined) => {
+                    const persistedValue = Math.floor(Number(persisted ?? 0));
+                    if (persistedValue > 0) {
+                        return persistedValue;
+                    }
+                    return raceBalance ? 18 + (raceModifier ?? 0) : 0;
+                };
+                const baseAttrFuerza = persistedOrRaceAttr(personaje.attrFuerza, raceBalance?.fuerza);
+                const baseAttrAgilidad = persistedOrRaceAttr(personaje.attrAgilidad, raceBalance?.agilidad);
+                const baseAttrInteligencia = persistedOrRaceAttr(personaje.attrInteligencia, raceBalance?.inteligencia);
+                const baseAttrConstitucion = persistedOrRaceAttr(personaje.attrConstitucion, raceBalance?.constitucion);
 
                 personaje.cooldownFuerza = 0;
                 personaje.cooldownAgilidad = 0;
@@ -1094,6 +1104,7 @@ function Login(this: LoginApi) {
             attrAgilidad: initialAgility,
             attrInteligencia: baseAttrInteligencia,
             attrConstitucion: baseAttrConstitucion,
+            puntosAtributo: 0,
             privileges: 0,
             countKilled: 0,
             countDie: 0,

@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS characters (
     attr_agilidad INTEGER NOT NULL DEFAULT 0,
     attr_inteligencia INTEGER NOT NULL DEFAULT 0,
     attr_constitucion INTEGER NOT NULL DEFAULT 0,
+    puntos_atributo INTEGER NOT NULL DEFAULT 0,
     privileges INTEGER NOT NULL DEFAULT 0,
     count_killed INTEGER NOT NULL DEFAULT 0,
     count_die INTEGER NOT NULL DEFAULT 0,

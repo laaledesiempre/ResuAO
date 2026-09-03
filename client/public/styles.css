@@ -1220,6 +1220,24 @@ body.side-resizing {
     font-size: 13px;
 }
 
+.stat-attr-add {
+    margin-left: 6px;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.stat-attr-add:hover {
+    background: color-mix(in srgb, var(--border) 40%, transparent);
+}
+
 /* ---------- Bottom HUD bits (bars inside the player card) ---------- */
 
 .hud-quick-stats {

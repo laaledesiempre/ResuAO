@@ -1216,6 +1216,10 @@ export class GameClient {
         this.outgoingRequestsRef.current?.useItemClick(slot);
     }
 
+    assignAttributePoint(attrId: number): void {
+        this.outgoingRequestsRef.current?.assignAttributePoint(attrId);
+    }
+
     castSpell(spell: SpellEntry): void {
         this.outgoingRequestsRef.current?.castSpell(spell);
     }

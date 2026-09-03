@@ -720,6 +720,14 @@ export class SqlitePoolAdapter {
                 "ALTER TABLE characters ADD COLUMN envenenado INTEGER NOT NULL DEFAULT 0",
             );
         }
+
+        if (
+            !characterColumns.some((column) => column.name === "puntos_atributo")
+        ) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN puntos_atributo INTEGER NOT NULL DEFAULT 0",
+            );
+        }
     }
 }
 

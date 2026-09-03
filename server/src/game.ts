@@ -6936,6 +6936,11 @@ function Game(this: GameApi) {
                 leveledUp = true;
                 user.exp -= user.expNextLevel;
 
+                // Nota: el VB6 clasico (ao-libre) no otorga puntos de atributo por
+                // nivel (solo skillpoints); los puntos por nivel son una decision de Resu.
+                const puntosAtributoGanados = balance.ATTRIBUTE_POINTS_PER_LEVEL;
+                user.puntosAtributo = (user.puntosAtributo ?? 0) + puntosAtributoGanados;
+
                 user.expNextLevel = balance.getLegacyExpNextLevelForLevel(user.level);
 
                 const newMaxHp = balance.getMaxHpForLevel(user.idClase, user.attrConstitucion, user.level);
@@ -6966,7 +6971,10 @@ function Game(this: GameApi) {
                 handleProtocol.console("¡Tu golpe máximo aumento en " + aumentoHIT + " puntos!", "red", 1, 0, client);
                 handleProtocol.console("¡Tu golpe mínimo aumento en " + aumentoHIT + " puntos!", "red", 1, 0, client);
 
+                handleProtocol.console("¡Has ganado " + puntosAtributoGanados + " puntos de atributo!", "red", 1, 0, client);
+
                 handleProtocol.actMyLevel(idUser, client);
+                handleProtocol.updateAtributos(user, client);
                 unequipRestrictedNewbieItems(user, client);
             }
 

@@ -126,6 +126,7 @@ export type CharacterRecord = {
     attr_agilidad: number;
     attr_inteligencia: number;
     attr_constitucion: number;
+    puntos_atributo: number;
     privileges: number;
     count_killed: number;
     count_die: number;
@@ -265,6 +266,7 @@ export type CharacterApiResponse = {
     attrAgilidad: number;
     attrInteligencia: number;
     attrConstitucion: number;
+    puntosAtributo: number;
     privileges: number;
     countKilled: number;
     countDie: number;

@@ -379,10 +379,17 @@ export function renderPlay(
         { className: "side-panel", "data-panel": "social" },
         socialList,
     );
+    const statsList = el("div", { className: "stats-list" });
+    const statsPanel = el(
+        "div",
+        { className: "side-panel", "data-panel": "stats" },
+        statsList,
+    );
 
     const tabDefs = [
         { id: "inventario", label: "Inventario", panel: inventoryPanel },
         { id: "hechizos", label: "Hechizos", panel: spellsPanel },
+        { id: "stats", label: "Stats", panel: statsPanel },
         { id: "social", label: "Social", panel: socialPanel },
     ] as const;
 
@@ -435,6 +442,7 @@ export function renderPlay(
             { className: "side-panels" },
             inventoryPanel,
             spellsPanel,
+            statsPanel,
             socialPanel,
         ),
     );
@@ -754,6 +762,51 @@ export function renderPlay(
         }
     };
 
+    // Atributos del personaje (nombres segun ListaAtributos del VB6,
+    // General.bas) con botones "+" cuando hay puntos de atributo disponibles.
+    // IDs segun eAtributos del VB6 (Declares.bas): 1=Fuerza, 2=Agilidad,
+    // 3=Inteligencia, 5=Constitucion (Carisma no existe en Resu).
+    const ATTRIBUTE_ROWS = [
+        { id: 1, label: "Fuerza", value: (hud: PlayerHudState) => hud.attrFuerza },
+        { id: 2, label: "Agilidad", value: (hud: PlayerHudState) => hud.attrAgilidad },
+        { id: 3, label: "Inteligencia", value: (hud: PlayerHudState) => hud.attrInteligencia },
+        { id: 5, label: "Constitucion", value: (hud: PlayerHudState) => hud.attrConstitucion },
+    ] as const;
+
+    const renderStats = (hud: PlayerHudState) => {
+        statsList.replaceChildren();
+        const puntos = hud.puntosAtributo ?? 0;
+        statsList.append(statRow("Puntos de atributo", `${puntos}`));
+        for (const attr of ATTRIBUTE_ROWS) {
+            const row = el(
+                "div",
+                { className: "stat-row" },
+                el("span", { className: "stat-label" }, attr.label),
+                el(
+                    "span",
+                    { className: "stat-value" },
+                    `${attr.value(hud) ?? "--"}`,
+                ),
+            );
+            if (puntos > 0) {
+                const addButton = el(
+                    "button",
+                    {
+                        type: "button",
+                        className: "stat-attr-add",
+                        title: `Asignar 1 punto a ${attr.label}`,
+                    },
+                    "+",
+                ) as HTMLButtonElement;
+                addButton.addEventListener("click", () =>
+                    game?.assignAttributePoint(attr.id),
+                );
+                row.append(addButton);
+            }
+            statsList.append(row);
+        }
+    };
+
     const renderSocial = (hud: PlayerHudState) => {
         const memberRow = (
             member: { nameCharacter: string; map: number; online: boolean },
@@ -884,6 +937,7 @@ export function renderPlay(
         }
         renderInventory(hud);
         renderSpells(hud);
+        renderStats(hud);
         renderSocial(hud);
         renderStatus(hud);
     };
