@@ -116,6 +116,8 @@ const clientPacketID = {
     entityVitalsDelta: 81,
     updateAtributos: 82,
     trainerState: 83,
+    correoState: 84,
+    correoPicOn: 85,
 } as const;
 
 const serverPacketID = {
@@ -151,6 +153,7 @@ const serverPacketID = {
     retosAction: 248,
     assignAttributePoint: 250,
     trainerAction: 251,
+    correoAction: 252,
 } as const;
 
 type PacketChunk = Buffer | ArrayBuffer | ArrayBufferView | string;

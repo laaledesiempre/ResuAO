@@ -15,6 +15,7 @@ import {
     type SpellEntry,
     type TradeState,
     type TrainerState,
+    type CorreoState,
 } from "../../../lib/aowProtocol";
 import {
     VIEWPORT_PIXEL_HEIGHT,
@@ -151,6 +152,8 @@ export type GameClientCallbacks = {
     onBailState?: (state: BailOffer | null) => void;
     onCraftingState?: (state: CraftingState | null) => void;
     onTrainerState?: (state: TrainerState | null) => void;
+    onCorreoState?: (state: CorreoState | null) => void;
+    onCorreoPicOn?: () => void;
     onNotice?: (notice: { text: string; durationMs: number }) => void;
 };
 
@@ -1026,6 +1029,9 @@ export class GameClient {
                 this.callbacks.onCraftingState?.(state),
             emitTrainerState: (state: any) =>
                 this.callbacks.onTrainerState?.(state),
+            emitCorreoState: (state: any) =>
+                this.callbacks.onCorreoState?.(state),
+            emitCorreoPicOn: () => this.callbacks.onCorreoPicOn?.(),
             onAdminIntervalsOpen: () => this.notifyStubbed("Admin", true),
             onAdminOverviewSnapshot: () => undefined,
             onCharacterStatsSnapshot: () =>
@@ -1295,6 +1301,13 @@ export class GameClient {
         payload?: Record<string, unknown>,
     ): void {
         this.outgoingRequestsRef.current?.trainerAction(action, payload);
+    }
+
+    correoAction(
+        action: "list" | "send" | "delete",
+        payload?: Record<string, unknown>,
+    ): void {
+        this.outgoingRequestsRef.current?.correoAction(action, payload);
     }
 
     // Sprite-sheet graphic for a grhIndex, used by the DOM HUD to build

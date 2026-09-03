@@ -355,6 +355,14 @@ export async function handleIncomingWorldPacket({
             ctx.emitTrainerState(packet.payload);
             return true;
 
+        case "correoState":
+            ctx.emitCorreoState(packet.payload);
+            return true;
+
+        case "correoPicOn":
+            ctx.emitCorreoPicOn();
+            return true;
+
         case "closeBail":
             ctx.emitBailState(null);
             return true;

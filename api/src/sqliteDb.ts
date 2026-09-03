@@ -764,6 +764,31 @@ export class SqlitePoolAdapter {
                 "ALTER TABLE characters ADD COLUMN attr_carisma INTEGER NOT NULL DEFAULT 0",
             );
         }
+
+        // Correo entre jugadores (VB6 ModCorreo.bas / charfile [CORREO]).
+        const correoTable = this.db
+            .prepare(
+                "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'character_correo'",
+            )
+            .all() as { name: string }[];
+
+        if (correoTable.length === 0) {
+            this.db.exec(`
+                CREATE TABLE character_correo (
+                    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(4))) || '-' || lower(hex(randomblob(2))) || '-4' || substr(lower(hex(randomblob(2))), 2) || '-8' || substr(lower(hex(randomblob(2))), 2) || '-' || lower(hex(randomblob(6)))),
+                    character_id TEXT NOT NULL REFERENCES characters(id) ON DELETE CASCADE,
+                    remitente TEXT NOT NULL,
+                    mensaje TEXT NOT NULL,
+                    item TEXT NOT NULL DEFAULT '',
+                    item_count INTEGER NOT NULL DEFAULT 0 CHECK (item_count >= 0),
+                    leido BOOLEAN NOT NULL DEFAULT FALSE,
+                    fecha TEXT NOT NULL DEFAULT '',
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+                );
+                CREATE INDEX idx_character_correo_character_created
+                    ON character_correo(character_id, created_at ASC);
+            `);
+        }
     }
 }
 

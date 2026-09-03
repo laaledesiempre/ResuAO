@@ -35,6 +35,7 @@ const crafting = require("./crafting");
 const smelting = require("./smelting");
 const taming = require("./taming");
 const challengeManager = require("./challengeManager");
+const correo = require("./correo");
 const LOGOUT_CANCELLED_MESSAGE = "[Servidor] La salida se canceló porque te moviste.";
 const MAX_PENDING_MOVE_QUEUE_LENGTH = 8;
 const REVIVE_CAST_MS = 10000;
@@ -1041,6 +1042,7 @@ dictionaryServer[pkg.serverPacketID.useItemU] = useItemU;
 dictionaryServer[pkg.serverPacketID.craftItem] = craftItem;
 dictionaryServer[pkg.serverPacketID.assignAttributePoint] = assignAttributePoint;
 dictionaryServer[pkg.serverPacketID.trainerAction] = trainerAction;
+dictionaryServer[pkg.serverPacketID.correoAction] = correoAction;
 
 function Protocol(this: ProtocolApi) {
     try {
@@ -4581,6 +4583,40 @@ function trainerAction(ws: RuntimeClient) {
         }
 
         command.trainerList(ws);
+    } catch (err) {
+        funct.dumpError(err);
+    }
+}
+
+// Ventana del correo (VB6 frmCorreo, packets Correo/SendCorreo/BorrarCorreo
+// de Protocol.bas): {action:"list"} pide la lista, {action:"send",
+// destinatario, mensaje} envia un mensaje de texto y {action:"delete",
+// index} borra un mensaje (1-based). La logica vive en correo.ts.
+function correoAction(ws: RuntimeClient) {
+    try {
+        if (!game.existPjOrClose(ws)) {
+            return;
+        }
+
+        if (!pkg.canReadBytes(2)) {
+            return;
+        }
+
+        const rawPayload = pkg.getString();
+        const payload = rawPayload ? (JSON.parse(rawPayload) as Record<string, unknown>) : {};
+        const action = typeof payload.action === "string" ? payload.action.trim().toLowerCase() : "list";
+
+        if (action === "send") {
+            void correo.send(ws, String(payload.destinatario ?? ""), String(payload.mensaje ?? ""));
+            return;
+        }
+
+        if (action === "delete") {
+            void correo.remove(ws, Number(payload.index ?? 0));
+            return;
+        }
+
+        void correo.list(ws);
     } catch (err) {
         funct.dumpError(err);
     }

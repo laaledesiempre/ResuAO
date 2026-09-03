@@ -102,6 +102,13 @@ import {
     listMarketListings,
 } from "./repositories/market";
 import {
+    countUnreadCorreo,
+    deleteCorreo,
+    listCorreo,
+    markCorreoRead,
+    sendCorreo,
+} from "./repositories/correo";
+import {
     getGameNpcById,
     listGameNpcChangesSince,
     listGameNpcs,
@@ -2542,6 +2549,68 @@ app.post("/internal/market/claims/:characterId/claim", requireAuth, async (c) =>
                     [],
             }),
         );
+    } catch (error) {
+        return json(c, {
+            error: error instanceof Error ? error.message : "Unexpected error",
+        }, 400);
+    }
+});
+
+// ---------------------------------------------------------------------------
+// Internal correo routes (VB6 ModCorreo.bas)
+// ---------------------------------------------------------------------------
+
+app.get("/internal/correo/:characterId", requireAuth, async (c) => {
+    try {
+        return json(c, await listCorreo(routeParam(c, "characterId")));
+    } catch (error) {
+        return json(c, {
+            error: error instanceof Error ? error.message : "Unexpected error",
+        }, 400);
+    }
+});
+
+app.get("/internal/correo/:characterId/unread", requireAuth, async (c) => {
+    try {
+        return json(c, {
+            unread: await countUnreadCorreo(routeParam(c, "characterId")),
+        });
+    } catch (error) {
+        return json(c, {
+            error: error instanceof Error ? error.message : "Unexpected error",
+        }, 400);
+    }
+});
+
+app.post("/internal/correo/:characterId/read", requireAuth, async (c) => {
+    try {
+        await markCorreoRead(routeParam(c, "characterId"));
+        return json(c, { ok: true });
+    } catch (error) {
+        return json(c, {
+            error: error instanceof Error ? error.message : "Unexpected error",
+        }, 400);
+    }
+});
+
+app.post("/internal/correo", requireAuth, async (c) => {
+    try {
+        return json(c, await sendCorreo((await readBody(c)) as never), 201);
+    } catch (error) {
+        return json(c, {
+            error: error instanceof Error ? error.message : "Unexpected error",
+        }, 400);
+    }
+});
+
+app.delete("/internal/correo/:characterId/:messageId", requireAuth, async (c) => {
+    try {
+        return json(c, {
+            deleted: await deleteCorreo(
+                routeParam(c, "characterId"),
+                routeParam(c, "messageId"),
+            ),
+        });
     } catch (error) {
         return json(c, {
             error: error instanceof Error ? error.message : "Unexpected error",
