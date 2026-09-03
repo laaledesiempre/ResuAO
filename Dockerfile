@@ -53,6 +53,11 @@ COPY --from=build /app/api/schema.sqlite.sql /app/api/schema.sqlite.sql
 
 COPY --from=build /app/server/package.json /app/server/package.json
 COPY --from=build /app/server/dist /app/server/dist
+# The compiled game server requires ../jsons and ../mapas_source relative to
+# dist/ (e.g. dist/craftingRecipes.js -> /app/server/jsons/...). Keep those
+# asset dirs next to dist/, mirroring the repo layout.
+COPY --from=build /app/server/jsons /app/server/jsons
+COPY --from=build /app/server/mapas_source /app/server/mapas_source
 
 # Static client (served by `unified --serve` on the API port).
 COPY --from=build /app/client/dist /app/client/dist
