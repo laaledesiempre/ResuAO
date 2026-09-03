@@ -19,12 +19,18 @@ The built-in static server (`build.mjs --serve`):
   asset paths — the game loader probes candidate URLs and relies on 404s);
 - proxies `/api/*` to the Hono API so the client stays same-origin (the API
   only CORS-allows the Next.js origin). Target defaults to
-  `http://127.0.0.1:3001`, override with `AO_API_TARGET=http://127.0.0.1:3002`.
+  `http://127.0.0.1:3001`, override with `AO_API_TARGET=http://127.0.0.1:3002`;
+- serves `/runtime-config.js`, a tiny script generated from env that sets the
+  runtime globals below before `bundle.js` executes. Override the browser-visible
+  hosts with `RESU_API_URL` / `RESU_WS_URL` (no rebuild needed).
 
 Runtime config (set on `globalThis` before the bundle loads):
 
-- `__RESU_API_URL__` — API base URL (default `""` = same origin via proxy);
-- `__RESU_WS_URL__` — game websocket (default `ws://127.0.0.1:7666`).
+- `__RESU_API_URL__` — API base URL (from `RESU_API_URL`; default `""` = same
+  origin via proxy);
+- `__RESU_WS_URL__` — game websocket (from `RESU_WS_URL`; default auto:
+  same-origin `/ws` behind a proxy on standard ports, otherwise
+  `ws(s)://<hostname>:7666` for dev).
 
 **Important:** the game server on :7666 consumes game tickets against the API
 on **:3001** (its `API_BASE_URL`). Tickets issued by the disposable SQLite

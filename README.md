@@ -70,7 +70,18 @@ npm install
 npm run dev
 ```
 
-Variables de entorno: ver `api/.env.example` y `server/.env.example`.
+Variables de entorno: ver `api/.env.example` y `server/.env.example`. Las que
+cambian el host que usa el navegador son:
+
+- `RESU_API_URL` — base URL de la API para el cliente estático. Default `""`
+  (same-origin; `/api/*` lo proxifica el server que sirve el cliente).
+- `RESU_WS_URL` — WebSocket del game server para el cliente estático. Default
+  auto: same-origin `/ws` detrás de proxy en 80/443, o
+  `ws(s)://<hostname>:7666` en dev.
+
+El server unificado y `client/build.mjs --serve` exponen esas dos vars en
+`/runtime-config.js`, que `client/index.html` carga antes del bundle. No hace
+falta rebuildear el cliente para cambiarlas.
 
 ## 3. Postgres (opcional)
 
