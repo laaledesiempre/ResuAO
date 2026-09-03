@@ -115,6 +115,9 @@ function Respawn(this: any) {
                     game.putBodyAndHeadDead(idPersonaje);
                     npcs.deleteUserToAllNpcs(idPersonaje);
                     npcs.removeOwnerSummons(idPersonaje);
+                    // VB6 Modulo_UsUaRiOs.bas UserDie: al morir el dueño
+                    // mueren todas sus mascotas y se pierden.
+                    npcs.killOwnerPets(idPersonaje);
                     pjSelected.hp = 0;
                     if (
                         !challengeCombatDeath &&

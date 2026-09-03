@@ -324,6 +324,7 @@ export type RuntimeCharacter = {
     attrFuerza?: number;
     attrAgilidad?: number;
     attrInteligencia?: number;
+    attrCarisma?: number;
     attrConstitucion?: number;
     puntosAtributo?: number;
     bkAttrFuerza?: number;
@@ -353,6 +354,9 @@ export type RuntimeCharacter = {
     nextResyncPositionAt?: number;
     fishing?: FishingState;
     harvesting?: HarvestingState;
+    taming?: {
+        pendingTarget?: boolean;
+    };
     smelting?: SmeltingState;
     craftingTarget?: CraftingTargetState;
     useObj?: UseItemTracker;
@@ -371,6 +375,10 @@ export type RuntimeCharacter = {
     tradeClanName?: string | null;
     summons?: EntityId[];
     summonTargetNpcId?: EntityId;
+    // VB6 (Declares.bas): MascotasType (tipos de NPC persistidos) y
+    // MascotasIndex (ids runtime de los NPCs mascota spawneados).
+    pets?: number[];
+    petIds?: EntityId[];
     partyId?: string | null;
     partyLeaderId?: EntityId | null;
     partyInvitationFrom?: EntityId | null;
@@ -473,6 +481,10 @@ export type RuntimeNpc = {
     summonedByUserId?: EntityId;
     summonExpiresAt?: number;
     summonCreatedAt?: number;
+    // VB6 (Declares.bas): MaestroUser — dueño de la mascota domada.
+    petOwnerId?: EntityId;
+    // VB6 (NPCs.dat): Domable — puntos requeridos para domar (0 = no domable).
+    domable?: number;
     trainedByNpcId?: EntityId;
     trainedCreatureIds?: EntityId[];
     color?: string;

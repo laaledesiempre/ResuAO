@@ -115,6 +115,8 @@ class LoadNpcs {
         if (datNpc.objs) tmpNPC.objs = datNpc.objs;
         tmpNPC.aguaValida = datNpc.aguaValida;
         tmpNPC.tierraInvalida = datNpc.tierraInvalida ?? 0;
+        // VB6 (NPCs.dat campo Domable, FileIO.bas): puntos requeridos para domar.
+        tmpNPC.domable = Number(datNpc.domable ?? 0);
         if (datNpc.desc) tmpNPC.desc = datNpc.desc;
 
         if (forceRandomSpawn) {

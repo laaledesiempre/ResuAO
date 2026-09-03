@@ -618,6 +618,13 @@ function Login(this: LoginApi) {
                 // VB6 (TCP.bas): los skills y su experiencia se cargan desde el charfile.
                 personaje.skills = skills.normalizeSkills(personaje.skills);
                 personaje.skillExp = skills.normalizeSkillExp(personaje.skillExp);
+                // VB6 (FileIO.bas charfile [MASCOTAS]): tipos de las mascotas
+                // domadas (MAXMASCOTAS=3). Los ids runtime no persisten.
+                personaje.pets = (Array.isArray(personaje.pets) ? personaje.pets : [])
+                    .map((petType: unknown) => Number(petType))
+                    .filter((petType: number) => Number.isInteger(petType) && petType > 0)
+                    .slice(0, 3);
+                personaje.petIds = [];
                 // VB6 TCP.bas: flags.Equitando = 0 al loguear (la montura no persiste equipada).
                 personaje.equitando = 0;
                 personaje.monturaObjIndex = 0;
@@ -701,6 +708,10 @@ function Login(this: LoginApi) {
                 const baseAttrFuerza = persistedOrRaceAttr(personaje.attrFuerza, raceBalance?.fuerza);
                 const baseAttrAgilidad = persistedOrRaceAttr(personaje.attrAgilidad, raceBalance?.agilidad);
                 const baseAttrInteligencia = persistedOrRaceAttr(personaje.attrInteligencia, raceBalance?.inteligencia);
+                // VB6 (Declares.bas eAtributos.Carisma): fijo desde la creacion;
+                // se usa en la doma (Trabajo.bas DoDomar). balanceRazas ya
+                // incluye el modificador de carisma (ModRaza del VB6).
+                const baseAttrCarisma = persistedOrRaceAttr(personaje.attrCarisma, raceBalance?.carisma);
                 const baseAttrConstitucion = persistedOrRaceAttr(personaje.attrConstitucion, raceBalance?.constitucion);
 
                 personaje.cooldownFuerza = 0;
@@ -711,6 +722,7 @@ function Login(this: LoginApi) {
                 personaje.attrFuerza = baseAttrFuerza;
                 personaje.attrAgilidad = baseAttrAgilidad;
                 personaje.attrInteligencia = baseAttrInteligencia;
+                personaje.attrCarisma = baseAttrCarisma;
                 personaje.attrConstitucion = baseAttrConstitucion;
                 personaje.bkAttrFuerza = baseAttrFuerza;
                 personaje.bkAttrAgilidad = baseAttrAgilidad;
@@ -953,6 +965,12 @@ function Login(this: LoginApi) {
                     }
 
                     game.setNewAreas(ws);
+
+                    // VB6 TCP.bas ConnectUser: las mascotas domadas
+                    // (MascotasType persistidas) respawnean junto al dueño si
+                    // el mapa no es zona segura.
+                    const npcsApiLogin = require("./npcs") as { spawnOwnerPets: (idUser: EntityId) => void };
+                    npcsApiLogin.spawnOwnerPets(ws.id!);
                 });
 
                 funct.sendTelegramMessage(
@@ -1058,6 +1076,7 @@ function Login(this: LoginApi) {
         const baseAttrFuerza = 18 + vars.balanceRazas[character.idRaza].fuerza;
         const baseAttrAgilidad = 18 + vars.balanceRazas[character.idRaza].agilidad;
         const baseAttrInteligencia = 18 + vars.balanceRazas[character.idRaza].inteligencia;
+        const baseAttrCarisma = 18 + (vars.balanceRazas[character.idRaza].carisma ?? 0);
         const baseAttrConstitucion = 18 + vars.balanceRazas[character.idRaza].constitucion;
         const maxHp = balance.getMaxHpForLevel(character.idClase, baseAttrConstitucion, targetLevel);
         // VB6 TCP.bas: MaxSta = 20 * RandomNumber(1, Agilidad \ 6), con minimo 2.
@@ -1127,6 +1146,7 @@ function Login(this: LoginApi) {
             attrFuerza: initialStrength,
             attrAgilidad: initialAgility,
             attrInteligencia: baseAttrInteligencia,
+            attrCarisma: baseAttrCarisma,
             attrConstitucion: baseAttrConstitucion,
             puntosAtributo: 0,
             privileges: 0,

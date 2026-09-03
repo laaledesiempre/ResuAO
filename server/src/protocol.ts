@@ -33,6 +33,7 @@ const fishing = require("./fishing");
 const harvesting = require("./harvesting");
 const crafting = require("./crafting");
 const smelting = require("./smelting");
+const taming = require("./taming");
 const challengeManager = require("./challengeManager");
 const LOGOUT_CANCELLED_MESSAGE = "[Servidor] La salida se canceló porque te moviste.";
 const MAX_PENDING_MOVE_QUEUE_LENGTH = 8;
@@ -2164,6 +2165,7 @@ function processUserMovement(ws: RuntimeClient, heading: number, moveId: number,
     harvesting.cancelHarvesting(ws.id, "La recolección se canceló al moverte.");
     smelting.cancelSmelting(ws.id, "La fundición se canceló al moverte.");
     crafting.cancelPendingTarget(ws.id);
+    taming.cancelTaming(ws.id);
     if (!canKeepHiddenSkillWhileActing(user)) {
         stopHiddenSkill(ws, user);
     }
@@ -2410,6 +2412,10 @@ function eventClick(ws: RuntimeClient) {
         }
 
         if (crafting.handleMapClick(ws, x, y)) {
+            return;
+        }
+
+        if (taming.handleMapClick(ws, x, y)) {
             return;
         }
 

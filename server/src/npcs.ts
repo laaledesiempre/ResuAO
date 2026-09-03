@@ -42,6 +42,17 @@ const DRAGON_RESPAWN_COOLDOWN_MS = 1 * 60 * 60 * 1000;
 // MAXMASCOTASENTRENADOR (Declares.bas): tope de criaturas vivas por entrenador.
 const MAX_MASCOTAS_ENTRENADOR = 7;
 const TRAINER_CREATURE_SPAWN_SEARCH_RADIUS = 3;
+// MAXMASCOTAS (Declares.bas): tope de mascotas domadas por jugador.
+const MAX_MASCOTAS = 3;
+// Declares.bas: anillos que bonifican la doma (Trabajo.bas DoDomar).
+const FLAUTA_MAGICA = 208;
+const FLAUTA_ELFICA = 1050;
+// Trabajo.bas DoDomar: exito si RandomNumber(1, 5) = 1.
+const DOMAR_RANDOM_MAX = 5;
+// AI_NPC.bas SeguirAmo: la mascota se acerca al amo si Distancia > 3.
+const PET_FOLLOW_DISTANCE = 3;
+// AI_NPC.bas NPCAI SigueAmo: RandomNumber(1, 12) = 3 -> paso al azar.
+const PET_RANDOM_MOVE_CHANCE = 12;
 const COMBAT_HIT_FX_ID = 14;
 const COMBAT_SHIELD_BLOCK_FX_ID = 88;
 const COMBAT_MISS_FX_ID = 90;
@@ -129,6 +140,8 @@ type PlayerCharacter = RuntimeCharacter & {
     inv: InventoryRecord;
     summons?: EntityId[];
     summonTargetNpcId?: EntityId;
+    pets?: number[];
+    petIds?: EntityId[];
 };
 type NpcFollowTarget = {
     id: EntityId;
@@ -140,6 +153,10 @@ type SummonedNpc = NpcCharacter & {
     summonedByUserId: EntityId;
     summonExpiresAt: number;
     summonCreatedAt: number;
+};
+// Mascota domada (VB6 Npclist con MaestroUser > 0).
+type PetNpc = NpcCharacter & {
+    petOwnerId: EntityId;
 };
 
 function emitCharacterFxToUserArea(entityId: EntityId, fxId: number) {
@@ -165,6 +182,10 @@ export type NpcsApi = {
     spawnTrainerCreature: (trainerId: EntityId, petIndex: number) => EntityId | 0;
     countTrainerCreatures: (trainerId: EntityId) => number;
     removeOwnerSummons: (idUser: EntityId) => void;
+    doDomar: (idUser: EntityId, idNpc: EntityId) => void;
+    spawnOwnerPets: (idUser: EntityId) => void;
+    removeOwnerPets: (idUser: EntityId) => void;
+    killOwnerPets: (idUser: EntityId) => void;
     muereNpc: (idNpc: EntityId) => void;
     findDirection: (posNpc: Position, posUser: Position) => Direction;
     npcAttackUser: (idNpc: EntityId, targetPressure: Map<EntityId, number>) => void;
@@ -852,6 +873,10 @@ function isSummonedNpc(npc: NpcCharacter | undefined): npc is SummonedNpc {
     return Boolean(npc?.summonedByUserId);
 }
 
+function isPetNpc(npc: NpcCharacter | undefined): npc is PetNpc {
+    return Boolean(npc?.petOwnerId);
+}
+
 function isSummonOwnerValid(owner: PlayerCharacter | undefined, summon: SummonedNpc) {
     return Boolean(owner && !owner.cerrado && !owner.dead && owner.map === summon.map && owner.hp > 0);
 }
@@ -1098,6 +1123,61 @@ function despawnTrainerCreature(npc: NpcCharacter) {
     releaseNpcAttackReservation(npc);
     clearNpcRoute(npc);
     delete vars.npcs[npc.id];
+}
+
+// VB6 MODULO_NPCs.bas QuitarMascota: saca el npc de las listas del dueño.
+// keepType=false corresponde al VB6 (al morir la mascota se pierde el tipo);
+// keepType=true se usa al desconectar, porque el VB6 persiste MascotasType
+// en el charfile ([MASCOTAS] MAS1..3, FileIO.bas) y la mascota "espera".
+function removePetFromOwnerLists(npc: PetNpc, keepType: boolean) {
+    const owner = getUser(npc.petOwnerId);
+
+    npc.petOwnerId = 0;
+
+    if (!owner) {
+        return;
+    }
+
+    owner.petIds = (owner.petIds ?? []).filter((petId) => String(petId) !== String(npc.id));
+
+    if (!keepType) {
+        const petType = Number(npc.templateNpcIndex ?? 0);
+        const typeIndex = (owner.pets ?? []).indexOf(petType);
+
+        if (typeIndex >= 0) {
+            owner.pets = (owner.pets ?? []).filter((_, index) => index !== typeIndex);
+        }
+    }
+}
+
+// VB6 TCP.bas CloseSocket: al desconectarse se quitan los NPCs mascota del
+// mundo (QuitarNPC) pero se conservan los tipos para respawnearlos al loguear.
+// Si la mascota venia de un spawn del mapa, el NPC salvaje vuelve a aparecer.
+function despawnPet(npc: PetNpc) {
+    removePetFromOwnerLists(npc, true);
+
+    vars.mapData[npc.map]?.[npc.pos.y]?.[npc.pos.x] && (vars.mapData[npc.map][npc.pos.y][npc.pos.x].id = 0);
+
+    npcs.loopArea(npc.id, (target) => {
+        withUserClient(target.id, (targetClient) => {
+            handleProtocol.deleteCharacter(npc.id, targetClient);
+        });
+    });
+
+    vars.areaNpc[npc.id] = [];
+    releaseNpcAttackReservation(npc);
+    clearNpcRoute(npc);
+    delete vars.npcs[npc.id];
+
+    const respawnEntry = getNpcRespawnEntry(npc);
+
+    if (respawnEntry) {
+        const LoadNpcs = require("./loadNpcs") as {
+            new (): { createNpcInMap: (npc: NpcRespawnEntry, skipRespawnCooldownCheck?: boolean) => void };
+        };
+
+        new LoadNpcs().createNpcInMap(respawnEntry, true);
+    }
 }
 
 const NPC_FLOW_FIELD_RADIUS = AREA_RANGE_X;
@@ -1821,7 +1901,7 @@ function clearDeadNpcFromSummonTargets(idNpc: EntityId) {
     }
 
     for (const npc of Object.values(vars.npcs) as NpcCharacter[]) {
-        if (isSummonedNpc(npc) && String(npc.currentTargetId ?? 0) === deadNpcId) {
+        if ((isSummonedNpc(npc) || isPetNpc(npc)) && String(npc.currentTargetId ?? 0) === deadNpcId) {
             clearNpcTarget(npc);
         }
     }
@@ -2174,6 +2254,285 @@ function Npcs(this: NpcsApi) {
         }
     };
 
+    // VB6 TCP.bas ConnectUser: al loguear, si el mapa es inseguro (Pk), se
+    // respawnean las mascotas guardadas (MascotasType) junto al dueño con
+    // MaestroUser y FollowAmo. A diferencia de los summons, no expiran.
+    this.spawnOwnerPets = function (idUser: EntityId) {
+        try {
+            const owner = getUser(idUser);
+
+            if (!owner) {
+                return;
+            }
+
+            owner.pets = (owner.pets ?? [])
+                .map((petType) => Number(petType))
+                .filter((petType) => Number.isInteger(petType) && petType > 0 && vars.datNpc[petType])
+                .slice(0, MAX_MASCOTAS);
+            owner.petIds = [];
+
+            if (!owner.pets.length) {
+                return;
+            }
+
+            // VB6: If .NroMascotas > 0 And MapInfo(.Pos.Map).Pk Then ... (en
+            // zona segura las mascotas esperan afuera).
+            if (safeZone.isSafeZonePosition(owner.map, owner.pos)) {
+                return;
+            }
+
+            const login = require("./login") as { createId: () => EntityId };
+            const now = Date.now();
+
+            for (const petType of owner.pets) {
+                const datNpc = vars.datNpc[petType];
+
+                if (!datNpc) {
+                    continue;
+                }
+
+                const spawnPos = findSummonSpawnPosition(
+                    owner,
+                    owner.pos,
+                    Boolean(datNpc.aguaValida),
+                    Boolean(datNpc.tierraInvalida),
+                );
+
+                if (!spawnPos) {
+                    continue;
+                }
+
+                const npc = this.createNpc() as PetNpc;
+
+                npc.id = login.createId();
+                npc.templateNpcIndex = petType;
+                npc.map = owner.map;
+                npc.pos = { x: spawnPos.x, y: spawnPos.y };
+                npc.nameCharacter = datNpc.name;
+                npc.color = "white";
+                npc.isNpc = true;
+                npc.idBody = datNpc.idBody;
+                npc.idHead = datNpc.idHead;
+                npc.movement = 3;
+                npc.npcType = Number.parseInt(String(datNpc.npcType ?? 0), 10);
+                npc.exp = datNpc.exp ?? 0;
+                npc.gold = datNpc.gold ?? 0;
+                npc.hp = datNpc.hp ?? datNpc.maxHp ?? 1;
+                npc.maxHp = datNpc.maxHp ?? datNpc.hp ?? 1;
+                npc.minHit = datNpc.minHit ?? 0;
+                npc.maxHit = datNpc.maxHit ?? 0;
+                npc.def = datNpc.def ?? 0;
+                npc.defM = datNpc.defM ?? datNpc.magicDef ?? 0;
+                npc.magicDef = datNpc.magicDef ?? datNpc.defM ?? 0;
+                npc.magicResistance = datNpc.magicResistance ?? 0;
+                npc.poderAtaque = datNpc.poderAtaque ?? 0;
+                npc.poderEvasion = datNpc.poderEvasion ?? 0;
+                npc.veneno = Number(datNpc.veneno ?? 0) === 1 ? 1 : 0;
+                npc.snd1 = datNpc.snd1 ?? 0;
+                npc.snd2 = datNpc.snd2 ?? 0;
+                npc.soundClose = datNpc.soundClose ?? 0;
+                npc.spellCastIntervalMs = datNpc.spellCastIntervalMs ?? 0;
+                npc.lastSpellCastAt = 0;
+                npc.spellRange = datNpc.spellRange ?? 0;
+                npc.spells = Array.isArray(datNpc.spells)
+                    ? datNpc.spells
+                          .filter(
+                              (spell: { idSpell?: number; cooldownSeconds?: number }) => Number(spell?.idSpell ?? 0) > 0,
+                          )
+                          .map((spell: { idSpell?: number; cooldownSeconds?: number }) => ({
+                              idSpell: Number(spell.idSpell),
+                              cooldownSeconds: Math.max(0, Number(spell.cooldownSeconds ?? 0)),
+                              lastUsedAt: 0,
+                          }))
+                    : [];
+                npc.aguaValida = datNpc.aguaValida ?? 0;
+                npc.tierraInvalida = datNpc.tierraInvalida ?? 0;
+                npc.domable = Number(datNpc.domable ?? 0);
+                npc.heading = owner.heading;
+                npc.cooldownAtaque = now;
+                npc.nextThinkAt = now + vars.timing.npcThinkMs;
+                npc.petOwnerId = idUser;
+
+                vars.npcs[npc.id] = npc;
+                vars.areaNpc[npc.id] = [];
+                vars.mapData[owner.map][spawnPos.y][spawnPos.x].id = npc.id;
+                owner.petIds = [...(owner.petIds ?? []), npc.id];
+
+                this.loopArea(npc.id, (target: PlayerCharacter) => {
+                    if (!isInvisibleToNpc(target) && !target.dead && vars.areaNpc[npc.id].indexOf(target.id) < 0) {
+                        vars.areaNpc[npc.id].push(target.id);
+                    }
+
+                    handleProtocol.sendNpc(npc);
+                    withUserClient(target.id, (targetClient) => {
+                        socket.send(targetClient);
+                    });
+                });
+            }
+        } catch (err) {
+            funct.dumpError(err);
+        }
+    };
+
+    // VB6 TCP.bas CloseSocket: al desconectarse se borran los NPCs mascota
+    // del mundo pero se conservan los tipos (siguen siendo del jugador).
+    this.removeOwnerPets = function (idUser: EntityId) {
+        try {
+            const owner = getUser(idUser);
+            const petIds = [...(owner?.petIds ?? [])];
+
+            if (owner) {
+                owner.petIds = [];
+            }
+
+            for (const petId of petIds) {
+                const pet = vars.npcs[petId] as NpcCharacter | undefined;
+
+                if (isPetNpc(pet) && String(pet.petOwnerId) === String(idUser)) {
+                    despawnPet(pet);
+                }
+            }
+        } catch (err) {
+            funct.dumpError(err);
+        }
+    };
+
+    // VB6 Modulo_UsUaRiOs.bas UserDie: al morir el dueño mueren todas sus
+    // mascotas (MuereNpc) y se pierden los tipos (NroMascotas = 0).
+    this.killOwnerPets = function (idUser: EntityId) {
+        try {
+            const owner = getUser(idUser);
+            const petIds = [...(owner?.petIds ?? [])];
+
+            for (const petId of petIds) {
+                const pet = vars.npcs[petId] as NpcCharacter | undefined;
+
+                if (isPetNpc(pet) && String(pet.petOwnerId) === String(idUser)) {
+                    this.muereNpc(pet.id);
+                }
+            }
+
+            if (owner) {
+                owner.pets = [];
+                owner.petIds = [];
+            }
+        } catch (err) {
+            funct.dumpError(err);
+        }
+    };
+
+    // VB6 Trabajo.bas DoDomar + Protocol.bas HandleWork caso eSkill.Domar.
+    // puntosDomar = Carisma * UserSkills(Domar); exito si puntosRequeridos <=
+    // puntosDomar y RandomNumber(1, 5) = 1. Flauta elfica 20% y flauta magica
+    // 11% de bonificacion sobre los puntos requeridos (Domable del NPCs.dat).
+    this.doDomar = function (idUser: EntityId, idNpc: EntityId) {
+        try {
+            const user = getUser(idUser);
+            const npc = getNpc(idNpc);
+
+            if (!user || !npc) {
+                return;
+            }
+
+            const consoleTo = (message: string) => {
+                withUserClient(user.id, (client) => {
+                    handleProtocol.console(message, "white", 0, 0, client);
+                });
+            };
+
+            if (!npc.isNpc || npc.hp <= 0 || isSummonedNpc(npc)) {
+                consoleTo("No hay ninguna criatura alli!");
+                return;
+            }
+
+            if (Number(npc.domable ?? 0) <= 0) {
+                consoleTo("No puedes domar a esa criatura.");
+                return;
+            }
+
+            if (npc.map !== user.map || getManhattanDistance(user.pos, npc.pos) > 2) {
+                consoleTo("Estas demasiado lejos.");
+                return;
+            }
+
+            // VB6: Npclist(tN).flags.AttackedBy (la criatura fue atacada por
+            // un jugador y sigue en pelea).
+            if (npc.lastAggressorId || npc.currentTargetId) {
+                consoleTo("No puedes domar una criatura que esta luchando con un jugador.");
+                return;
+            }
+
+            if (String(npc.petOwnerId ?? 0) === String(user.id)) {
+                consoleTo("Ya domaste a esa criatura.");
+                return;
+            }
+
+            user.pets = (user.pets ?? []).filter((petType) => Number(petType) > 0);
+            user.petIds = (user.petIds ?? []).filter((petId) => isPetNpc(vars.npcs[petId] as NpcCharacter | undefined));
+
+            if (user.pets.length >= MAX_MASCOTAS) {
+                consoleTo("No puedes controlar mas criaturas.");
+                return;
+            }
+
+            // VB6: MaestroNpc > 0 Or MaestroUser > 0.
+            if (npc.petOwnerId || npc.trainedByNpcId) {
+                consoleTo("La criatura ya tiene amo.");
+                return;
+            }
+
+            // VB6 PuedeDomarMascota: maximo dos criaturas del mismo tipo.
+            const petType = Number(npc.templateNpcIndex ?? 0);
+            const sameTypeCount = user.pets.filter((type) => Number(type) === petType).length;
+
+            if (sameTypeCount > 1) {
+                consoleTo("No puedes domar mas de dos criaturas del mismo tipo.");
+                return;
+            }
+
+            const puntosDomar = Math.floor(Number(user.attrCarisma ?? 0)) * skills.getSkillValue(user, skills.Skill.Domar);
+            const equippedRing = getEquippedInventoryItem(user, user.idItemRing);
+            const ringObjIndex = Number(equippedRing?.idItem ?? 0);
+            let puntosRequeridos = Number(npc.domable ?? 0);
+
+            if (ringObjIndex === FLAUTA_ELFICA) {
+                puntosRequeridos = Math.round(puntosRequeridos * 0.8);
+            } else if (ringObjIndex === FLAUTA_MAGICA) {
+                puntosRequeridos = Math.round(puntosRequeridos * 0.89);
+            }
+
+            if (puntosRequeridos <= puntosDomar && funct.randomIntFromInterval(1, DOMAR_RANDOM_MAX) === 1) {
+                npc.petOwnerId = user.id;
+                npc.currentTargetId = 0;
+                npc.currentTargetLockedUntil = 0;
+                npc.lastAggressorId = 0;
+                npc.lastAggressedAt = 0;
+                npc.movement = 3;
+                releaseNpcAttackReservation(npc);
+                clearNpcRoute(npc);
+
+                user.pets = [...user.pets, petType];
+                user.petIds = [...(user.petIds ?? []), npc.id];
+
+                consoleTo("La criatura te ha aceptado como su amo.");
+
+                // VB6: en zona segura la mascota no puede quedarse (QuitarNPC)
+                // pero el tipo se conserva ("espera afuera").
+                if (safeZone.isSafeZonePosition(user.map, user.pos)) {
+                    despawnPet(npc as PetNpc);
+                    consoleTo("No se permiten mascotas en zona segura. estas te esperaran afuera.");
+                }
+
+                skills.subirSkill(user.id, skills.Skill.Domar, true);
+            } else {
+                consoleTo("No has logrado domar la criatura.");
+                skills.subirSkill(user.id, skills.Skill.Domar, false);
+            }
+        } catch (err) {
+            funct.dumpError(err);
+        }
+    };
+
     const updateNpcHeading = (npc: NpcCharacter, target: NpcFollowTarget) => {
         const directionNpc = this.findDirection(npc.pos, target.pos);
 
@@ -2379,6 +2738,108 @@ function Npcs(this: NpcsApi) {
         attackNpcTarget(summon, targetNpc, owner);
     };
 
+    // VB6 AI_NPC.bas NPCAI caso TipoAI.SigueAmo + SeguirAmo: sin target, la
+    // mascota sigue al amo (Distancia > 3, dentro del rango de vision) y con
+    // chance 1/12 da un paso al azar. Si el amo ataca un npc, la mascota lo
+    // ataca (SistemaCombate.bas AllMascotasAtacanNpc, via summonTargetNpcId).
+    const processPetMovement = (pet: PetNpc) => {
+        const owner = getUser(pet.petOwnerId);
+        const ownerVisible = Boolean(
+            owner && !owner.cerrado && !owner.dead && owner.map === pet.map && !isInvisibleToNpc(owner),
+        );
+
+        if (!owner || !ownerVisible) {
+            // VB6 SeguirAmo: si el amo no es alcanzable, RestoreOldMovement
+            // (la criatura vuelve a vagar al azar).
+            if (!pet.paralizado && !pet.inmovilizado && funct.randomIntFromInterval(1, PET_RANDOM_MOVE_CHANCE) === 3) {
+                const randomPos = this.posMovement(
+                    funct.randomIntFromInterval(1, 4) as Direction,
+                    pet.id,
+                );
+
+                if (game.legalPosNpc(randomPos.x, randomPos.y, pet.map, Boolean(pet.aguaValida), Boolean(pet.tierraInvalida))) {
+                    this.moveNpcByPos(pet.id, randomPos);
+                }
+            }
+
+            return;
+        }
+
+        const petOwner = owner as PlayerCharacter;
+        const currentTarget = getValidSummonCombatTarget(pet.currentTargetId, pet.map);
+        const targetNpc = currentTarget ?? getValidSummonCombatTarget(petOwner.summonTargetNpcId, pet.map);
+        const validTarget =
+            targetNpc && String(targetNpc.id) !== String(pet.id) && String(targetNpc.petOwnerId ?? 0) !== String(petOwner.id)
+                ? targetNpc
+                : undefined;
+
+        if (!validTarget) {
+            pet.currentTargetId = 0;
+            releaseNpcAttackReservation(pet);
+
+            // VB6 SeguirAmo: solo se mueve si Distancia > 3 y el amo esta en
+            // el rango de vision del npc.
+            const withinVision =
+                Math.abs(petOwner.pos.x - pet.pos.x) <= AREA_RANGE_X &&
+                Math.abs(petOwner.pos.y - pet.pos.y) <= AREA_RANGE_Y;
+
+            if (withinVision && getManhattanDistance(pet.pos, petOwner.pos) > PET_FOLLOW_DISTANCE) {
+                if (!pet.paralizado && !pet.inmovilizado) {
+                    const nextPos = getNextChasePosition(pet, petOwner);
+
+                    if (nextPos) {
+                        this.moveNpcByPos(pet.id, nextPos);
+                        return;
+                    }
+                }
+            }
+
+            // VB6 NPCAI SigueAmo: RandomNumber(1, 12) = 3 -> paso al azar.
+            if (!pet.paralizado && !pet.inmovilizado && funct.randomIntFromInterval(1, PET_RANDOM_MOVE_CHANCE) === 3) {
+                const randomPos = this.posMovement(
+                    funct.randomIntFromInterval(1, 4) as Direction,
+                    pet.id,
+                );
+
+                if (game.legalPosNpc(randomPos.x, randomPos.y, pet.map, Boolean(pet.aguaValida), Boolean(pet.tierraInvalida))) {
+                    this.moveNpcByPos(pet.id, randomPos);
+                }
+            }
+
+            return;
+        }
+
+        pet.currentTargetId = validTarget.id;
+
+        if (!isTargetAdjacent(pet, validTarget)) {
+            if (!pet.paralizado && !pet.inmovilizado) {
+                const nextPos = getNextChasePosition(pet, validTarget);
+
+                if (nextPos) {
+                    const isAttackTile = getManhattanDistance(nextPos, validTarget.pos) === 1;
+
+                    if (isAttackTile) {
+                        reserveAttackTile(pet, validTarget.id, nextPos);
+                    } else if (pet.reservedAttackTargetId) {
+                        releaseNpcAttackReservation(pet);
+                    }
+
+                    this.moveNpcByPos(pet.id, nextPos);
+                }
+            }
+
+            return;
+        }
+
+        reserveAttackTile(pet, validTarget.id, pet.pos);
+
+        if (pet.paralizado || pet.inmovilizado) {
+            return;
+        }
+
+        attackNpcTarget(pet, validTarget, petOwner);
+    };
+
     this.processPendingMovements = function () {
         try {
             const now = Date.now();
@@ -2421,6 +2882,17 @@ function Npcs(this: NpcsApi) {
 
                     npc.nextThinkAt = now + vars.timing.npcThinkMs;
                     processSummonMovement(npc);
+                    continue;
+                }
+
+                // Mascota domada (VB6 MaestroUser > 0): AI SigueAmo.
+                if (isPetNpc(npc)) {
+                    if ((npc.nextThinkAt ?? 0) > now) {
+                        continue;
+                    }
+
+                    npc.nextThinkAt = now + vars.timing.npcThinkMs;
+                    processPetMovement(npc);
                     continue;
                 }
 
@@ -2478,6 +2950,13 @@ function Npcs(this: NpcsApi) {
 
                 despawnTrainerCreature(npc);
                 return;
+            }
+
+            // Mascota domada (VB6 MODULO_NPCs.bas QuitarNPC -> QuitarMascota):
+            // al morir el dueño la pierde (tipo e indice) y la criatura
+            // vuelve a ser salvaje siguiendo el respawn normal.
+            if (isPetNpc(npc)) {
+                removePetFromOwnerLists(npc, false);
             }
 
             clearDeadNpcFromSummonTargets(idNpc);

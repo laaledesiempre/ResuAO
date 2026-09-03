@@ -114,6 +114,13 @@ const characterPatchSchema = z
             .max(20)
             .transform((value) => JSON.stringify(value))
             .optional(),
+        // VB6 (FileIO.bas charfile [MASCOTAS]): tipos de NPC de las mascotas
+        // domadas (MAXMASCOTAS=3, Declares.bas).
+        pets: z
+            .array(z.coerce.number().int().min(0))
+            .max(3)
+            .transform((value) => JSON.stringify(value))
+            .optional(),
         idRaza: z.coerce.number().int().optional(),
         idGenero: z.coerce.number().int().optional(),
         muerto: z
@@ -125,6 +132,7 @@ const characterPatchSchema = z
         attrFuerza: z.coerce.number().int().optional(),
         attrAgilidad: z.coerce.number().int().optional(),
         attrInteligencia: z.coerce.number().int().optional(),
+        attrCarisma: z.coerce.number().int().optional(),
         attrConstitucion: z.coerce.number().int().optional(),
         puntosAtributo: z.coerce.number().int().min(0).optional(),
         privileges: z.coerce.number().int().optional(),
@@ -208,6 +216,7 @@ const fieldMap = [
     ["envenenado", "envenenado"],
     ["skills", "skills"],
     ["skillExp", "skill_exp"],
+    ["pets", "pets"],
     ["idRaza", "id_raza"],
     ["idGenero", "id_genero"],
     ["muerto", "muerto"],
@@ -216,6 +225,7 @@ const fieldMap = [
     ["attrFuerza", "attr_fuerza"],
     ["attrAgilidad", "attr_agilidad"],
     ["attrInteligencia", "attr_inteligencia"],
+    ["attrCarisma", "attr_carisma"],
     ["attrConstitucion", "attr_constitucion"],
     ["puntosAtributo", "puntos_atributo"],
     ["privileges", "privileges"],
@@ -309,6 +319,7 @@ function toCharacterResponse(
         envenenado: character.envenenado,
         skills: parseSkillsColumn(character.skills),
         skillExp: parseSkillsColumn(character.skill_exp),
+        pets: parseSkillsColumn(character.pets),
         idRaza: character.id_raza,
         idGenero: character.id_genero,
         muerto: character.muerto,
@@ -317,6 +328,7 @@ function toCharacterResponse(
         attrFuerza: character.attr_fuerza,
         attrAgilidad: character.attr_agilidad,
         attrInteligencia: character.attr_inteligencia,
+        attrCarisma: character.attr_carisma,
         attrConstitucion: character.attr_constitucion,
         puntosAtributo: character.puntos_atributo,
         privileges: character.privileges,

@@ -451,9 +451,13 @@ const socket: SocketApi = {
             const personajeWS = vars.personajes[idUser] as RuntimeCharacter | undefined;
             const npcApi = require("./npcs") as {
                 removeOwnerSummons: (ownerId: EntityId) => void;
+                removeOwnerPets: (ownerId: EntityId) => void;
             };
 
             npcApi.removeOwnerSummons(idUser);
+            // VB6 TCP.bas CloseSocket: se borran los NPCs mascota del mundo
+            // pero los tipos persisten (vuelven al loguear).
+            npcApi.removeOwnerPets(idUser);
             this.deleteUserToAllNpcs(idUser);
             this.detachClient(idUser);
 
