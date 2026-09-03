@@ -121,6 +121,7 @@ export type CharacterRecord = {
     envenenado: number;
     skills: string;
     skill_exp: string;
+    pets: string;
     id_raza: number;
     id_genero: number;
     muerto: boolean;
@@ -129,6 +130,7 @@ export type CharacterRecord = {
     attr_fuerza: number;
     attr_agilidad: number;
     attr_inteligencia: number;
+    attr_carisma: number;
     attr_constitucion: number;
     puntos_atributo: number;
     privileges: number;
@@ -265,6 +267,7 @@ export type CharacterApiResponse = {
     envenenado: number;
     skills: number[];
     skillExp: number[];
+    pets: number[];
     idRaza: number;
     idGenero: number;
     muerto: boolean;
@@ -273,6 +276,7 @@ export type CharacterApiResponse = {
     attrFuerza: number;
     attrAgilidad: number;
     attrInteligencia: number;
+    attrCarisma: number;
     attrConstitucion: number;
     puntosAtributo: number;
     privileges: number;

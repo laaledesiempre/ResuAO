@@ -40,6 +40,7 @@ const runtimeTiming = require("./runtimeTiming");
 const robbing = require("./robbing") as import("./robbing").RobbingApi;
 const balance = require("./balance");
 const mapInstanceManager = require("./mapInstanceManager");
+const taming = require("./taming");
 const npcsInMap = loadAllMapNpcPlacements() as Array<{
     mapNum: number;
     x: number;
@@ -2871,6 +2872,14 @@ const command: CommandApi = {
                 case "/robar":
                     robbing.handleRobar(clientId);
                     break;
+
+                // VB6: no existe /DOMAR; se usa el skill Domar con la tecla de
+                // trabajo y se clickea la criatura (Protocol.bas HandleWork
+                // eSkill.Domar). El comando deja el targeteo pendiente.
+                case "/domar": {
+                    taming.startTaming(ws);
+                    break;
+                }
 
                 case "/entrenar": {
                     handleEntrenar(user, nextText, ws);

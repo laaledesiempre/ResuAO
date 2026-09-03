@@ -60,6 +60,7 @@ export type GameNpcRecordData = {
     magicResistance?: number;
     magicDef?: number;
     defM?: number;
+    domable?: number;
     snd1?: number;
     snd2?: number;
     soundClose?: number;
@@ -160,6 +161,7 @@ const NPC_DEFAULTS: Record<string, unknown> = {
     magicResistance: 0,
     magicDef: 0,
     defM: 0,
+    domable: 0,
     snd1: 0,
     snd2: 0,
     soundClose: 0,
