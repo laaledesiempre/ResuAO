@@ -5,7 +5,6 @@ export {};
 
 const vars = require("./vars");
 const funct = require("./functions");
-const _ = require("lodash");
 
 const DYNAMIC_INSTANCE_MAP_START = 30_000;
 const DYNAMIC_INSTANCE_MAP_STRIDE = 50;
@@ -55,8 +54,8 @@ const mapInstanceManager = {
     },
 
     cloneMap(baseMapId: number, targetMapId: number) {
-        vars.mapa[targetMapId] = _.cloneDeep(vars.mapa[baseMapId]);
-        vars.mapData[targetMapId] = _.cloneDeep(vars.mapData[baseMapId]);
+        vars.mapa[targetMapId] = structuredClone(vars.mapa[baseMapId]);
+        vars.mapData[targetMapId] = structuredClone(vars.mapData[baseMapId]);
 
         for (let y = 1; y <= 100; y += 1) {
             for (let x = 1; x <= 100; x += 1) {
@@ -81,7 +80,7 @@ const mapInstanceManager = {
                 continue;
             }
 
-            const tmpNpc = _.cloneDeep(createRuntimeNpcTemplate());
+            const tmpNpc = structuredClone(createRuntimeNpcTemplate());
             tmpNpc.id = login.createId();
             tmpNpc.templateNpcIndex = Number(entry.npcIndex);
             tmpNpc.map = targetMapId;

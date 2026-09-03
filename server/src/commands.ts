@@ -39,7 +39,6 @@ const login = require("./login");
 const runtimeTiming = require("./runtimeTiming");
 const balance = require("./balance");
 const mapInstanceManager = require("./mapInstanceManager");
-const _ = require("lodash");
 const npcsInMap = loadAllMapNpcPlacements() as Array<{
     mapNum: number;
     x: number;
@@ -1721,7 +1720,7 @@ function spawnNpcNextToAdmin(
         return;
     }
 
-    const npc = _.cloneDeep(npcs.createNpc());
+    const npc = structuredClone(npcs.createNpc());
 
     npc.id = login.createId();
     npc.templateNpcIndex = idNpc;

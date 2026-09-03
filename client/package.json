@@ -11,12 +11,12 @@
     "test": "esbuild test/*.test.ts --bundle --platform=node --format=esm --outdir=test/dist --out-extension:.js=.test.mjs && node --test test/dist/*.test.mjs"
   },
   "devDependencies": {
-    "@types/howler": "^2.2.12",
-    "esbuild": "^0.25.0",
-    "typescript": "^5.8.0"
+    "@types/howler": "^2.2.13",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "howler": "^2.2.4",
-    "pixi.js": "^8.14.0"
+    "pixi.js": "^8.20.1"
   }
 }

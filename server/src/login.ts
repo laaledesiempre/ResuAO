@@ -12,7 +12,6 @@ const arenaManager = require("./arenaManager");
 const mapInstanceManager = require("./mapInstanceManager");
 const balance = require("./balance");
 const safeZone = require("./safeZone");
-const _ = require("lodash");
 
 function normalizeFaction(value: unknown): CharacterFaction {
     return value === "armada" || value === "caos" ? value : "none";
@@ -571,7 +570,7 @@ function Login(this: LoginApi) {
 
                 const date = new Date();
 
-                const personaje = _.cloneDeep(persistedCharacter) as StoredCharacter;
+                const personaje = structuredClone(persistedCharacter) as StoredCharacter;
 
                 personaje.banned = parseBannedUntil(personaje.banned);
 
@@ -1004,7 +1003,7 @@ function Login(this: LoginApi) {
             pvpChar?: boolean;
         },
     ) => {
-        const character = _.cloneDeep(vars.charactersPvP[idChar]) as PvPCharacterTemplate | undefined;
+        const character = structuredClone(vars.charactersPvP[idChar]) as PvPCharacterTemplate | undefined;
 
         if (!character) {
             throw new Error(`Plantilla PvP invalida: ${idChar}`);

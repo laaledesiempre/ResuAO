@@ -7,7 +7,6 @@ import * as safeZone from "./safeZone";
 
 export {};
 
-const _ = require("lodash");
 const vars = require("./vars");
 const PARTY_MAX_SIZE_FOR_2V2 = 2;
 const CHALLENGE_BASE_MAP_ID = 506;
@@ -322,7 +321,7 @@ const challengeManager = {
     createMatchInstanceMap() {
         const mapId = this.createInstanceMapId();
 
-        vars.mapa[mapId] = _.cloneDeep(vars.mapa[CHALLENGE_BASE_MAP_ID]);
+        vars.mapa[mapId] = structuredClone(vars.mapa[CHALLENGE_BASE_MAP_ID]);
         vars.mapData[mapId] = [];
 
         for (let y = 1; y <= 100; y++) {

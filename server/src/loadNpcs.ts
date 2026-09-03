@@ -7,7 +7,6 @@ const vars = require("./vars");
 const npcs = require("./npcs");
 const login = require("./login");
 
-const _ = require("lodash");
 
 class LoadNpcs {
     constructor() {}
@@ -63,7 +62,7 @@ class LoadNpcs {
             return;
         }
 
-        let tmpNPC = _.cloneDeep(npcs.createNpc());
+        let tmpNPC = structuredClone(npcs.createNpc());
 
         tmpNPC.id = login.createId();
         tmpNPC.templateNpcIndex = Number(npcIndex);

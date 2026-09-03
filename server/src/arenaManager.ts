@@ -1,12 +1,11 @@
 import type { GameApi } from "./game";
-import type { RuntimeCharacter } from "./types/runtime";
+import type { RuntimeCharacter, RuntimeNpc } from "./types/runtime";
 import { loadMapNpcPlacements } from "./mapNpcStorage";
 
 export {};
 
 const vars = require("./vars");
 const funct = require("./functions");
-const _ = require("lodash");
 
 type ArenaInstance = {
     roomId: string;
@@ -28,7 +27,7 @@ function getGame() {
     return require("./game") as GameApi;
 }
 
-function createArenaNpc() {
+function createArenaNpc(): RuntimeNpc {
     return {
         id: 0,
         nameCharacter: "",
@@ -104,7 +103,7 @@ const arenaManager = {
     },
 
     cloneMap(baseMapId: number, targetMapId: number) {
-        vars.mapa[targetMapId] = _.cloneDeep(vars.mapa[baseMapId]);
+        vars.mapa[targetMapId] = structuredClone(vars.mapa[baseMapId]);
 
         vars.mapData[targetMapId] = [];
 
@@ -139,7 +138,7 @@ const arenaManager = {
                 return;
             }
 
-            const tmpNpc = _.cloneDeep(createArenaNpc());
+            const tmpNpc = structuredClone(createArenaNpc());
 
             tmpNpc.id = this.createUniqueEntityId();
             tmpNpc.templateNpcIndex = Number(npcInMap.npcIndex);
