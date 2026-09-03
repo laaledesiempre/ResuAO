@@ -79,9 +79,9 @@ body {
     font-size: 16px;
     background:
         /* vignette */
-        radial-gradient(ellipse at 50% 30%, rgba(90, 70, 35, 0.12), transparent 70%),
+        radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%),
         /* faint mottled "leather" texture from layered gradients */
-        repeating-linear-gradient(45deg, rgba(255, 235, 180, 0.012) 0 2px, transparent 2px 5px),
+        repeating-linear-gradient(45deg, color-mix(in srgb, var(--text-gold) 1.2%, transparent) 0 2px, transparent 2px 5px),
         repeating-linear-gradient(-45deg, rgba(0, 0, 0, 0.06) 0 3px, transparent 3px 7px),
         var(--bg);
 }
@@ -147,13 +147,13 @@ button {
     color: var(--text-gold);
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--accent) 22%, transparent), color-mix(in srgb, var(--accent) 6%, transparent) 45%, rgba(0, 0, 0, 0.25)),
-        linear-gradient(180deg, #3a2d17, #241a0e);
+        linear-gradient(180deg, color-mix(in srgb, var(--accent) 18%, var(--bg-deep)), color-mix(in srgb, var(--accent) 9%, var(--bg-deep)));
     border: 1px solid var(--border-bright);
     border-radius: 4px;
     padding: 10px 22px;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     box-shadow:
-        inset 0 1px 0 rgba(255, 235, 180, 0.25),
+        inset 0 1px 0 color-mix(in srgb, var(--text-gold) 25%, transparent),
         inset 0 -2px 4px rgba(0, 0, 0, 0.45),
         0 2px 6px rgba(0, 0, 0, 0.5);
     transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
@@ -162,7 +162,7 @@ button {
 button:hover {
     border-color: var(--accent-hover);
     box-shadow:
-        inset 0 1px 0 rgba(255, 235, 180, 0.35),
+        inset 0 1px 0 color-mix(in srgb, var(--text-gold) 35%, transparent),
         inset 0 -2px 4px rgba(0, 0, 0, 0.45),
         0 2px 10px rgba(0, 0, 0, 0.55),
         0 0 14px var(--gold-soft);
@@ -180,12 +180,12 @@ button:disabled {
     cursor: default;
     transform: none;
     box-shadow:
-        inset 0 1px 0 rgba(255, 235, 180, 0.15),
+        inset 0 1px 0 color-mix(in srgb, var(--text-gold) 15%, transparent),
         0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
 button.secondary {
-    background: linear-gradient(180deg, #241c12, #171008);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--bg-panel) 55%, var(--bg-deep)), color-mix(in srgb, var(--bg-panel) 25%, var(--bg-deep)));
     color: var(--text-dim);
     border-color: var(--border);
 }
@@ -194,7 +194,7 @@ button.secondary:hover {
     color: var(--text);
     border-color: var(--border-bright);
     box-shadow:
-        inset 0 1px 0 rgba(255, 235, 180, 0.15),
+        inset 0 1px 0 color-mix(in srgb, var(--text-gold) 15%, transparent),
         0 0 10px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
@@ -273,10 +273,10 @@ a:hover {
     padding: 24px 28px 18px;
     background:
         radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 60%),
-        repeating-linear-gradient(0deg, rgba(255, 235, 180, 0.014) 0 1px, transparent 1px 4px),
+        repeating-linear-gradient(0deg, color-mix(in srgb, var(--text-gold) 1.4%, transparent) 0 1px, transparent 1px 4px),
         var(--bg-panel);
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 3px;
     border-radius: 6px;
     box-shadow:
@@ -378,7 +378,7 @@ a:hover {
     text-align: center;
     font-size: 14px;
     color: var(--text-dim);
-    border-top: 1px solid rgba(107, 90, 58, 0.35);
+    border-top: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
 }
 
 /* ---------- Login branding extras ---------- */
@@ -404,8 +404,8 @@ a:hover {
     text-align: center;
     font-style: italic;
     font-size: 12px;
-    color: #7c6a4d;
-    border-top: 1px solid rgba(107, 90, 58, 0.25);
+    color: color-mix(in srgb, var(--text-dim) 70%, var(--bg-deep));
+    border-top: 1px solid color-mix(in srgb, var(--border) 25%, transparent);
 }
 
 /* ---------- Character selection ---------- */
@@ -423,9 +423,9 @@ a:hover {
     position: relative;
     background:
         radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 70%),
-        linear-gradient(180deg, #241b10, #170f08);
+        linear-gradient(180deg, color-mix(in srgb, var(--bg-panel) 55%, var(--bg-deep)), color-mix(in srgb, var(--bg-panel) 25%, var(--bg-deep)));
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.18);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 18%, transparent);
     outline-offset: 2px;
     border-radius: 5px;
     padding: 20px 16px;
@@ -563,7 +563,7 @@ a:hover {
         linear-gradient(180deg, color-mix(in srgb, var(--accent) 5%, transparent), transparent),
         var(--bg-panel);
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.2);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 20%, transparent);
     outline-offset: 2px;
     border-radius: 6px;
     box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.45);
@@ -728,7 +728,7 @@ a:hover {
     justify-content: center;
     border-radius: 50%;
     background:
-        radial-gradient(circle at 50% 35%, rgba(255, 235, 180, 0.06), transparent 65%),
+        radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--text-gold) 6%, transparent), transparent 65%),
         var(--bg-input);
     border: 2px solid var(--border-bright);
     box-shadow:
@@ -839,7 +839,7 @@ a:hover {
     max-width: 100%;
     aspect-ratio: 1 / 1;
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.2);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 20%, transparent);
     outline-offset: 2px;
     border-radius: 6px;
     overflow: hidden;
@@ -861,7 +861,7 @@ a:hover {
     align-items: center;
     justify-content: center;
     gap: 10px;
-    background: rgba(13, 10, 7, 0.94);
+    background: color-mix(in srgb, var(--bg-deep) 94%, transparent);
     z-index: 10;
     text-align: center;
     padding: 20px;
@@ -990,7 +990,7 @@ body.side-resizing {
         linear-gradient(180deg, color-mix(in srgb, var(--accent) 4%, transparent), transparent),
         var(--bg-panel);
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.2);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 20%, transparent);
     outline-offset: 2px;
     border-radius: 6px;
     box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.45);
@@ -1009,7 +1009,7 @@ body.side-resizing {
     font-size: 10px;
     letter-spacing: 0.1em;
     border: none;
-    border-right: 1px solid rgba(107, 90, 58, 0.4);
+    border-right: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
     border-radius: 0;
     background: transparent;
     box-shadow: none;
@@ -1071,7 +1071,7 @@ body.side-resizing {
     align-items: center;
     justify-content: center;
     background: var(--bg-input);
-    border: 1px solid rgba(107, 90, 58, 0.55);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
     border-radius: 4px;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.65);
     overflow: hidden;
@@ -1145,7 +1145,7 @@ body.side-resizing {
     width: 100%;
     padding: 5px 8px;
     background: var(--bg-input);
-    border: 1px solid rgba(107, 90, 58, 0.55);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
     border-radius: 4px;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
     font-family: var(--brand-font-body, inherit);
@@ -1194,7 +1194,7 @@ body.side-resizing {
     gap: 8px;
     padding: 5px 8px;
     background: var(--bg-input);
-    border: 1px solid rgba(107, 90, 58, 0.4);
+    border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
     border-radius: 4px;
 }
 
@@ -1310,7 +1310,7 @@ body.side-resizing {
     display: flex;
     flex-direction: column;
     background: var(--bg-deep);
-    border: 1px solid rgba(107, 90, 58, 0.55);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
     border-radius: 5px;
     box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.5);
 }
@@ -1339,7 +1339,7 @@ body.side-resizing {
     display: flex;
     gap: 5px;
     padding: 5px;
-    border-top: 1px solid rgba(107, 90, 58, 0.5);
+    border-top: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
 }
 
 .chat-input-row input {
@@ -1363,7 +1363,7 @@ body.side-resizing {
     display: none;
     align-items: center;
     justify-content: center;
-    background: rgba(8, 6, 4, 0.72);
+    background: color-mix(in srgb, var(--bg-deep) 72%, transparent);
 }
 
 .exit-modal.open {
@@ -1378,7 +1378,7 @@ body.side-resizing {
         linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent),
         var(--bg-panel);
     border: 1px solid var(--border-bright);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 2px;
     border-radius: 6px;
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), inset 0 0 24px rgba(0, 0, 0, 0.45);
@@ -1435,7 +1435,7 @@ body.side-resizing {
     padding: 4px;
     background: color-mix(in srgb, var(--bg-panel) 88%, transparent);
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 2px;
     border-radius: 5px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
@@ -1475,7 +1475,7 @@ body.side-resizing {
     padding: 6px 10px 8px;
     background: color-mix(in srgb, var(--bg-panel) 88%, transparent);
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 2px;
     border-radius: 5px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
@@ -1529,7 +1529,7 @@ body.side-resizing {
     justify-content: center;
     color: var(--text-dim);
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 2px;
     background: color-mix(in srgb, var(--bg-panel) 88%, transparent);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
@@ -1567,7 +1567,7 @@ body.side-resizing {
         linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent),
         var(--bg-panel);
     border: 1px solid var(--border-bright);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 2px;
     border-radius: 6px;
     box-shadow: 0 14px 40px rgba(0, 0, 0, 0.7), inset 0 0 24px rgba(0, 0, 0, 0.45);
@@ -1622,7 +1622,7 @@ body.side-resizing {
         linear-gradient(180deg, color-mix(in srgb, var(--accent) 10%, transparent), transparent),
         var(--bg-panel);
     border: 1px solid var(--accent);
-    outline: 1px solid rgba(169, 140, 79, 0.3);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 30%, transparent);
     outline-offset: 2px;
     color: var(--text);
     border-radius: 5px;
@@ -1643,13 +1643,13 @@ body.side-resizing {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #3a2f1c;
+    background: color-mix(in srgb, var(--accent) 14%, var(--bg-deep));
     border: 1px solid var(--border);
     border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #4d3f25;
+    background: color-mix(in srgb, var(--accent) 22%, var(--bg-deep));
 }
 
 /* ---------- Gameplay modal windows (trade, market, bank, crafting, retos) ---------- */
@@ -1662,7 +1662,7 @@ body.side-resizing {
     align-items: center;
     justify-content: center;
     padding: 18px;
-    background: rgba(6, 4, 2, 0.62);
+    background: color-mix(in srgb, var(--bg-deep) 62%, transparent);
 }
 
 .gw-modal {
@@ -1675,7 +1675,7 @@ body.side-resizing {
         linear-gradient(180deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 30%),
         var(--bg-panel);
     border: 1px solid var(--border-bright);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 3px;
     border-radius: 6px;
     box-shadow:
@@ -1780,7 +1780,7 @@ body.side-resizing {
     min-height: 120px;
     padding: 10px;
     background: var(--bg-input);
-    border: 1px solid rgba(107, 90, 58, 0.55);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
     border-radius: 4px;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
 }
@@ -1930,7 +1930,7 @@ body.side-resizing {
     gap: 10px;
     padding: 7px 10px;
     background: var(--bg-input);
-    border: 1px solid rgba(107, 90, 58, 0.55);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
     border-radius: 4px;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
     font-size: 13px;
@@ -1942,7 +1942,7 @@ body.side-resizing {
 }
 
 .gw-row.missing {
-    border-color: rgba(224, 101, 79, 0.45);
+    border-color: color-mix(in srgb, var(--danger) 45%, transparent);
 }
 
 .gw-price {
@@ -1971,7 +1971,7 @@ body.side-resizing {
 
 .gw-market-group {
     background: var(--bg-input);
-    border: 1px solid rgba(107, 90, 58, 0.55);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
     border-radius: 4px;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
     overflow: hidden;
@@ -2026,7 +2026,7 @@ body.side-resizing {
 .gw-stat {
     padding: 10px;
     background: var(--bg-input);
-    border: 1px solid rgba(107, 90, 58, 0.55);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
     border-radius: 4px;
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
 }
@@ -2069,7 +2069,7 @@ body.side-resizing {
     gap: 10px;
     padding: 6px 8px;
     text-align: left;
-    border-color: rgba(107, 90, 58, 0.55);
+    border-color: color-mix(in srgb, var(--border) 55%, transparent);
     box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
@@ -2129,7 +2129,7 @@ body.side-resizing {
     font-size: 12px;
     letter-spacing: 0.1em;
     background: transparent;
-    border: 1px solid rgba(107, 90, 58, 0.4);
+    border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
     box-shadow: none;
     color: var(--text-dim);
 }
@@ -2192,7 +2192,7 @@ body.side-resizing {
 .admin-section {
     margin: 0 0 18px;
     padding: 16px 18px 6px;
-    border: 1px solid rgba(107, 90, 58, 0.45);
+    border: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
     border-radius: 4px;
     background: rgba(0, 0, 0, 0.18);
 }
@@ -2214,7 +2214,7 @@ body.side-resizing {
     max-width: 220px;
     max-height: 90px;
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 2px;
     border-radius: 3px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
@@ -2279,7 +2279,7 @@ body.side-resizing {
     min-height: 380px;
     padding: 22px;
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.3);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 30%, transparent);
     outline-offset: 3px;
     border-radius: 6px;
     box-shadow:
@@ -2359,7 +2359,7 @@ body.side-resizing {
     font-style: italic;
     font-size: 11px;
     color: var(--text-dim);
-    border-top: 1px solid rgba(107, 90, 58, 0.35);
+    border-top: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
 }
 
 .admin-actions {
@@ -2512,7 +2512,7 @@ body.side-resizing {
 
 .admin-accounts-table td {
     padding: 8px 10px;
-    border-bottom: 1px solid rgba(107, 90, 58, 0.3);
+    border-bottom: 1px solid color-mix(in srgb, var(--border) 30%, transparent);
 }
 
 .admin-account-disabled {
@@ -2578,7 +2578,7 @@ body.side-resizing {
     line-height: 1;
     color: var(--text-dim);
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 2px;
     background: color-mix(in srgb, var(--bg-panel) 82%, transparent);
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
@@ -2649,10 +2649,10 @@ body.side-resizing {
     height: auto;
     image-rendering: pixelated;
     background:
-        radial-gradient(ellipse at 50% 35%, rgba(90, 70, 35, 0.16), transparent 70%),
-        #0a0d16;
+        radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%),
+        var(--bg-deep);
     border: 1px solid var(--border);
-    outline: 1px solid rgba(169, 140, 79, 0.25);
+    outline: 1px solid color-mix(in srgb, var(--border-bright) 25%, transparent);
     outline-offset: 2px;
     border-radius: 6px;
     box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.55);
