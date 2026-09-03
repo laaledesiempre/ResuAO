@@ -1083,6 +1083,19 @@ function broadcastHeadingChange(ws: RuntimeClient, heading: number) {
     });
 }
 
+// VB6 General.bas SetSpeedUsuario: Engine_BaseSpeed = 0.024 equitando vs 0.018 a pie.
+const EQUITANDO_WALK_STEP_FACTOR = 0.018 / 0.024;
+
+function getUserWalkStepMs(user: RuntimeCharacter): number {
+    const baseMs = Number(vars.timing.walkStepMs);
+
+    if (!user.equitando) {
+        return baseMs;
+    }
+
+    return Math.max(1, Math.round(baseMs * EQUITANDO_WALK_STEP_FACTOR));
+}
+
 function stopMeditation(ws: RuntimeClient, user: RuntimeCharacter) {
     if (!user.meditar) {
         return;
@@ -1988,6 +2001,17 @@ function processUserMovement(ws: RuntimeClient, heading: number, moveId: number,
     const canReachTargetPosition = game.legalPos(posX, posY, user.map, Boolean(user.navegando), ghostMove?.ghost.id);
     const deniedPortalMessage = game.getFactionPortalDeniedMessage(user, user.map, posX, posY);
 
+    // VB6 Modulo_UsUaRiOs MoveUserChar: montado no se puede caminar a casas, bajo techo o dungeons.
+    if (user.equitando) {
+        const destTrigger = Number(vars.mapa[user.map]?.[posY]?.[posX]?.trigger ?? 0);
+        const destZona = String(vars.mapData[user.map]?.zona ?? "");
+
+        if (destTrigger === 1 || destTrigger === 2 || destZona === "DUNGEON") {
+            sendOwnPositionUpdate(ws, user);
+            return;
+        }
+    }
+
     if (user.navegando && !game.legalPos(user.pos.x, user.pos.y, user.map, true, ws.id)) {
         if (!canReachTargetPosition) {
             const fallbackPos = game.getFreeSpace(
@@ -2055,7 +2079,8 @@ function processUserMovement(ws: RuntimeClient, heading: number, moveId: number,
 
     user.pos.x = posX;
     user.pos.y = posY;
-    user.nextWalkAt = now + vars.timing.walkStepMs;
+    // VB6 General.bas SetSpeedUsuario: Engine_BaseSpeed 0.024 equitando vs 0.018 a pie (25% menos intervalo).
+    user.nextWalkAt = now + getUserWalkStepMs(user);
     user.stateVersion = Number(user.stateVersion ?? 0) + 1;
     user.lastMovementActivityAt = now;
 
@@ -3353,6 +3378,11 @@ function attackMele(ws: RuntimeClient) {
             return;
         }
 
+        // VB6 SistemaCombate.bas: atacar te desmonta (UnmountMontura + WriteEquitandoToggle).
+        if (user.equitando) {
+            game.desmontarMontura(clientId);
+        }
+
         if (isChallengeCombatLocked(user)) {
             handleProtocol.console("[Retos] Espera a que termine la cuenta regresiva.", "white", 0, 0, ws);
             return;
@@ -3539,6 +3569,11 @@ function attackRange(ws: RuntimeClient) {
         if (user.dead) {
             handleProtocol.console("Los muertos no pueden atacar.", "white", 0, 0, ws);
             return;
+        }
+
+        // VB6 SistemaCombate.bas: atacar te desmonta (UnmountMontura + WriteEquitandoToggle).
+        if (user.equitando) {
+            game.desmontarMontura(clientId);
         }
 
         if (isChallengeCombatLocked(user)) {
@@ -3760,6 +3795,11 @@ function attackSpell(ws: RuntimeClient) {
         if (user.dead) {
             handleProtocol.console("Los muertos no pueden tirar hechizos.", "white", 0, 0, ws);
             return;
+        }
+
+        // VB6 modHechizos.bas: lanzar un hechizo te desmonta (UnmountMontura + WriteEquitandoToggle).
+        if (user.equitando) {
+            game.desmontarMontura(clientId);
         }
 
         cancelPendingReviveCast(ws, user, "Se canceló el resucitar al lanzar otro hechizo.");

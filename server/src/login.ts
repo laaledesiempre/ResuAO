@@ -601,6 +601,11 @@ function Login(this: LoginApi) {
                 personaje.thirst = Math.min(100, Math.max(0, Number(personaje.thirst ?? 100)));
                 // VB6: el flag Envenenado se resetea a 0 al loguear.
                 personaje.envenenado = 0;
+                // VB6 TCP.bas: flags.Equitando = 0 al loguear (la montura no persiste equipada).
+                personaje.equitando = 0;
+                personaje.monturaObjIndex = 0;
+                personaje.monturaEqpSlot = 0;
+                personaje.monturaCooldownUntil = 0;
 
                 if (!personaje.posX) {
                     personaje.posX = 50;
@@ -1109,6 +1114,10 @@ function Login(this: LoginApi) {
             envenenado: 0,
             faction: "none",
             navegando: 0,
+            equitando: 0,
+            monturaObjIndex: 0,
+            monturaEqpSlot: 0,
+            monturaCooldownUntil: 0,
             npcMatados: 0,
             ciudadanosMatados: 0,
             criminalesMatados: 0,

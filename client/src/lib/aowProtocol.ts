@@ -444,6 +444,8 @@ export interface PlayerHudState {
     idBody?: number;
     privileges?: number;
     navegando?: boolean;
+    equitando?: boolean;
+    monturaCounter?: number;
     dead?: boolean;
     deadWorldActive?: boolean;
     color?: string;
@@ -506,6 +508,7 @@ export const OBJECT_TYPE = {
     lingotes: 36,
     instrumentosMusicales: 26,
     flechas: 32,
+    monturas: 25,
 } as const;
 
 export interface ConsolePacket {
@@ -603,6 +606,8 @@ export interface SelfMapMetaDelta {
     map?: number;
     name?: string;
     navegando?: number;
+    equitando?: number;
+    monturaCounter?: number;
 }
 
 export interface EntityVitalsDelta {
@@ -770,6 +775,10 @@ export type ParsedServerPacket =
     | { type: "closeTrade"; payload: null }
     | { type: "aprenderSpell"; payload: SpellEntry }
     | { type: "navegando"; payload: { navegando: number } }
+    | {
+          type: "equitando";
+          payload: { equitando?: number; monturaCounter?: number };
+      }
     | {
           type: "updateAgilidad";
           payload: { agilidad: number; buffSecondsRemaining: number };
@@ -1252,6 +1261,14 @@ function parseSelfMapMetaDelta(reader: PacketReader): SelfMapMetaDelta {
 
     if (flags & (1 << 2)) {
         payload.navegando = reader.getByte();
+    }
+
+    if (flags & (1 << 3)) {
+        payload.equitando = reader.getByte();
+    }
+
+    if (flags & (1 << 4)) {
+        payload.monturaCounter = reader.getInt();
     }
 
     return payload;

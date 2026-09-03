@@ -159,6 +159,24 @@ export async function handleIncomingWorldPacket({
             }
 
             if (
+                typeof packet.payload.equitando !== "undefined" ||
+                typeof packet.payload.monturaCounter !== "undefined"
+            ) {
+                await handleIncomingWorldPacket({
+                    packet: {
+                        type: "equitando",
+                        payload: {
+                            equitando: packet.payload.equitando,
+                            monturaCounter: packet.payload.monturaCounter,
+                        },
+                    },
+                    engine,
+                    renderedMapNumber,
+                    ctx,
+                });
+            }
+
+            if (
                 typeof packet.payload.map === "number" &&
                 ctx.pendingUserSnapshotRef.current
             ) {
@@ -380,6 +398,34 @@ export async function handleIncomingWorldPacket({
                 if (currentUser) {
                     currentUser.navegando = isNavigating;
                 }
+            }
+            return true;
+        }
+
+        case "equitando": {
+            const payload = packet.payload as {
+                equitando?: number;
+                monturaCounter?: number;
+            };
+            const hasMountedFlag = typeof payload.equitando !== "undefined";
+            const isMounted = Boolean(payload.equitando);
+
+            ctx.mergeHud({
+                ...(hasMountedFlag ? { equitando: isMounted } : {}),
+                ...(typeof payload.monturaCounter !== "undefined"
+                    ? { monturaCounter: payload.monturaCounter }
+                    : {}),
+            });
+
+            if (hasMountedFlag && engine?.user) {
+                // VB6 cliente General.bas SetSpeedUsuario: 0.024 montado vs 0.018 a pie.
+                const baseWalkMs = Number(
+                    ctx.runtimeTimingRef?.current?.walkStepMs ?? engine.timeWalkMS,
+                );
+                engine.timeWalkMS = Math.max(
+                    1,
+                    Math.round(baseWalkMs * (isMounted ? 0.018 / 0.024 : 1)),
+                );
             }
             return true;
         }
