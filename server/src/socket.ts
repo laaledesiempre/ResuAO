@@ -595,8 +595,10 @@ const socket: SocketApi = {
 
     deleteUserToAllNpcs(idUser) {
         try {
+            const game = require("./game") as GameApi;
+
             this.loopArea(idUser, (target) => {
-                if (target.isNpc && target.movement === 3) {
+                if (target.isNpc && game.isNpcAiTracked(target as RuntimeNpc)) {
                     const areaNpc = vars.areaNpc[target.id] as EntityId[] | undefined;
                     const index = areaNpc?.indexOf(idUser) ?? -1;
 
