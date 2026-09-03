@@ -10,5 +10,9 @@ export const API_BASE_URL = (globalThis as any).__RESU_API_URL__ ?? "";
 export const DEFAULT_WS_URL =
     (globalThis as any).__RESU_WS_URL__ ??
     (typeof location !== "undefined"
-        ? `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:7666`
+        ? location.port === "" || location.port === "443" || location.port === "80"
+            // Served behind a reverse proxy on standard ports: the proxy
+            // routes /ws to the game server (see deploy istio VirtualService).
+            ? `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/ws`
+            : `${location.protocol === "https:" ? "wss" : "ws"}://${location.hostname}:7666`
         : "ws://127.0.0.1:7666");
