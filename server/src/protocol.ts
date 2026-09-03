@@ -3213,6 +3213,19 @@ function dialog(ws: RuntimeClient) {
         const isClearDialogMessage = rawMsg.trim().length === 0;
         let msg = isClearDialogMessage ? " " : rawMsg.trim();
 
+        // Gritar (VB6 cliente ProtocolCmdParse.bas): mensaje con prefijo "-" se envia
+        // como Yell; en el servidor (Protocol.bas HandleYell) llega a la misma area
+        // que el habla normal pero con color vbRed.
+        const isYellMessage = !isClearDialogMessage && msg.startsWith("-");
+
+        if (isYellMessage) {
+            msg = msg.slice(1).trim();
+
+            if (msg.length === 0) {
+                return;
+            }
+        }
+
         const date = new Date();
 
         if (user.muted > date) {
@@ -3225,14 +3238,16 @@ function dialog(ws: RuntimeClient) {
 
         user.nextDialogAt = now + vars.timing.actionCooldowns.dialogMs;
 
-        if (!isClearDialogMessage && msg[0] == "/") {
+        if (!isClearDialogMessage && !isYellMessage && msg[0] == "/") {
             command.msg(msg, ws);
             return;
         }
 
         let color = "white";
 
-        if (user.privileges == 1 || user.privileges == 2) {
+        if (isYellMessage) {
+            color = "red";
+        } else if (user.privileges == 1 || user.privileges == 2) {
             color = "#419900";
         } else if (user.privileges == 2) {
             color = "red";
@@ -3258,7 +3273,7 @@ function dialog(ws: RuntimeClient) {
 
         if (!isClearDialogMessage) {
             chatAuditLogger.logChat({
-                channel: "local",
+                channel: isYellMessage ? "yell" : "local",
                 sender: user,
                 message: msg,
                 recipientsCount,

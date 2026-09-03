@@ -2837,7 +2837,25 @@
     "soundClose": 0,
     "poderAtaque": 0,
     "poderEvasion": 0,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "criaturas": [
+      {
+        "npcIndex": 566,
+        "name": "Murcielago"
+      },
+      {
+        "npcIndex": 565,
+        "name": "Serpiente"
+      },
+      {
+        "npcIndex": 564,
+        "name": "Escorpion"
+      },
+      {
+        "npcIndex": 516,
+        "name": "Goblin"
+      }
+    ]
   },
   "61": {
     "hp": 0,
@@ -4508,7 +4526,29 @@
     "soundClose": 0,
     "poderAtaque": 0,
     "poderEvasion": 0,
-    "magicResistance": 0
+    "magicResistance": 0,
+    "criaturas": [
+      {
+        "npcIndex": 534,
+        "name": "Hormiga gigante"
+      },
+      {
+        "npcIndex": 539,
+        "name": "Tortuga gigante"
+      },
+      {
+        "npcIndex": 541,
+        "name": "Ogro"
+      },
+      {
+        "npcIndex": 554,
+        "name": "Liche"
+      },
+      {
+        "npcIndex": 567,
+        "name": "Duende Magico"
+      }
+    ]
   },
   "109": {
     "hp": 0,

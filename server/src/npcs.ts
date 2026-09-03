@@ -38,6 +38,9 @@ const DEFAULT_NPC_SPELL_CAST_INTERVAL_MS = 8000;
 const DEFAULT_NPC_SPELL_RANGE_X = 11;
 const DEFAULT_NPC_SPELL_RANGE_Y = 9;
 const DRAGON_RESPAWN_COOLDOWN_MS = 1 * 60 * 60 * 1000;
+// MAXMASCOTASENTRENADOR (Declares.bas): tope de criaturas vivas por entrenador.
+const MAX_MASCOTAS_ENTRENADOR = 7;
+const TRAINER_CREATURE_SPAWN_SEARCH_RADIUS = 3;
 const COMBAT_HIT_FX_ID = 14;
 const COMBAT_SHIELD_BLOCK_FX_ID = 88;
 const COMBAT_MISS_FX_ID = 90;
@@ -158,6 +161,8 @@ function emitCharacterFxToUserArea(entityId: EntityId, fxId: number) {
 export type NpcsApi = {
     createNpc: () => NpcCharacter;
     spawnSummon: (idUser: EntityId, idSpell: number, targetPos: Position) => EntityId | 0;
+    spawnTrainerCreature: (trainerId: EntityId, petIndex: number) => EntityId | 0;
+    countTrainerCreatures: (trainerId: EntityId) => number;
     removeOwnerSummons: (idUser: EntityId) => void;
     muereNpc: (idNpc: EntityId) => void;
     findDirection: (posNpc: Position, posUser: Position) => Direction;
@@ -879,6 +884,7 @@ function findSummonSpawnPosition(
     aguaValida: boolean,
     tierraInvalida = false,
 ) {
+
     for (let radius = 0; radius <= SUMMON_SPAWN_SEARCH_RADIUS; radius++) {
         const minX = targetPos.x - radius;
         const maxX = targetPos.x + radius;
@@ -899,6 +905,31 @@ function findSummonSpawnPosition(
                     game.validPosRespawnNpc(pos, owner.map, aguaValida, tierraInvalida) &&
                     preservesOwnerExit(owner, undefined, pos)
                 ) {
+                    return pos;
+                }
+            }
+        }
+    }
+}
+
+function findTrainerCreatureSpawnPosition(trainer: NpcCharacter, aguaValida: boolean, tierraInvalida = false) {
+    for (let radius = 0; radius <= TRAINER_CREATURE_SPAWN_SEARCH_RADIUS; radius++) {
+        const minX = trainer.pos.x - radius;
+        const maxX = trainer.pos.x + radius;
+        const minY = trainer.pos.y - radius;
+        const maxY = trainer.pos.y + radius;
+
+        for (let y = minY; y <= maxY; y++) {
+            for (let x = minX; x <= maxX; x++) {
+                const isInnerTile = radius > 0 && x > minX && x < maxX && y > minY && y < maxY;
+
+                if (isInnerTile) {
+                    continue;
+                }
+
+                const pos = { x, y };
+
+                if (game.validPosRespawnNpc(pos, trainer.map, aguaValida, tierraInvalida)) {
                     return pos;
                 }
             }
@@ -1050,6 +1081,21 @@ function despawnSummon(npc: SummonedNpc) {
     releaseNpcAttackReservation(npc);
     clearNpcRoute(npc);
     removeSummonFromOwnerList(npc);
+    delete vars.npcs[npc.id];
+}
+
+function despawnTrainerCreature(npc: NpcCharacter) {
+    vars.mapData[npc.map]?.[npc.pos.y]?.[npc.pos.x] && (vars.mapData[npc.map][npc.pos.y][npc.pos.x].id = 0);
+
+    npcs.loopArea(npc.id, (target) => {
+        withUserClient(target.id, (targetClient) => {
+            handleProtocol.deleteCharacter(npc.id, targetClient);
+        });
+    });
+
+    vars.areaNpc[npc.id] = [];
+    releaseNpcAttackReservation(npc);
+    clearNpcRoute(npc);
     delete vars.npcs[npc.id];
 }
 
@@ -1949,6 +1995,141 @@ function Npcs(this: NpcsApi) {
         }
     };
 
+    // Entrenador: en el VB6 (Protocol.bas HandleTrain) el entrenador invoca criaturas
+    // para entrenar; el maximo es MAXMASCOTASENTRENADOR = 7 (Declares.bas) y cada
+    // criatura guarda MaestroNpc para descontarla del entrenador al morir.
+    this.spawnTrainerCreature = function (trainerId: EntityId, petIndex: number) {
+        try {
+            const trainer = getNpc(trainerId);
+
+            if (!trainer || trainer.npcType !== vars.npcType.entrenador) {
+                return 0;
+            }
+
+            const datTrainer = vars.datNpc[Number(trainer.templateNpcIndex ?? 0)] as
+                | { criaturas?: Array<{ npcIndex?: number; name?: string }> }
+                | undefined;
+            const criaturas = Array.isArray(datTrainer?.criaturas) ? datTrainer.criaturas : [];
+
+            if (petIndex < 1 || petIndex > criaturas.length) {
+                return 0;
+            }
+
+            if (this.countTrainerCreatures(trainerId) >= MAX_MASCOTAS_ENTRENADOR) {
+                return -1;
+            }
+
+            const creatureNpcIndex = Number(criaturas[petIndex - 1]?.npcIndex ?? 0);
+            const datNpc = vars.datNpc[creatureNpcIndex];
+
+            if (!creatureNpcIndex || !datNpc) {
+                return 0;
+            }
+
+            const spawnPos = findTrainerCreatureSpawnPosition(
+                trainer,
+                Boolean(datNpc.aguaValida),
+                Boolean(datNpc.tierraInvalida),
+            );
+
+            if (!spawnPos) {
+                return 0;
+            }
+
+            const login = require("./login") as { createId: () => EntityId };
+            const now = Date.now();
+            const npc = this.createNpc() as NpcCharacter;
+
+            npc.id = login.createId();
+            npc.templateNpcIndex = creatureNpcIndex;
+            npc.map = trainer.map;
+            npc.pos = { x: spawnPos.x, y: spawnPos.y };
+            npc.nameCharacter = datNpc.name;
+            npc.color = "white";
+            npc.isNpc = true;
+            npc.idBody = datNpc.idBody;
+            npc.idHead = datNpc.idHead;
+            npc.movement = datNpc.movement;
+            npc.npcType = Number.parseInt(String(datNpc.npcType ?? 0), 10);
+            npc.exp = datNpc.exp ?? 0;
+            npc.gold = datNpc.gold ?? 0;
+            npc.hp = datNpc.hp ?? datNpc.maxHp ?? 1;
+            npc.maxHp = datNpc.maxHp ?? datNpc.hp ?? 1;
+            npc.minHit = datNpc.minHit ?? 0;
+            npc.maxHit = datNpc.maxHit ?? 0;
+            npc.def = datNpc.def ?? 0;
+            npc.defM = datNpc.defM ?? datNpc.magicDef ?? 0;
+            npc.magicDef = datNpc.magicDef ?? datNpc.defM ?? 0;
+            npc.magicResistance = datNpc.magicResistance ?? 0;
+            npc.poderAtaque = datNpc.poderAtaque ?? 0;
+            npc.poderEvasion = datNpc.poderEvasion ?? 0;
+            npc.veneno = Number(datNpc.veneno ?? 0) === 1 ? 1 : 0;
+            npc.snd1 = datNpc.snd1 ?? 0;
+            npc.snd2 = datNpc.snd2 ?? 0;
+            npc.soundClose = datNpc.soundClose ?? 0;
+            npc.spellCastIntervalMs = datNpc.spellCastIntervalMs ?? 0;
+            npc.lastSpellCastAt = 0;
+            npc.spellRange = datNpc.spellRange ?? 0;
+            npc.spells = Array.isArray(datNpc.spells)
+                ? datNpc.spells
+                      .filter((spell: { idSpell?: number; cooldownSeconds?: number }) => Number(spell?.idSpell ?? 0) > 0)
+                      .map((spell: { idSpell?: number; cooldownSeconds?: number }) => ({
+                          idSpell: Number(spell.idSpell),
+                          cooldownSeconds: Math.max(0, Number(spell.cooldownSeconds ?? 0)),
+                          lastUsedAt: 0,
+                      }))
+                : [];
+            npc.aguaValida = datNpc.aguaValida ?? 0;
+            npc.tierraInvalida = datNpc.tierraInvalida ?? 0;
+            npc.heading = trainer.heading;
+            npc.cooldownAtaque = now + 2000;
+            npc.nextThinkAt = now + vars.timing.npcThinkMs;
+            npc.trainedByNpcId = trainerId;
+
+            if (datNpc.drop) npc.drop = datNpc.drop;
+
+            vars.npcs[npc.id] = npc;
+            vars.areaNpc[npc.id] = [];
+            vars.mapData[trainer.map][spawnPos.y][spawnPos.x].id = npc.id;
+            trainer.trainedCreatureIds = [...(trainer.trainedCreatureIds ?? []), npc.id];
+
+            this.loopArea(npc.id, (target: PlayerCharacter) => {
+                if (!isInvisibleToNpc(target) && !target.dead && vars.areaNpc[npc.id].indexOf(target.id) < 0) {
+                    vars.areaNpc[npc.id].push(target.id);
+                }
+
+                handleProtocol.sendNpc(npc);
+                withUserClient(target.id, (targetClient) => {
+                    socket.send(targetClient);
+                });
+            });
+
+            return npc.id;
+        } catch (err) {
+            funct.dumpError(err);
+            return 0;
+        }
+    };
+
+    this.countTrainerCreatures = function (trainerId: EntityId) {
+        const trainer = getNpc(trainerId);
+
+        if (!trainer) {
+            return 0;
+        }
+
+        const aliveIds = (trainer.trainedCreatureIds ?? []).filter((creatureId) => {
+            const creature = vars.npcs[creatureId] as NpcCharacter | undefined;
+            return Boolean(creature && creature.trainedByNpcId === trainerId);
+        });
+
+        if (aliveIds.length !== (trainer.trainedCreatureIds ?? []).length) {
+            trainer.trainedCreatureIds = aliveIds;
+        }
+
+        return aliveIds.length;
+    };
+
     this.removeOwnerSummons = function (idUser: EntityId) {
         try {
             const owner = getUser(idUser);
@@ -2261,6 +2442,21 @@ function Npcs(this: NpcsApi) {
 
             if (isSummonedNpc(npc)) {
                 despawnSummon(npc);
+                return;
+            }
+
+            // Criatura invocada por un entrenador (MaestroNpc en el VB6): no respawnea,
+            // se desvanece y se descuenta del cupo del entrenador.
+            if (npc.trainedByNpcId) {
+                const trainer = vars.npcs[npc.trainedByNpcId] as NpcCharacter | undefined;
+
+                if (trainer?.trainedCreatureIds) {
+                    trainer.trainedCreatureIds = trainer.trainedCreatureIds.filter(
+                        (creatureId) => creatureId !== idNpc,
+                    );
+                }
+
+                despawnTrainerCreature(npc);
                 return;
             }
 

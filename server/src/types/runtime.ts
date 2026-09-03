@@ -464,6 +464,8 @@ export type RuntimeNpc = {
     summonedByUserId?: EntityId;
     summonExpiresAt?: number;
     summonCreatedAt?: number;
+    trainedByNpcId?: EntityId;
+    trainedCreatureIds?: EntityId[];
     color?: string;
     clan?: string;
     objs?: Record<string, TradeItem>;
