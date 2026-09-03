@@ -244,6 +244,7 @@ export interface CharacterSnapshot {
     stamina?: number;
     maxStamina?: number;
     envenenado?: number;
+    skills?: number[];
     adminSummonedBot?: boolean;
     exp?: number;
     expNextLevel?: number;
@@ -474,6 +475,7 @@ export interface PlayerHudState {
     stamina?: number;
     maxStamina?: number;
     envenenado?: number;
+    skills?: number[];
     attrAgilidad?: number;
     attrFuerza?: number;
     attrInteligencia?: number;
@@ -515,6 +517,31 @@ export const OBJECT_TYPE = {
     instrumentosMusicales: 26,
     flechas: 32,
 } as const;
+
+// Nombres de skills del VB6 (Codigo/General.bas: SkillsNames), en el orden del
+// enum eSkill de Codigo/Declares.bas (1..20).
+export const SKILL_NAMES = [
+    "Magia",
+    "Robar",
+    "Evasion en combate",
+    "Combate con armas",
+    "Meditar",
+    "Apunalar",
+    "Ocultarse",
+    "Supervivencia",
+    "Talar",
+    "Comercio",
+    "Defensa con escudos",
+    "Pesca",
+    "Mineria",
+    "Carpinteria",
+    "Herreria",
+    "Liderazgo",
+    "Domar animales",
+    "Combate a distancia",
+    "Combate sin armas",
+    "Navegacion",
+] as const;
 
 export interface ConsolePacket {
     msg: string;
@@ -607,6 +634,7 @@ export interface SelfVitalsDelta {
     stamina?: number;
     maxStamina?: number;
     envenenado?: number;
+    skills?: number[];
 }
 
 export interface SelfMapMetaDelta {
@@ -1156,6 +1184,14 @@ function parseCharacter(
         snapshot.puntosAtributo = reader.canReadBytes(1)
             ? reader.getByte()
             : 0;
+
+        // VB6 (Declares.bas): NUMSKILLS = 20 valores de skill (0..100).
+        if (reader.canReadBytes(20)) {
+            snapshot.skills = [];
+            for (let index = 0; index < 20; index++) {
+                snapshot.skills.push(reader.getByte());
+            }
+        }
     } else {
         snapshot.privileges = reader.getByte();
         snapshot.heading = reader.getByte();
@@ -1332,31 +1368,40 @@ function parseServerPacketById(
                     seguroClanActivado: reader.getByte() === 1,
                 },
             };
-        case CLIENT_PACKET_ID.selfVitalsDelta:
+        case CLIENT_PACKET_ID.selfVitalsDelta: {
+            const payload: SelfVitalsDelta = {
+                hp: reader.getShort(),
+                maxHp: reader.getShort(),
+                mana: reader.getShort(),
+                maxMana: reader.getShort(),
+                hunger: reader.canReadBytes(4)
+                    ? reader.getShort()
+                    : undefined,
+                thirst: reader.canReadBytes(2)
+                    ? reader.getShort()
+                    : undefined,
+                stamina: reader.canReadBytes(4)
+                    ? reader.getShort()
+                    : undefined,
+                maxStamina: reader.canReadBytes(2)
+                    ? reader.getShort()
+                    : undefined,
+                envenenado: reader.canReadBytes(1)
+                    ? reader.getByte()
+                    : undefined,
+            };
+            // VB6 (Declares.bas): NUMSKILLS = 20 valores de skill (0..100).
+            if (reader.canReadBytes(20)) {
+                payload.skills = [];
+                for (let index = 0; index < 20; index++) {
+                    payload.skills.push(reader.getByte());
+                }
+            }
             return {
                 type: "selfVitalsDelta",
-                payload: {
-                    hp: reader.getShort(),
-                    maxHp: reader.getShort(),
-                    mana: reader.getShort(),
-                    maxMana: reader.getShort(),
-                    hunger: reader.canReadBytes(4)
-                        ? reader.getShort()
-                        : undefined,
-                    thirst: reader.canReadBytes(2)
-                        ? reader.getShort()
-                        : undefined,
-                    stamina: reader.canReadBytes(4)
-                        ? reader.getShort()
-                        : undefined,
-                    maxStamina: reader.canReadBytes(2)
-                        ? reader.getShort()
-                        : undefined,
-                    envenenado: reader.canReadBytes(1)
-                        ? reader.getByte()
-                        : undefined,
-                },
+                payload,
             };
+        }
         case CLIENT_PACKET_ID.selfMapMetaDelta:
             return {
                 type: "selfMapMetaDelta",
@@ -2338,6 +2383,7 @@ export function toPlayerHudState(snapshot: CharacterSnapshot): PlayerHudState {
         stamina: snapshot.stamina,
         maxStamina: snapshot.maxStamina,
         envenenado: snapshot.envenenado,
+        skills: snapshot.skills,
         attrAgilidad: snapshot.attrAgilidad,
         attrFuerza: snapshot.attrFuerza,
         attrInteligencia: snapshot.attrInteligencia,

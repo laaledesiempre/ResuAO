@@ -8,7 +8,7 @@ import { isDebugEnabled } from "../lib/siteConfig";
 import { inventoryIconLayout, zoomIconLayout } from "../lib/inventoryIcons";
 import { deriveHudEvents } from "../lib/hudEvents";
 import { resolveHeadPortrait } from "../lib/portrait";
-import { OBJECT_TYPE, type PlayerHudState } from "../lib/aowProtocol";
+import { OBJECT_TYPE, SKILL_NAMES, type PlayerHudState } from "../lib/aowProtocol";
 import {
     HOTKEYS_STORAGE_KEY,
     isHotkeyMatch,
@@ -387,12 +387,19 @@ export function renderPlay(
         { className: "side-panel", "data-panel": "stats" },
         statsList,
     );
+    const skillsList = el("div", { className: "stats-list" });
+    const skillsPanel = el(
+        "div",
+        { className: "side-panel", "data-panel": "skills" },
+        skillsList,
+    );
 
     const tabDefs = [
         { id: "inventario", label: "Inventario", panel: inventoryPanel },
         { id: "hechizos", label: "Hechizos", panel: spellsPanel },
         { id: "stats", label: "Stats", panel: statsPanel },
         { id: "social", label: "Social", panel: socialPanel },
+        { id: "skills", label: "Skills", panel: skillsPanel },
     ] as const;
 
     const tabButtons = tabDefs.map((def) => {
@@ -446,6 +453,7 @@ export function renderPlay(
             spellsPanel,
             statsPanel,
             socialPanel,
+            skillsPanel,
         ),
     );
 
@@ -832,6 +840,16 @@ export function renderPlay(
         );
     };
 
+    // Listado de skills (0..100) con los nombres del VB6.
+    const renderSkills = (hud: PlayerHudState) => {
+        skillsList.replaceChildren();
+        const values = hud.skills ?? [];
+        for (let index = 0; index < SKILL_NAMES.length; index++) {
+            const value = Math.max(0, Math.min(100, Math.round(values[index] ?? 0)));
+            skillsList.append(statRow(SKILL_NAMES[index], `${value}/100`));
+        }
+    };
+
     // Status effects: static badges for paralysis states and live countdowns
     // for the fuerza/agilidad buffs (refreshed every second, since the server
     // only sends the buff duration when it changes).
@@ -947,6 +965,7 @@ export function renderPlay(
         renderSpells(hud);
         renderStats(hud);
         renderSocial(hud);
+        renderSkills(hud);
         renderStatus(hud);
     };
 

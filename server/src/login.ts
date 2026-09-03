@@ -12,6 +12,7 @@ const arenaManager = require("./arenaManager");
 const mapInstanceManager = require("./mapInstanceManager");
 const balance = require("./balance");
 const safeZone = require("./safeZone");
+const skills = require("./skills");
 
 function normalizeFaction(value: unknown): CharacterFaction {
     return value === "armada" || value === "caos" ? value : "none";
@@ -614,6 +615,9 @@ function Login(this: LoginApi) {
                 // VB6: el flag Envenenado se resetea a 0 al loguear.
                 personaje.envenenado = 0;
                 personaje.puntosAtributo = Math.max(0, Math.floor(Number(personaje.puntosAtributo ?? 0)));
+                // VB6 (TCP.bas): los skills y su experiencia se cargan desde el charfile.
+                personaje.skills = skills.normalizeSkills(personaje.skills);
+                personaje.skillExp = skills.normalizeSkillExp(personaje.skillExp);
 
                 if (!personaje.posX) {
                     personaje.posX = 50;
@@ -1135,6 +1139,9 @@ function Login(this: LoginApi) {
             stamina: maxStamina,
             maxStamina,
             envenenado: 0,
+            // VB6 (TCP.bas): al crear el personaje todos los skills arrancan en 0.
+            skills: skills.createDefaultSkills(),
+            skillExp: skills.createDefaultSkillExp(),
             faction: "none",
             navegando: 0,
             npcMatados: 0,

@@ -10,6 +10,7 @@ const balance = require("./balance");
 const handleProtocol = require("./handleProtocol") as HandleProtocolApi;
 const socket = require("./socket") as SocketApi;
 const workingLock = require("./workingLock");
+const skills = require("./skills");
 
 type FishingUser = RuntimeCharacter & {
     id: EntityId;
@@ -144,28 +145,20 @@ function getRewardsForPower(power: number): FishingReward[] {
     return rewardsByPower ?? vars.fishing.fishByPower?.[1] ?? [];
 }
 
-function getSimulatedFishingSkill(user: FishingUser) {
-    return Math.min(100, Math.max(0, Number(user.level ?? 0) * 3));
+// VB6 (Trabajo.bas DoPesca): Skill = UserSkills(pesca);
+// Suerte = Int(-0.00125 * Skill^2 - 0.3 * Skill + 49); exito si
+// RandomNumber(1, Suerte) <= DificultadPescar (Server.ini: 6).
+const FISHING_DIFFICULTY = 6;
+
+function getFishingSkill(user: FishingUser) {
+    return skills.getSkillValue(user, skills.Skill.Pesca);
 }
 
-function getFishingChanceForSkill(skill: number) {
-    if (skill < 20) {
-        return 20;
-    }
+function rollFishingSuccess(user: FishingUser) {
+    const skill = getFishingSkill(user);
+    const luck = Math.max(1, Math.floor(-0.00125 * skill * skill - 0.3 * skill + 49));
 
-    if (skill < 40) {
-        return 35;
-    }
-
-    if (skill < 70) {
-        return 55;
-    }
-
-    if (skill < 100) {
-        return 68;
-    }
-
-    return 80;
+    return Math.floor(Math.random() * luck) + 1 <= FISHING_DIFFICULTY;
 }
 
 function isFishingNet(itemId: number) {
@@ -423,9 +416,12 @@ const fishing: FishingApi = {
                 );
             });
 
-            const fishingChance = getFishingChanceForSkill(getSimulatedFishingSkill(user));
+            const fishingSuccess = rollFishingSuccess(user);
 
-            if (Math.floor(Math.random() * 100) + 1 > fishingChance) {
+            // VB6 (Trabajo.bas): la pesca sube skill tanto al acertar como al fallar.
+            skills.subirSkill(idUser, skills.Skill.Pesca, fishingSuccess);
+
+            if (!fishingSuccess) {
                 continue;
             }
 

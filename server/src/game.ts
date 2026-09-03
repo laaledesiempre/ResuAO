@@ -54,6 +54,7 @@ const vars = require("./vars");
 const handleProtocol = require("./handleProtocol");
 const fishing = require("./fishing");
 const harvesting = require("./harvesting");
+const skills = require("./skills");
 const crafting = require("./crafting");
 const smelting = require("./smelting");
 const mapInstanceManager = require("./mapInstanceManager");
@@ -7803,6 +7804,14 @@ function Game(this: GameApi) {
 
             const userImpacto = funct.randomIntFromInterval(1, 100) <= probExito;
 
+            // VB6 (SistemaCombate.bas UserImpactoNpc): sube Armas (o Wrestling
+            // peleando con punos) tanto al impactar como al fallar.
+            skills.subirSkill(
+                idUser,
+                user.idItemWeapon ? skills.Skill.Armas : skills.Skill.Wrestling,
+                Boolean(userImpacto),
+            );
+
             if (userImpacto) {
                 const weaponItem = getInventoryItem(user, user.idItemWeapon);
                 const weaponItemId = Number(weaponItem?.idItem ?? 0);
@@ -8021,6 +8030,15 @@ function Game(this: GameApi) {
             markUsersInPvpCombat(user, userAttacked);
 
             interruptPendingLogoutOnAttack(idUserAttacked);
+
+            // VB6 (SistemaCombate.bas UsuarioImpactaUsuario): el atacante sube
+            // Armas/Wrestling y la victima sube Tacticas al evadir.
+            skills.subirSkill(
+                idUser,
+                user.idItemWeapon ? skills.Skill.Armas : skills.Skill.Wrestling,
+                Boolean(userImpacto),
+            );
+            skills.subirSkill(idUserAttacked, skills.Skill.Tacticas, !userImpacto);
 
             if (userImpacto) {
                 breakUserInvisibilityOnPvPDamageAttack(idUser);

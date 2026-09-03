@@ -119,6 +119,8 @@ export type CharacterRecord = {
     stamina: number;
     max_stamina: number;
     envenenado: number;
+    skills: string;
+    skill_exp: string;
     id_raza: number;
     id_genero: number;
     muerto: boolean;
@@ -261,6 +263,8 @@ export type CharacterApiResponse = {
     stamina: number;
     maxStamina: number;
     envenenado: number;
+    skills: number[];
+    skillExp: number[];
     idRaza: number;
     idGenero: number;
     muerto: boolean;
