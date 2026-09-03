@@ -50,8 +50,18 @@ const SPA_FALLBACK_EXCLUDED_PREFIXES = [
     "/ranking",
     "/wiki",
     "/runtime-config",
+    "/runtime-config.js",
     "/user-online-stats",
 ];
+
+function runtimeConfigScript(): string {
+    const apiUrl = process.env.RESU_API_URL?.trim();
+    const wsUrl = process.env.RESU_WS_URL?.trim();
+    const lines: string[] = [];
+    if (apiUrl) lines.push(`globalThis.__RESU_API_URL__ = ${JSON.stringify(apiUrl)};`);
+    if (wsUrl) lines.push(`globalThis.__RESU_WS_URL__ = ${JSON.stringify(wsUrl)};`);
+    return `${lines.join("\n")}\n`;
+}
 
 function parsePort(value: string, flag: string): number {
     const port = Number(value);
@@ -133,6 +143,13 @@ async function main(): Promise<void> {
             const indexHtml = fs.readFileSync(
                 path.join(clientDist, "index.html"),
                 "utf8",
+            );
+
+            app.get("/runtime-config.js", (c: Context) =>
+                c.body(runtimeConfigScript(), 200, {
+                    "content-type": "application/javascript; charset=utf-8",
+                    "cache-control": "no-store",
+                }),
             );
 
             app.use("/*", serveStatic({ root: clientDist }));

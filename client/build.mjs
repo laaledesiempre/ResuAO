@@ -16,6 +16,15 @@ const serve = args.has("--serve");
 const root = resolve(new URL(".", import.meta.url).pathname);
 const dist = join(root, "dist");
 
+function runtimeConfigScript() {
+    const apiUrl = process.env.RESU_API_URL?.trim();
+    const wsUrl = process.env.RESU_WS_URL?.trim();
+    const lines = [];
+    if (apiUrl) lines.push(`globalThis.__RESU_API_URL__ = ${JSON.stringify(apiUrl)};`);
+    if (wsUrl) lines.push(`globalThis.__RESU_WS_URL__ = ${JSON.stringify(wsUrl)};`);
+    return `${lines.join("\n")}\n`;
+}
+
 const MIME = {
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
@@ -74,6 +83,15 @@ if (serve) {
     const apiTarget = process.env.AO_API_TARGET ?? "http://127.0.0.1:3001";
     const server = createServer(async (req, res) => {
         try {
+            if (req.url === "/runtime-config.js") {
+                res.writeHead(200, {
+                    "content-type": "application/javascript; charset=utf-8",
+                    "cache-control": "no-store",
+                });
+                res.end(runtimeConfigScript());
+                return;
+            }
+
             if (req.url?.startsWith("/api/")) {
                 const body =
                     req.method === "GET" || req.method === "HEAD"
