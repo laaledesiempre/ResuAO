@@ -11,11 +11,11 @@ forkear el núcleo.
 
 Rol de cada etapa:
 
-- **M1/M2 — saneamiento del stack.** Next.js era overkill: no aportaba nada al
-  juego y ensuciaba la arquitectura (lógica de backend viviendo en el frontend,
-  tres procesos para una cosa sola). M1 lo reemplaza por un proceso único,
-  Hono + SQLite + cliente vanilla: mismo juego, arquitectura honesta. No se
-  busca perfección acá — se busca una base simple, testeada y entendible.
+- **M1/M1.5 — saneamiento del stack + fidelidad al VB6.** M1 reemplazó Next.js
+  por un proceso único (Hono + SQLite + cliente vanilla). M1.5 completó las
+  mecánicas de gameplay tomando los valores/mecánicas/textos del servidor VB6
+  libre (ao-libre/ao-server y, donde falta, el código oficial SourceForge):
+  nada inventado por nosotros.
 - **M3/M4 — la base definitiva.** Reescritura en Rust con excelencia de
   ingeniería como requisito, no como deseo (ver "Principios de arquitectura").
 
@@ -106,99 +106,128 @@ Un módulo de M3 no se da por terminado si los viola.
 Cada milestone termina con algo **jugable/usable**. No se arranca el siguiente
 sin cumplir el criterio de salida del anterior. Una branch por milestone.
 
-### M1 — Backend único JS (single stack)
+### M1 — Backend único JS (single stack) ✅
 
-1. **Baseline**: levantar el stack original (Docker Postgres) y verificar que el
-   juego funciona. Sin esto no hay referencia para comparar. ✅
-2. **Port Postgres → SQLite**: ✅ HECHO (ver "Estado M1" abajo).
-3. **Unificación de backend en Hono**: ✅ HECHO.
-   - Endpoints de Express → Hono. API routes de Next absorbidas en `/api/*`
-     con sesión por cookie httpOnly. Game server ws en el mismo proceso.
-4. **Cliente vanilla**: ✅ HECHO.
-   - Pantallas: login, registro, crear/seleccionar personaje, jugar.
-   - Motor Pixi portado (`components/game/*` sin los .tsx de React), bootstrap
-     y HUD con DOM vanilla.
-   - Auth: cookie de sesión contra `/api/*` del backend Hono.
-   - Ventanas de juego (trade/mercado/banco/crafting/retos) y admin web con
-     branding configurable + gestión de cuentas.
-5. **CLI**: ✅ HECHO. `api/src/unified.ts` con `--serve`, `--port`,
-   `--game-port`, `--db`.
-6. **Distribución**: ✅ HECHO. Imagen Docker all-in-one (`Dockerfile` en raíz,
-   SQLite en `/data`, mapas y assets incluidos) con CI que buildea y publica
-   en el registry de Forgejo. Cliente con API/WS host parametrizable en
-   runtime (`RESU_API_URL`/`RESU_WS_URL` vía `/runtime-config.js`).
-7. **Toolchain**: ✅ HECHO. Monorepo npm workspaces (un solo lockfile, un solo
-   `node_modules`, cero pnpm), deps actualizadas (TypeScript 7), paquetes
-   muertos eliminados (axios/https/lodash), 0 vulnerabilidades.
+- [x] **Baseline**: stack original (Docker Postgres) verificado funcionando.
+- [x] **Port Postgres → SQLite**: `DB_BACKEND=sqlite` + `SQLITE_PATH`,
+  adaptador `api/src/sqliteDb.ts` sobre `node:sqlite`, schema consolidado
+  `api/schema.sqlite.sql` (31 tablas), normalización de tipos por declared-type.
+- [x] **Unificación de backend en Hono**: Express eliminado; API routes de Next
+  absorbidas en `/api/*` con cookie httpOnly; game server ws en el mismo proceso.
+- [x] **Cliente vanilla**: paquete `client/` (TS + esbuild + Pixi + Howler, cero
+  frameworks). Login/registro/crear/seleccionar/jugar, motor Pixi portado, HUD
+  en DOM, ventanas de juego (trade/mercado/banco/crafting/retos) funcionales,
+  admin web con branding configurable y gestión de cuentas (alta incluida).
+- [x] **CLI**: `api/src/unified.ts` con `--serve`, `--port`, `--game-port`, `--db`.
+- [x] **Distribución**: imagen Docker all-in-one (`Dockerfile` en raíz, SQLite
+  en `/data`, mapas y assets incluidos) con CI en Forgejo; cliente con
+  `RESU_API_URL`/`RESU_WS_URL` en runtime.
+- [x] **Toolchain**: monorepo npm workspaces (un lockfile, un `node_modules`,
+  cero pnpm), deps actualizadas (TypeScript 7), paquetes muertos eliminados
+  (axios/https/lodash), 0 vulnerabilidades, dump SQL legacy eliminado.
+- [ ] **Criterio de salida**: `resu --serve` levanta todo con un solo archivo
+  SQLite, sin Docker ni Postgres, y dos clientes en LAN se ven, caminan y
+  combaten. ✅ a nivel sistema (E2E headless verificado); **falta solo la
+  validación humana de una partida LAN real con dos navegadores.**
 
-**Criterio de salida**: `resu --serve` levanta todo con un solo archivo SQLite,
-sin Docker ni Postgres, y dos clientes en LAN se ven, caminan y combaten.
-✅ Cumplido a nivel sistema (E2E headless verificado); pendiente solo la
-validación humana de una partida LAN real con dos navegadores.
+### M1.5 — Fidelidad al AO clásico (VB6)
 
-#### Estado M1 — avances (2026-09-01/02)
+Fuente de verdad: ao-libre/ao-server (y código oficial SourceForge donde ao-libre
+no tiene el feature). Regla: valores, mecánicas y textos del VB6; lo que no
+existe en el VB6 no se inventa.
 
-- **Port SQLite (HECHO)**: `DB_BACKEND=sqlite` + `SQLITE_PATH` (default
-  postgres, upstream-compatible). Adaptador `api/src/sqliteDb.ts` sobre
-  `node:sqlite` (cero deps nativas), schema consolidado `api/schema.sqlite.sql`
-  (31 tablas, sin cruft de migraciones), normalización de tipos por
-  declared-type (BOOLEAN/TIMESTAMPTZ/JSONB/BIGINT matchean el output del driver
-  pg). Interfaz `DbPoolLike` en `api/src/db.ts` — nivel driver, no dominio
-  (las interfaces de dominio son diseño de M3).
-- **Hono (HECHO)**: Express eliminado. Capa de cookies del Next absorbida en
-  `/api/*`. 70/70 tests (3 nuevos de cookie-session) en AMBOS backends.
-- **Proceso unificado (HECHO)**: `unified.ts` bootea API + game server ws en un
-  solo proceso; validado end-to-end contra SQLite con 70/70 tests.
-- **Cliente vanilla (HECHO, 2026-09-02)**: paquete `client/` (TS + esbuild +
-  Pixi + Howler, cero frameworks). Vistas: login/registro/lista de personajes/
-  crear/jugar, UI en español, tema oscuro, hash router. Motor Pixi portado de
-  `frontend/components/game/` (módulos framework-free copiados; glue React
-  reescrito a mano: `core/gameClient.ts`, `rendererBootstrap.ts`,
-  `session/gameSession.ts`, etc.). HUD en DOM (HP/mana/oro/nivel/pos/ping/FPS,
-  chat). Modales fancy (trade/market/crafting/retos/bail/admin) → stub
-  "no implementado". Mapa completo del port en `client/README.md`.
-  Verificado headless (Chromium CDP): render del mundo, caminar, chat, HUD.
-- **Prueba E2E unificada (HECHA, 2026-09-02)**: `unified.ts --serve` sirviendo
-  `client/dist` + API + ws en un proceso contra `data/resu.sqlite`. Suite
-  70/70 (un test de stress de clanes necesitó timeout elevado: crea 50
-  cuentas por HTTP y contra el proceso unificado supera 60s — limitación del
-  test, no del sistema). Handshake ws verificado a nivel paquete: spawn en
-  Ullathorpe, snapshots de área (NPCs/items), movimiento confirmado, chat
-  round-trip.
-- **Pendiente de validación humana**: partida LAN real con dos navegadores.
-- **Operación y admin (HECHO, 2026-09-03)**:
-  - Admin web: página Cuentas con alta de cuentas desde el panel
-    (`POST /api/admin/accounts`), búsqueda, reset de password,
-    habilitar/deshabilitar, toggle admin, eliminar.
-  - Branding configurable desde el admin (nombre, colores, fuentes); TODA la
-    UI deriva de la paleta vía `color-mix` (botones, inputs, bordes,
-    scrollbar, overlays) — no quedan colores hardcodeados fuera de los
-    semánticos (danger/ok).
-  - Sidebar del juego: tab "Social" con miembros de party (líder marcado) y
-    clan (online/mapa), reemplazando al viejo tab de Stats.
-- **Infra (HECHO, 2026-09-03)**: imagen Docker all-in-one con CI en Forgejo
-  (build + push al registry); fix de assets 404 y WS same-origin `/ws` detrás
-  de proxy; monorepo npm workspaces; dump SQL legacy eliminado; auditoría de
-  deps (axios/https/lodash fuera, todo a última versión, 0 vulnerabilidades).
-  Remotos espejo: Forgejo (CI) y GitHub.
-- **Divergencias conocidas del backend SQLite**:
-  - Reloj: SQLite usa el clock del proceso, PG el del server (irrelevante en
-    single-host).
-  - Concurrencia: SQLite serializa escrituras con mutex (single-writer). OK para
-    server local/LAN; NO es equivalente a PG bajo carga concurrente pesada.
-  - Multi-proceso sobre el mismo archivo: WAL + busy_timeout 5s; `ensureSeeded`
-    puede duplicar revisiones si dos procesos bootean una DB fresca a la vez
-    (deployment single-instance: no aplica).
-  - Timestamps TEXT ISO con formato exacto `%Y-%m-%dT%H:%M:%fZ` — cualquier
-    escritor futuro (scripts, SQL manual) DEBE usar ese formato o las
-    comparaciones se rompen silenciosamente.
+**Vitales y estados**
+
+- [x] Hambre/sed (intervalos Server.ini 6500/6000 ms, −10 por tick, sin daño de
+  HP; bloquea aprender hechizos de pergamino; restauración fija por objeto con
+  los valores de `obj.dat`).
+- [x] Veneno (1–5 HP cada 500 ms, sin expiración; Toxina lo aplica; Antídoto
+  Mágico y Poción Violeta lo curan; NPCs venenosos al 30%).
+- [x] Stamina/energía (creación VB6, regen solo con hambre/sed > 0, consumo al
+  trabajar con texto exacto).
+- [x] Skills 0–100 progresivos (fórmula `SubirSkill` exacta, ELU = 200×1.05^s,
+  chance de trabajos del Server.ini; suben pescando/talando/minando/combatiendo).
+- [x] Skillpoints (10 iniciales, +5 por nivel igual para todas las clases, gate
+  "Para poder entrenar un skill debes asignar los 10 skills iniciales.",
+  asignación desde el tab Skills). Reemplaza al sistema de puntos de atributo
+  (el VB6 no lo tiene; eliminado).
+
+**Mundo y NPCs**
+
+- [x] Guardias que atacan criminales (y del caos a ciudadanos), `GuardiasAI`.
+- [x] Entrenador NPC (criaturas de `NPCs.dat`, `/ENTRENAR` + ventana).
+- [x] Monturas (5 de `obj.dat`, cooldown 10 s, velocidad ×0.75, desmonte al
+  atacar/castear/morir, gráficos del ao-cliente).
+- [x] Mascotas/doma (`/DOMAR`: Carisma × skill, 20%, máx 3, 50 criaturas
+  domables, siguen y pelean con el amo, mueren si el amo muere).
+- [x] Oficios: carpintería alineada 1:1 con `ObjCarpintero.dat` (34 recetas),
+  mensajes exactos de `Trabajo.bas`.
+
+**Combate y economía**
+
+- [x] Robar (`/robar`: tabla de suerte por skill, stamina 15, reglas de
+  seguro/Armada/Caos/zona segura, textos por género).
+- [x] Apuñalar como skill (fórmulas de chance por clase de `SistemaCombate.bas`).
+- [x] Correo entre jugadores (`ModCorreo.bas` oficial: 60 mensajes, aviso de no
+  leídos al loguear, ventana listar/leer/enviar/borrar).
+
+**Ambiente y UI**
+
+- [x] Música por mapa (`musicNum` de los `.dat`, enviado como el `PlayMidi` del
+  VB6 en cada cambio de mapa).
+- [x] Lluvia (`/lluvia` GM, toggle global, overlay + sonido del ao-cliente,
+  226 mapas con lluvia de `FK.ind`).
+- [x] HUD: mini-barras hambre/sed/stamina, badges de estado (Paralizado,
+  Inmovilizado, Envenenado, buffs con countdown, cooldown de montura), tabs
+  Stats/Skills/Misc., ventanas entrenador y correo, gritar con prefijo `-`.
+
+**Descartado por no existir en el VB6** (verificado en el código): alquimia,
+robo a NPCs, peso de inventario, niebla, ranking in-game (está el ranking web),
+puntos de atributo por nivel, lluvia drenando stamina (código muerto en VB6).
+
+#### Pendientes conocidos (M1.5)
+
+- [ ] Validación humana de partida LAN con dos navegadores (criterio M1).
+- [ ] Verificación del build Docker en CI de Forgejo (no hay daemon local).
+- [ ] Convertir los MIDIs del ao-cliente a `.ogg` en `client/public/music/<n>.ogg`
+  (el mecanismo de música por mapa ya los espera; no había sintetizador).
+- [ ] Adjuntar items por correo (campos `item`/`itemCount` ya en tabla y
+  protocolo; falta UI + `RetirarItemCorreo`).
+- [ ] Sonido de lluvia "bajo techo" (`lluviain.wav`): falta enviar triggers por
+  tile al client (hoy suena siempre la variante exterior).
+- [ ] Reimportar game data en DBs ya seedeadas (`import-game-data -w api`) para
+  criaturas del entrenador, monturas, `domable` y recetas de carpintería.
+- [ ] Skill Defensa (bloqueo con escudo): el VB6 tiene doble roll de rechazo;
+  Resu lo funde en la evasión.
+- [ ] Subida por uso de Meditar/Ocultarse/Supervivencia (la infra `subirSkill`
+  ya los soporta; falta enganchar los eventos).
+- [ ] Consumo de stamina en crafting (el VB6 lo cobra en construir/upgrade).
+- [ ] Clases Ladrón/Pirata/Trabajador: no existen en Resu; sus ramas VB6
+  (robo mejorado, guantes de hurto, menor costo de stamina al trabajar) quedan
+  portadas pero inalcanzables.
+- [ ] NPC "Oso Polar" (165 de NPCs.dat, domable) no existe en los datos de Resu.
+- [ ] Verificar recetas de herrería y sastrería contra `obj.dat` (sastrería no
+  tiene fuente VB6; herrería no fue auditada).
+- [ ] Buzones de mapa (`otCorreo = 47`) para abrir el correo clickeando el
+  objeto, como el VB6 (hoy es botón en Acciones).
+- [ ] Montura: persistir `monturaEqpSlot` en charfile (detalle VB6 menor; hoy se
+  desmonta al desconectar como el VB6).
+- [ ] Revelar al oculto al gritar y gritos de GM invisibles por consola
+  (detalles del `HandleYell` VB6).
+- [ ] Mensajes de fallo de trabajos ("No has pescado nada!") con dedup
+  `UltimoMensaje` del VB6.
+- [ ] Mascotas atacando usuarios a orden del amo (`AllMascotasAtacanUser`).
+- [ ] Guardias con spells: verificar que los datos de los Guardia Imperial
+  incluyan sus spells del `NPCs.dat`.
+- [ ] Bonus de zona segura en harvesting (`safeZoneBonus`) es preexistente y NO
+  es del VB6: revisar si se mantiene.
 
 ### M2 — App de escritorio Linux
 
-- **Tauri** (webview del sistema, sin Chromium embebido — lo más liviano posible
-  sin escribir GUI nativa, que contradiría tener un cliente JS).
-- El backend M1 corre como sidecar de Node empaquetado.
-- Modos: **host** (levanta server, otros entran por LAN — UPnP opcional para
+- [ ] **Tauri** (webview del sistema, sin Chromium embebido — lo más liviano
+  posible sin escribir GUI nativa, que contradiría tener un cliente JS).
+- [ ] El backend M1 corre como sidecar de Node empaquetado.
+- [ ] Modos: **host** (levanta server, otros entran por LAN — UPnP opcional para
   internet) y **join** (pegar IP/URL de un server).
 - Nota: M2 tiene fecha de vencimiento (M4 lo reemplaza). Es el puente para
   distribuir algo usable mientras exista el cliente JS.
@@ -214,17 +243,17 @@ arquitectura que el código original nunca tuvo.
 
 **Estructura (workspace de crates):**
 
-- `resu-domain` — reglas del juego puras (combate, NPCs, crafting, clanes,
+- [ ] `resu-domain` — reglas del juego puras (combate, NPCs, crafting, clanes,
   economía, facciones). Sin I/O. Testeable al 100% sin DB ni red.
-- `resu-protocol` — definición del protocolo binario ws + tipos de la API HTTP.
-  Una sola fuente de verdad, compartida con el cliente nativo (M4). Spec
-  versionada publicada en markdown.
-- `resu-store` — traits de persistencia por agregado + adapter SQLite (sqlx,
-  mismo schema del M1). Segundo adapter (postgres) solo si aparece la necesidad
-  real.
-- `resu-server` — capa de aplicación: axum + tokio, ws, ejecución de efectos,
-  schedulers, admin API (OpenAPI).
-- `resu-ext` (evaluar) — scripting para custom servers (Rhai/Lua/WASM,
+- [ ] `resu-protocol` — definición del protocolo binario ws + tipos de la API
+  HTTP. Una sola fuente de verdad, compartida con el cliente nativo (M4).
+  Spec versionada publicada en markdown.
+- [ ] `resu-store` — traits de persistencia por agregado + adapter SQLite
+  (sqlx, mismo schema del M1). Segundo adapter (postgres) solo si aparece la
+  necesidad real.
+- [ ] `resu-server` — capa de aplicación: axum + tokio, ws, ejecución de
+  efectos, schedulers, admin API (OpenAPI).
+- [ ] `resu-ext` (evaluar) — scripting para custom servers (Rhai/Lua/WASM,
   prototipar antes de comprometer).
 
 **Plan de migración por módulos** (referencia: ~34k LOC TS en `server/src/` +
@@ -244,15 +273,15 @@ publicada.
 
 ### M4 — Cliente nativo Rust
 
-- Motor 2D liviano: **macroquad** o **ggez** (prototipar y decidir; Bevy solo si
-  hace falta, probablemente no).
-- Reutiliza el crate `resu-protocol` del M3 — cero duplicación de protocolo
-  entre servidor y cliente (principio 3).
-- Mismos principios de arquitectura: lógica de cliente (estado del mundo,
-  predicción, interpolação) separada del render y del I/O; input como puerto;
+- [ ] Motor 2D liviano: **macroquad** o **ggez** (prototipar y decidir; Bevy
+  solo si hace falta, probablemente no).
+- [ ] Reutiliza el crate `resu-protocol` del M3 — cero duplicación de
+  protocolo entre servidor y cliente (principio 3).
+- [ ] Mismos principios de arquitectura: lógica de cliente (estado del mundo,
+  predicción, interpolación) separada del render y del I/O; input como puerto;
   assets detrás de un trait `AssetLoader` (permite packs custom / HD).
-- Assets: reutilizar gráficos/sonidos/mapas del proyecto.
-- Alcance inicial: paridad con el cliente vanilla (moverse, combatir, chat,
+- [ ] Assets: reutilizar gráficos/sonidos/mapas del proyecto.
+- [ ] Alcance inicial: paridad con el cliente vanilla (moverse, combatir, chat,
   inventario). Lo fancy después.
 
 **Criterio de salida**: binario nativo Linux que se conecta a un server M1/M3 y
@@ -261,6 +290,7 @@ es jugable. Acá M2 queda deprecado.
 ## Estimaciones honestas
 
 - M1: ✅ terminado (a falta solo de la validación humana de una partida LAN).
+- M1.5: ✅ terminado (pendientes menores listados arriba).
 - M2: días sobre M1 terminado (empaquetado, no features).
 - M3: meses de laburo hobby (34k LOC de lógica de juego + la disciplina de
   arquitectura). Es el corazón del proyecto.
