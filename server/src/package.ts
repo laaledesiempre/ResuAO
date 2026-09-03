@@ -118,6 +118,7 @@ const clientPacketID = {
     trainerState: 83,
     correoState: 84,
     correoPicOn: 85,
+    rainToggle: 86,
 } as const;
 
 const serverPacketID = {

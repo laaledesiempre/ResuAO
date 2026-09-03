@@ -853,6 +853,12 @@ a:hover {
     display: block;
 }
 
+.game-canvas-wrap canvas.weather-canvas {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
 .loading-overlay {
     position: absolute;
     inset: 0;

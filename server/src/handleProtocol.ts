@@ -393,6 +393,7 @@ export type HandleProtocolApi = {
     areaNpcsSnapshot: (npcs: ProtocolNpc[], client: RuntimeClient) => void;
     areaItemsSnapshot: (items: AreaItemSnapshot[], client: RuntimeClient) => void;
     areaMetaSnapshot: (snapshot: AreaMetaSnapshot, client: RuntimeClient) => void;
+    rainToggle: (client?: RuntimeClient) => void;
     selfFlagsDelta: (payload: SelfFlagsDeltaPayload, client: RuntimeClient) => void;
     selfVitalsDelta: (payload: SelfVitalsDeltaPayload, client: RuntimeClient) => void;
     selfMapMetaDelta: (payload: SelfMapMetaDeltaPayload, client: RuntimeClient) => void;
@@ -719,6 +720,11 @@ function writeAreaMetaSnapshot(snapshot: AreaMetaSnapshot) {
         pkg.writeByte(tile.pos.y);
         pkg.writeByte(tile.blocked);
     }
+
+    // VB6 TCP.bas: al cambiar de mapa el servidor envia PlayMidi con
+    // MapInfo(.Pos.Map).Music. Campo opcional al final del snapshot.
+    const mapInfo = vars.mapData[snapshot.map] as { musicNum?: unknown } | undefined;
+    pkg.writeShort(Math.max(0, Number(mapInfo?.musicNum ?? 0) || 0));
 }
 
 function writeSelfMapMetaDeltaPayload(payload: SelfMapMetaDeltaPayload) {
@@ -1255,6 +1261,18 @@ const handleServer: HandleProtocolApi = {
         pkg.setPackageID(pkg.clientPacketID.areaMetaSnapshot);
         writeAreaMetaSnapshot(snapshot);
         socket.send(client);
+    },
+
+    // VB6 Protocol.bas PrepareMessageRainToggle: paquete sin payload ("LLU");
+    // el cliente alterna su estado de lluvia al recibirlo. Sin cliente se
+    // broadcastea a todos (SendData ToAll en HandleRainToggle).
+    rainToggle(client) {
+        pkg.setPackageID(pkg.clientPacketID.rainToggle);
+        if (client) {
+            socket.send(client);
+        } else {
+            socket.sendAll(pkg.dataSend());
+        }
     },
 
     selfFlagsDelta(payload, client) {

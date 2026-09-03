@@ -3310,6 +3310,15 @@ const command: CommandApi = {
                     }
                     break;
 
+                // VB6 Protocol.bas HandleRainToggle (/LLUVIA): comando GM que
+                // alterna el flag global Lloviendo y envia RainToggle a todos.
+                case "/lluvia":
+                    if (hasAdminPrivileges(user)) {
+                        vars.lloviendo = !vars.lloviendo;
+                        handleProtocol.rainToggle();
+                    }
+                    break;
+
                 case "/intervalos":
                     if (hasAdminPrivileges(user)) {
                         sendTimingList(ws);

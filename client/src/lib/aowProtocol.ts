@@ -81,6 +81,7 @@ export const CLIENT_PACKET_ID = {
     trainerState: 83,
     correoState: 84,
     correoPicOn: 85,
+    rainToggle: 86,
 } as const;
 
 export type PanelShare = {
@@ -657,6 +658,7 @@ export interface AreaMetaSnapshot {
     map: number;
     name: string;
     blockedTiles: AreaBlockedTileSnapshot[];
+    musicNum?: number;
 }
 
 export interface SelfFlagsDelta {
@@ -880,6 +882,7 @@ export type ParsedServerPacket =
     | { type: "trainerState"; payload: TrainerState }
     | { type: "correoState"; payload: CorreoState }
     | { type: "correoPicOn"; payload: null }
+    | { type: "rainToggle"; payload: null }
     | { type: "closeBail"; payload: null }
     | { type: "openAdminIntervals"; payload: null }
     | { type: "panelSnapshot"; payload: PanelSnapshot }
@@ -1348,7 +1351,10 @@ function parseAreaMetaSnapshot(reader: PacketReader): AreaMetaSnapshot {
         });
     }
 
-    return { map, name, blockedTiles };
+    // VB6 TCP.bas: musicNum del mapa (PlayMidi al cambiar de mapa). Opcional.
+    const musicNum = reader.canReadBytes(2) ? reader.getShort() : undefined;
+
+    return { map, name, blockedTiles, musicNum };
 }
 
 function parseSelfMapMetaDelta(reader: PacketReader): SelfMapMetaDelta {
@@ -1982,6 +1988,10 @@ function parseServerPacketById(
         }
         case CLIENT_PACKET_ID.correoPicOn:
             return { type: "correoPicOn", payload: null };
+        // VB6 Protocol.bas RainToggle ("LLU"): sin payload, el cliente
+        // alterna su estado de lluvia.
+        case CLIENT_PACKET_ID.rainToggle:
+            return { type: "rainToggle", payload: null };
         case CLIENT_PACKET_ID.closeTrade:
             return { type: "closeTrade", payload: null };
         case CLIENT_PACKET_ID.closeBail:

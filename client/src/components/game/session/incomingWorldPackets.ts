@@ -131,6 +131,14 @@ export async function handleIncomingWorldPacket({
                     ctx,
                 });
             }
+
+            if (typeof packet.payload.musicNum === "number") {
+                ctx.onMapMusic?.(packet.payload.musicNum, packet.payload.map);
+            }
+            return true;
+
+        case "rainToggle":
+            ctx.onRainToggle?.();
             return true;
 
         case "selfMapMetaDelta":

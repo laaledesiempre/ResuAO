@@ -978,6 +978,11 @@ function Login(this: LoginApi) {
                     correo.checkUnreadOnLogin(ws);
                 });
 
+                // VB6 TCP.bas: If Lloviendo Then WriteRainToggle(Userindex)
+                if (vars.lloviendo) {
+                    handleProtocol.rainToggle(ws);
+                }
+
                 funct.sendTelegramMessage(
                     `[Servidor] Usuario ${personajeWS.nameCharacter} conectado en mapa ${vars.personajes[ws.id].map}.`,
                 );
@@ -1292,6 +1297,11 @@ function Login(this: LoginApi) {
             game.setNewAreas(ws);
         });
         emitLoginWarpSound(ws);
+
+        // VB6 TCP.bas: If Lloviendo Then WriteRainToggle(Userindex)
+        if (!isSyntheticBot && vars.lloviendo) {
+            handleProtocol.rainToggle(ws);
+        }
 
         if (!isSyntheticBot) {
             funct.sendTelegramMessage(

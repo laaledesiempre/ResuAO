@@ -15,6 +15,7 @@ import {
     normalizeHotkeySettings,
 } from "../lib/hotkeys";
 import { buildCheatsheetEntries } from "../lib/cheatsheet";
+import { WeatherManager } from "../lib/weather";
 import {
     computeWorldMapMarker,
     type WorldMapGridData,
@@ -662,6 +663,7 @@ export function renderPlay(
     };
 
     let game: GameHandle | null = null;
+    let weather: WeatherManager | null = null;
     let destroyed = false;
     let lastHud: PlayerHudState | null = null;
     let selectedSlot: number | null = null;
@@ -1049,6 +1051,8 @@ export function renderPlay(
         destroyed = true;
         clearInterval(statusTimer);
         musicAudio?.pause();
+        weather?.destroy();
+        weather = null;
         document.removeEventListener("keydown", handlePlayKeydown);
         inventoryCapObserver?.disconnect();
         windows.destroy();
@@ -1162,13 +1166,21 @@ export function renderPlay(
     settingsButton.append(svgIcon("btn-icon", ICON_GEAR));
     playScreen.append(settingsDrawer, settingsButton);
 
-    // Background music (site config), controlled from the drawer.
-    const musicAudio = config.music.url ? new Audio(config.music.url) : null;
-    if (musicAudio) musicAudio.loop = true;
+    // Musica de fondo, controlada desde el drawer. VB6 TCP.bas: al cambiar
+    // de mapa suena la musica del mapa (MapInfo(.Pos.Map).Music via
+    // PlayMidi). Los tracks viven en /music/<musicNum>.ogg|mp3 (portables
+    // desde AUDIO/MIDI/<n>.mid del cliente VB6); si el track no existe, se
+    // usa la musica global de la config del sitio como fallback.
+    const configMusicUrl = config.music.url || null;
+    let musicAudio: HTMLAudioElement | null = null;
+    let activeMusicUrl: string | null = null;
+    let musicSelectionToken = 0;
+    const resolvedMapTracks = new Map<number, string | null>();
 
     const applyAudioSettings = () => {
         const effective = muted ? 0 : volume / 100;
         game?.setMasterVolume(effective);
+        weather?.setVolume(effective);
         if (musicAudio) {
             musicAudio.volume = effective * (config.music.volume || 1);
             if (musicOn && !muted) {
@@ -1178,6 +1190,80 @@ export function renderPlay(
             }
         }
     };
+
+    const playMusicTrack = (url: string | null) => {
+        if (url === activeMusicUrl) {
+            return;
+        }
+        activeMusicUrl = url;
+        musicAudio?.pause();
+        musicAudio = null;
+        if (!url) {
+            return;
+        }
+        musicAudio = new Audio(url);
+        musicAudio.loop = true;
+        musicAudio.volume =
+            (muted ? 0 : volume / 100) * (config.music.volume || 1);
+        if (musicOn && !muted) {
+            void musicAudio.play().catch(() => {});
+        }
+    };
+
+    const selectMapMusic = (musicNum: number) => {
+        const token = ++musicSelectionToken;
+        const applyFallback = () => {
+            if (token === musicSelectionToken) {
+                playMusicTrack(configMusicUrl);
+            }
+        };
+
+        if (musicNum <= 0) {
+            applyFallback();
+            return;
+        }
+
+        const cachedTrack = resolvedMapTracks.get(musicNum);
+        if (cachedTrack !== undefined) {
+            if (token === musicSelectionToken) {
+                playMusicTrack(cachedTrack);
+            }
+            return;
+        }
+
+        const candidates = [`/music/${musicNum}.ogg`, `/music/${musicNum}.mp3`];
+        const probeNext = (index: number) => {
+            if (token !== musicSelectionToken) {
+                return;
+            }
+            if (index >= candidates.length) {
+                resolvedMapTracks.set(musicNum, null);
+                applyFallback();
+                return;
+            }
+            const probe = new Audio();
+            probe.preload = "metadata";
+            probe.addEventListener(
+                "loadedmetadata",
+                () => {
+                    resolvedMapTracks.set(musicNum, candidates[index]);
+                    if (token === musicSelectionToken) {
+                        playMusicTrack(candidates[index]);
+                    }
+                },
+                { once: true },
+            );
+            probe.addEventListener("error", () => probeNext(index + 1), {
+                once: true,
+            });
+            probe.src = candidates[index];
+        };
+        probeNext(0);
+    };
+
+    // Estado inicial: musica global de la config hasta que llegue el primer
+    // snapshot del mapa con su musicNum.
+    playMusicTrack(configMusicUrl);
 
     volumeSlider.addEventListener("input", () => {
         volume = Number(volumeSlider.value);
@@ -1238,6 +1324,8 @@ export function renderPlay(
     fetchGameTicket()
         .then(({ ticket }) => {
             if (destroyed) return;
+            weather = new WeatherManager(canvasWrap);
+            weather.setMap(character.map ?? 1);
             game = startGame({
                 container: canvasWrap,
                 wsUrl: DEFAULT_WS_URL,
@@ -1278,6 +1366,11 @@ export function renderPlay(
                     correoButton.style.outline = "2px solid #E69500";
                 },
                 onNotice: (notice) => showToast(notice.text, notice.durationMs),
+                onMapMusic: (musicNum, map) => {
+                    weather?.setMap(map);
+                    selectMapMusic(musicNum);
+                },
+                onRainToggle: () => weather?.toggleRain(),
             });
             applyAudioSettings();
         })

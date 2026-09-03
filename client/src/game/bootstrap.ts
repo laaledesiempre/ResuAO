@@ -39,6 +39,8 @@ export type StartGameOptions = {
     onCorreoState?: (state: CorreoState | null) => void;
     onCorreoPicOn?: () => void;
     onNotice?: (notice: { text: string; durationMs: number }) => void;
+    onMapMusic?: (musicNum: number, map: number) => void;
+    onRainToggle?: () => void;
     debug?: boolean;
 };
 
@@ -116,6 +118,8 @@ export function startGame(options: StartGameOptions): GameHandle {
             onCorreoState: options.onCorreoState,
             onCorreoPicOn: options.onCorreoPicOn,
             onNotice: options.onNotice,
+            onMapMusic: options.onMapMusic,
+            onRainToggle: options.onRainToggle,
         },
     });
 

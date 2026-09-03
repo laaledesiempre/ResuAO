@@ -155,6 +155,8 @@ export type GameClientCallbacks = {
     onCorreoState?: (state: CorreoState | null) => void;
     onCorreoPicOn?: () => void;
     onNotice?: (notice: { text: string; durationMs: number }) => void;
+    onMapMusic?: (musicNum: number, map: number) => void;
+    onRainToggle?: () => void;
 };
 
 export type GameClientOptions = {
@@ -1040,6 +1042,9 @@ export class GameClient {
             clearTargetingMode,
             showDialogBubble,
             onGlobalNotice: this.onGlobalNotice,
+            onMapMusic: (musicNum: number, map: number) =>
+                this.callbacks.onMapMusic?.(musicNum, map),
+            onRainToggle: () => this.callbacks.onRainToggle?.(),
             renderEntityFX,
             renderSpellProjectileVisual,
             renderProjectileVisual,
