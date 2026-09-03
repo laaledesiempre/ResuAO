@@ -1345,6 +1345,11 @@ body.side-resizing {
     background: #4f9fb8;
 }
 
+/* Ambar, en linea con .bar-fill.stamina */
+.mini-bar-fill.stamina {
+    background: #d9a04a;
+}
+
 .player-status {
     display: flex;
     flex-wrap: wrap;

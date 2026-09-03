@@ -568,7 +568,24 @@ function processPlayerStatusTick(now: number) {
 
             const statusClient = getClientById(idUser);
 
-            if (hungerThirstChanged && statusClient) {
+            // Stamina (VB6 General.bas RecStamina): solo regenera si no tiene
+            // hambre ni sed. Los intervalos VB6 (StaminaIntervaloSinDescansar=10ms,
+            // Descansar=5ms) son menores que este tick (500ms), asi que regenera
+            // en cada tick: RandomNumber(1, 5% del MaxSta).
+            let staminaChanged = false;
+
+            if (hunger > 0 && thirst > 0) {
+                const maxStamina = Number(user.maxStamina ?? 100);
+                const stamina = Number(user.stamina ?? maxStamina);
+
+                if (stamina < maxStamina) {
+                    const regen = funct.randomIntFromInterval(1, Math.max(1, Math.floor(maxStamina * 0.05)));
+                    user.stamina = Math.min(maxStamina, stamina + regen);
+                    staminaChanged = true;
+                }
+            }
+
+            if ((hungerThirstChanged || staminaChanged) && statusClient) {
                 handleProtocol.selfVitalsDelta(
                     {
                         hp: Number(user.hp ?? 0),
@@ -577,6 +594,8 @@ function processPlayerStatusTick(now: number) {
                         maxMana: Number(user.maxMana ?? 0),
                         hunger: Number(user.hunger ?? 100),
                         thirst: Number(user.thirst ?? 100),
+                        stamina: Number(user.stamina ?? 0),
+                        maxStamina: Number(user.maxStamina ?? 100),
                     },
                     statusClient,
                 );

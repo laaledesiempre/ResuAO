@@ -715,6 +715,18 @@ export class SqlitePoolAdapter {
             );
         }
 
+        if (!characterColumns.some((column) => column.name === "stamina")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN stamina INTEGER NOT NULL DEFAULT 100",
+            );
+        }
+
+        if (!characterColumns.some((column) => column.name === "max_stamina")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN max_stamina INTEGER NOT NULL DEFAULT 100",
+            );
+        }
+
         if (!characterColumns.some((column) => column.name === "envenenado")) {
             this.db.exec(
                 "ALTER TABLE characters ADD COLUMN envenenado INTEGER NOT NULL DEFAULT 0",

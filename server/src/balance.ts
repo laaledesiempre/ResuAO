@@ -6,6 +6,14 @@ const MAX_LEVEL = 50;
 const MAX_EXP_LEVEL = 50;
 const LAST_LEGACY_EXP_LEVEL = 46;
 const MAX_GOLD = 2147483647;
+// VB6 Declares.bas: STAT_MAXSTA = 999
+const MAX_STAMINA = 999;
+// VB6 Declares.bas: AumentoSTDef = 15, AumentoSTMago = AumentoSTDef - 1
+const STAMINA_PER_LEVEL_DEFAULT = 15;
+const STAMINA_PER_LEVEL_MAGE = 14;
+// VB6 Trabajo.bas: GASTO_ENERGIA_TRABAJADOR / GASTO_ENERGIA_NO_TRABAJADOR
+const WORK_STAMINA_COST_WORKER = 2;
+const WORK_STAMINA_COST_DEFAULT = 6;
 
 // VB6 Declares.bas: MAXATRIBUTOS = 40 / MINATRIBUTOS = 6.
 const MAX_ATRIBUTOS = 40;
@@ -72,6 +80,14 @@ const getHitModifierForLevel = (classId: number, level: number): number => {
 const getMinHitForLevel = (classId: number, level: number): number => 1 + getHitModifierForLevel(classId, level);
 const getMaxHitForLevel = (classId: number, level: number): number => 2 + getHitModifierForLevel(classId, level);
 
+// VB6 Modulo_UsUaRiOs.bas (UserLevelUp): AumentoSTA por clase (mago 14, resto 15; ladron/trabajador no existen en Resu).
+const getStaminaPerLevel = (classId: number): number =>
+    classId === 1 ? STAMINA_PER_LEVEL_MAGE : STAMINA_PER_LEVEL_DEFAULT;
+
+// VB6 Trabajo.bas: costo de energia por trabajo (2 clase Trabajador, 6 el resto).
+const getWorkStaminaCost = (classId: number): number =>
+    classId === 11 ? WORK_STAMINA_COST_WORKER : WORK_STAMINA_COST_DEFAULT;
+
 const getLegacyExpNextLevelForLevel = (level: number): number => {
     const safeLevel = Math.max(1, Math.min(MAX_EXP_LEVEL, Math.floor(level)));
     const expCurveLevel = Math.min(safeLevel, LAST_LEGACY_EXP_LEVEL);
@@ -99,11 +115,14 @@ module.exports = {
     MAX_EXP_LEVEL,
     MAX_ATRIBUTOS,
     ATTRIBUTE_POINTS_PER_LEVEL,
+    MAX_STAMINA,
     clampLevel,
     clampGold,
     getMaxHpForLevel,
     getMaxManaForLevel,
     getMinHitForLevel,
     getMaxHitForLevel,
+    getStaminaPerLevel,
+    getWorkStaminaCost,
     getLegacyExpNextLevelForLevel,
 };

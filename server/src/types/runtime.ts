@@ -265,6 +265,8 @@ export type RuntimeCharacter = {
     thirst?: number;
     lastHungerDecayAt?: number;
     lastThirstDecayAt?: number;
+    stamina?: number;
+    maxStamina?: number;
     envenenado?: NumericFlag;
     lastVenenoDamageAt?: number;
     gold?: number;

@@ -275,6 +275,8 @@ export async function handleIncomingCharacterPacket({
                     maxMana: packet.payload.maxMana,
                     hunger: packet.payload.hunger,
                     thirst: packet.payload.thirst,
+                    stamina: packet.payload.stamina,
+                    maxStamina: packet.payload.maxStamina,
                     ...(packet.payload.envenenado !== undefined
                         ? { envenenado: packet.payload.envenenado }
                         : {}),
@@ -290,6 +292,8 @@ export async function handleIncomingCharacterPacket({
                 engine.user.maxMana = packet.payload.maxMana;
                 engine.user.hunger = packet.payload.hunger;
                 engine.user.thirst = packet.payload.thirst;
+                engine.user.stamina = packet.payload.stamina;
+                engine.user.maxStamina = packet.payload.maxStamina;
                 if (packet.payload.envenenado !== undefined) {
                     engine.user.envenenado = packet.payload.envenenado;
                 }
@@ -315,6 +319,12 @@ export async function handleIncomingCharacterPacket({
                     : {}),
                 ...(packet.payload.thirst !== undefined
                     ? { thirst: packet.payload.thirst }
+                    : {}),
+                ...(packet.payload.stamina !== undefined
+                    ? { stamina: packet.payload.stamina }
+                    : {}),
+                ...(packet.payload.maxStamina !== undefined
+                    ? { maxStamina: packet.payload.maxStamina }
                     : {}),
                 ...(packet.payload.envenenado !== undefined
                     ? { envenenado: packet.payload.envenenado }
