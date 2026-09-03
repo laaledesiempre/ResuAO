@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+dist/
+imgs_maps
+world_map
+jsons/npcRespawnCooldowns.json
+jsons/npcRespawnCooldowns.json
+reports/
+.env*
+!.env.example
+!.env.docker.example

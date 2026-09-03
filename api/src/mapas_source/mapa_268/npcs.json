@@ -1,0 +1,13 @@
+[
+    { "mapNum": 268, "x": 40, "y": 39, "npcIndex": 507 },
+    { "mapNum": 268, "x": 32, "y": 43, "npcIndex": 507 },
+    { "mapNum": 268, "x": 44, "y": 45, "npcIndex": 502 },
+    { "mapNum": 268, "x": 49, "y": 45, "npcIndex": 507 },
+    { "mapNum": 268, "x": 38, "y": 51, "npcIndex": 507 },
+    { "mapNum": 268, "x": 52, "y": 51, "npcIndex": 507 },
+    { "mapNum": 268, "x": 24, "y": 53, "npcIndex": 507 },
+    { "mapNum": 268, "x": 29, "y": 57, "npcIndex": 507 },
+    { "mapNum": 268, "x": 47, "y": 58, "npcIndex": 507 },
+    { "mapNum": 268, "x": 33, "y": 63, "npcIndex": 507 },
+    { "mapNum": 268, "x": 36, "y": 69, "npcIndex": 502 }
+]

@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "mineralItemId": 192,
+        "ingotItemId": 386,
+        "requiredSkill": 25,
+        "mineralsPerIngot": 13
+    },
+    {
+        "id": 2,
+        "mineralItemId": 193,
+        "ingotItemId": 387,
+        "requiredSkill": 50,
+        "mineralsPerIngot": 25
+    },
+    {
+        "id": 3,
+        "mineralItemId": 194,
+        "ingotItemId": 388,
+        "requiredSkill": 100,
+        "mineralsPerIngot": 50
+    }
+]

@@ -1,0 +1,13 @@
+{
+    "id": 281,
+    "name": "Mausoleo",
+    "musicNum": 59,
+    "magiaSinEfecto": 0,
+    "noEncriptarMp": 0,
+    "terreno": "BOSQUE",
+    "zona": "DUNGEON",
+    "restringir": "No",
+    "minLevel": 15,
+    "backup": 1,
+    "pk": 0
+}

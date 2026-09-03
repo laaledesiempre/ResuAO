@@ -1,0 +1,25 @@
+{
+  "name": "resu-client",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch --serve",
+    "serve": "node build.mjs --serve",
+    "typecheck": "tsc --noEmit",
+    "test": "esbuild test/*.test.ts --bundle --platform=node --format=esm --outdir=test/dist --out-extension:.js=.test.mjs && node --test test/dist/*.test.mjs"
+  },
+  "devDependencies": {
+    "@types/howler": "^2.2.12",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
+  },
+  "dependencies": {
+    "howler": "^2.2.4",
+    "pixi.js": "^8.14.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

@@ -1,0 +1,24 @@
+services:
+    server:
+        build:
+            context: .
+        restart: unless-stopped
+        volumes:
+            - ./jsons/npcsInMap.json:/app/jsons/npcsInMap.json
+        environment:
+            NODE_ENV: production
+            PORT: 7666
+            API_BASE_URL: ${API_BASE_URL:-http://api:3100}
+            TOKEN_AUTH: ${TOKEN_AUTH:-changeme}
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - default
+            - api_shared
+        ports:
+            - "127.0.0.1:7666:7666"
+
+networks:
+    api_shared:
+        external: true
+        name: api_default

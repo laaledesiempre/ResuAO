@@ -1,0 +1,13 @@
+{
+    "id": 48,
+    "name": "Dungeon Veriil. (Dungeon Dragon)",
+    "musicNum": 14,
+    "magiaSinEfecto": 0,
+    "noEncriptarMp": 0,
+    "terreno": "BOSQUE",
+    "zona": "DUNGEON",
+    "restringir": "No",
+    "minLevel": 28,
+    "backup": 1,
+    "pk": 0
+}

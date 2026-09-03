@@ -1,0 +1,52 @@
+{
+    "name": "resu-server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/server.js",
+    "dependencies": {
+        "axios": "^1.16.1",
+        "bytebuffer": "^5.0.1",
+        "https": "^1.0.0",
+        "lodash": "^4.18.1",
+        "ws": "^8.20.1"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@types/lodash": "^4.17.17",
+        "@types/node": "^25.8.0",
+        "eslint": "^10.4.0",
+        "globals": "^17.6.0",
+        "prettier": "^3.8.3",
+        "tsx": "^4.22.1",
+        "typescript": "^6.0.3",
+        "typescript-eslint": "^8.59.3"
+    },
+    "scripts": {
+        "clean": "rm -rf dist",
+        "build": "pnpm run clean && tsc && node scripts/copy-assets.cjs",
+        "dev": "NODE_ENV=development tsx watch src/server.ts",
+        "compact-objs": "tsx src/scripts/compactObjsJson.ts",
+        "compact-npcs": "tsx src/scripts/compactNpcsJson.ts",
+        "export-editable-maps": "tsx src/scripts/exportEditableMaps.ts",
+        "export-frontend-graphics": "tsx src/scripts/exportFrontendOptimizedGraphics.ts",
+        "export-frontend-maps": "tsx src/scripts/exportFrontendOptimizedMaps.ts",
+        "export-client-objs": "tsx src/scripts/exportClientObjs.ts",
+        "start": "node dist/server.js",
+        "lint": "eslint './src/**/*.ts'",
+        "world-map": "node scripts/build-world-map.cjs",
+        "compare-original-data": "tsx src/scripts/compareOriginalData.ts"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com:dcatanzaro/argentumonlineweb-cliente.git"
+    },
+    "author": "Damián Catanzaro",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/dcatanzaro/argentumonlineweb-servidor/issues"
+    },
+    "homepage": "https://github.com/dcatanzaro/argentumonlineweb-servidor/blob/master/README.md",
+    "allowScripts": {
+        "esbuild@0.28.2": true
+    }
+}

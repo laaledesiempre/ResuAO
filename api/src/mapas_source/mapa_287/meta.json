@@ -1,0 +1,12 @@
+{
+    "id": 287,
+    "name": "Polo Norte",
+    "musicNum": 3,
+    "magiaSinEfecto": 0,
+    "noEncriptarMp": 0,
+    "terreno": "NIEVE",
+    "zona": "CAMPO",
+    "restringir": "No",
+    "backup": 1,
+    "pk": 0
+}

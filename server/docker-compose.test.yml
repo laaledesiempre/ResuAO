@@ -1,0 +1,28 @@
+name: resu-server-test
+
+services:
+  server:
+    build:
+      context: .
+    restart: unless-stopped
+    volumes:
+      - ./jsons/npcsInMap.json:/app/jsons/npcsInMap.json
+    environment:
+      RESU_TEST_MODE: ${RESU_TEST_MODE:-true}
+      NODE_ENV: production
+      PORT: 7666
+      API_BASE_URL: ${API_BASE_URL:-http://api:3100}
+      RESET_CONNECTED_CHARACTERS_ON_STARTUP: ${RESET_CONNECTED_CHARACTERS_ON_STARTUP:-false}
+      TOKEN_AUTH: ${TOKEN_AUTH:-changeme}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - default
+      - api_shared
+    ports:
+      - "127.0.0.1:7667:7666"
+
+networks:
+  api_shared:
+    external: true
+    name: api_default
