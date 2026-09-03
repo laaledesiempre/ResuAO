@@ -221,6 +221,10 @@ const TIMING_PATH_ALIASES: Record<string, string> = {
 
 export type CommandApi = {
     msg: (msg: string, ws: RuntimeClient) => Promise<void>;
+    // Ventana del entrenador (paquete trainerAction): lista/invoca con las
+    // mismas validaciones y mensajes VB6 que el comando /ENTRENAR.
+    trainerList: (ws: RuntimeClient) => void;
+    trainerInvoke: (ws: RuntimeClient, petIndex: number) => void;
 };
 
 function getClientId(ws: RuntimeClient) {
@@ -2095,6 +2099,8 @@ async function inspectLegacyFrontendUsage(targetName: string, ws: RuntimeClient)
 }
 
 const ENTRENADOR_DISTANCIA_MAXIMA = 10; // VB6 HandleTrainList (Protocol.bas): Distancia > 10 -> "Estas demasiado lejos."
+// MAXMASCOTASENTRENADOR (Declares.bas): tope de criaturas vivas por entrenador.
+const MAX_CRIATURAS_ENTRENADOR = 7;
 
 function findNearestEntrenador(user: CommandCharacter): RuntimeNpc | undefined {
     let nearest: RuntimeNpc | undefined;
@@ -2119,6 +2125,86 @@ function findNearestEntrenador(user: CommandCharacter): RuntimeNpc | undefined {
     return nearestDist <= ENTRENADOR_DISTANCIA_MAXIMA ? nearest : undefined;
 }
 
+function getEntrenadorCriaturas(trainer: RuntimeNpc) {
+    const datTrainer = vars.datNpc[Number(trainer.templateNpcIndex ?? 0)] as
+        | { criaturas?: Array<{ npcIndex?: number; name?: string }> }
+        | undefined;
+
+    return (Array.isArray(datTrainer?.criaturas) ? datTrainer.criaturas : []).filter(
+        (criatura) => Number(criatura?.npcIndex ?? 0) > 0,
+    );
+}
+
+// Invoca la criatura con los mensajes exactos del VB6 (Protocol.bas HandleTrain).
+// Devuelve true si la criatura quedo invocada.
+function spawnEntrenadorCriatura(trainer: RuntimeNpc & { id: EntityId }, petIndex: number, ws: RuntimeClient) {
+    const spawnedId = npcs.spawnTrainerCreature(trainer.id, petIndex);
+
+    if (spawnedId === -1) {
+        // Texto exacto del VB6 (Protocol.bas HandleTrain), chat sobre la cabeza del entrenador en vbWhite.
+        npcs.loopArea(trainer.id, (target: RuntimeCharacter & { id: EntityId }) => {
+            const targetClient = getClient(target.id);
+
+            if (targetClient) {
+                handleProtocol.dialog(
+                    trainer.id,
+                    "No puedo traer mas criaturas, mata las existentes.",
+                    "",
+                    "white",
+                    0,
+                    targetClient,
+                );
+            }
+        });
+        return false;
+    }
+
+    if (!spawnedId) {
+        handleProtocol.console("No hay espacio para invocar la criatura.", "white", 0, 0, ws as CommandClient);
+        return false;
+    }
+
+    return true;
+}
+
+// Estado de la ventana del entrenador (VB6 frmEntrenador): valida igual que
+// /ENTRENAR y envia la lista + cupo al client, o el mensaje VB6 por consola.
+function sendEntrenadorState(user: CommandCharacter, ws: RuntimeClient) {
+    if (user.dead) {
+        // Texto del VB6 (Lenguajes/spanish.json MENSAJE_USER_MUERTO, TEXTO 2).
+        handleProtocol.console("No puedes realizar esta accion estando muerto.", "white", 0, 0, ws as CommandClient);
+        return false;
+    }
+
+    const trainer = findNearestEntrenador(user) as (RuntimeNpc & { id: EntityId }) | undefined;
+
+    if (!trainer) {
+        handleProtocol.console("No hay ningun entrenador cerca.", "white", 0, 0, ws as CommandClient);
+        return false;
+    }
+
+    const criaturas = getEntrenadorCriaturas(trainer);
+
+    if (criaturas.length === 0) {
+        handleProtocol.console("Este entrenador no tiene criaturas disponibles.", "white", 0, 0, ws as CommandClient);
+        return false;
+    }
+
+    handleProtocol.openTrainer(
+        {
+            npcName: trainer.nameCharacter ?? "Entrenador",
+            criaturas: criaturas.map((criatura, index) => ({
+                index: index + 1,
+                name: criatura.name ?? "Criatura",
+            })),
+            used: npcs.countTrainerCreatures(trainer.id),
+            max: MAX_CRIATURAS_ENTRENADOR,
+        },
+        ws,
+    );
+    return true;
+}
+
 function handleEntrenar(user: CommandCharacter, nextText: string, ws: RuntimeClient) {
     if (user.dead) {
         // Texto del VB6 (Lenguajes/spanish.json MENSAJE_USER_MUERTO, TEXTO 2).
@@ -2126,19 +2212,14 @@ function handleEntrenar(user: CommandCharacter, nextText: string, ws: RuntimeCli
         return;
     }
 
-    const trainer = findNearestEntrenador(user);
+    const trainer = findNearestEntrenador(user) as (RuntimeNpc & { id: EntityId }) | undefined;
 
     if (!trainer) {
         handleProtocol.console("No hay ningun entrenador cerca.", "white", 0, 0, ws as CommandClient);
         return;
     }
 
-    const datTrainer = vars.datNpc[Number(trainer.templateNpcIndex ?? 0)] as
-        | { criaturas?: Array<{ npcIndex?: number; name?: string }> }
-        | undefined;
-    const criaturas = (Array.isArray(datTrainer?.criaturas) ? datTrainer.criaturas : []).filter(
-        (criatura) => Number(criatura?.npcIndex ?? 0) > 0,
-    );
+    const criaturas = getEntrenadorCriaturas(trainer);
 
     if (criaturas.length === 0) {
         handleProtocol.console("Este entrenador no tiene criaturas disponibles.", "white", 0, 0, ws as CommandClient);
@@ -2165,30 +2246,7 @@ function handleEntrenar(user: CommandCharacter, nextText: string, ws: RuntimeCli
         return;
     }
 
-    const spawnedId = npcs.spawnTrainerCreature(trainer.id, petIndex);
-
-    if (spawnedId === -1) {
-        // Texto exacto del VB6 (Protocol.bas HandleTrain), chat sobre la cabeza del entrenador en vbWhite.
-        npcs.loopArea(trainer.id, (target: RuntimeCharacter & { id: EntityId }) => {
-            const targetClient = getClient(target.id);
-
-            if (targetClient) {
-                handleProtocol.dialog(
-                    trainer.id,
-                    "No puedo traer mas criaturas, mata las existentes.",
-                    "",
-                    "white",
-                    0,
-                    targetClient,
-                );
-            }
-        });
-        return;
-    }
-
-    if (!spawnedId) {
-        handleProtocol.console("No hay espacio para invocar la criatura.", "white", 0, 0, ws as CommandClient);
-    }
+    spawnEntrenadorCriatura(trainer, petIndex, ws);
 }
 
 const command: CommandApi = {
@@ -4423,6 +4481,52 @@ const command: CommandApi = {
                 handleProtocol.console(err.message, "white", 0, 0, ws as CommandClient);
             }
             funct.dumpError(err);
+        }
+    },
+
+    trainerList(ws) {
+        if (!game.existPjOrClose(ws)) {
+            return;
+        }
+
+        sendEntrenadorState(getCharacter(getClientId(ws)), ws);
+    },
+
+    trainerInvoke(ws, petIndex) {
+        if (!game.existPjOrClose(ws)) {
+            return;
+        }
+
+        const user = getCharacter(getClientId(ws));
+
+        if (user.dead) {
+            // Texto del VB6 (Lenguajes/spanish.json MENSAJE_USER_MUERTO, TEXTO 2).
+            handleProtocol.console("No puedes realizar esta accion estando muerto.", "white", 0, 0, ws as CommandClient);
+            return;
+        }
+
+        const trainer = findNearestEntrenador(user) as (RuntimeNpc & { id: EntityId }) | undefined;
+
+        if (!trainer) {
+            handleProtocol.console("No hay ningun entrenador cerca.", "white", 0, 0, ws as CommandClient);
+            return;
+        }
+
+        const criaturas = getEntrenadorCriaturas(trainer);
+
+        if (criaturas.length === 0) {
+            handleProtocol.console("Este entrenador no tiene criaturas disponibles.", "white", 0, 0, ws as CommandClient);
+            return;
+        }
+
+        if (!Number.isInteger(petIndex) || petIndex < 1 || petIndex > criaturas.length) {
+            handleProtocol.console("Uso: /entrenar [numero de criatura].", "white", 0, 0, ws as CommandClient);
+            return;
+        }
+
+        if (spawnEntrenadorCriatura(trainer, petIndex, ws)) {
+            // Reenvia el estado para actualizar el cupo en la ventana.
+            sendEntrenadorState(user, ws);
         }
     },
 };

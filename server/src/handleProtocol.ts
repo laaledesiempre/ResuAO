@@ -106,6 +106,15 @@ type RetosOpenPayload = {
     }>;
 };
 
+// Ventana del entrenador (VB6 frmEntrenador): lista de criaturas invocables
+// y cupo usado/maximo (MAXMASCOTASENTRENADOR).
+type TrainerStatePayload = {
+    npcName: string;
+    criaturas: Array<{ index: number; name: string }>;
+    used: number;
+    max: number;
+};
+
 type AreaItemSnapshot = {
     idItem: number;
     map: number;
@@ -397,6 +406,7 @@ export type HandleProtocolApi = {
     openCrafting: (payload: CraftingOpenPayload, client: RuntimeClient) => void;
     openMarket: (payload: MarketOpenPayload, client: RuntimeClient) => void;
     openRetos: (payload: RetosOpenPayload, client: RuntimeClient) => void;
+    openTrainer: (payload: TrainerStatePayload, client: RuntimeClient) => void;
     aprenderSpell: (idUser: EntityId, idPosSpell: number | string) => void;
     closeForce: (idUser: EntityId) => void;
     nameMap: (idUser: EntityId) => void;
@@ -1547,6 +1557,12 @@ const handleServer: HandleProtocolApi = {
 
     openRetos(payload, client) {
         pkg.setPackageID(pkg.clientPacketID.openRetos);
+        pkg.writeString(JSON.stringify(payload));
+        socket.send(client);
+    },
+
+    openTrainer(payload, client) {
+        pkg.setPackageID(pkg.clientPacketID.trainerState);
         pkg.writeString(JSON.stringify(payload));
         socket.send(client);
     },

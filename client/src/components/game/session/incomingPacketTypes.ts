@@ -91,6 +91,7 @@ export type IncomingPacketHandlerContext = {
     emitRetosState: (retosState: any) => void;
     emitBailState: (bailState: any) => void;
     emitCraftingState: (craftingState: any) => void;
+    emitTrainerState: (trainerState: any) => void;
     onAdminIntervalsOpen?: (() => void) | undefined;
     onAdminOverviewSnapshot?: ((snapshot: any) => void) | undefined;
     onCharacterStatsSnapshot?: ((snapshot: any) => void) | undefined;

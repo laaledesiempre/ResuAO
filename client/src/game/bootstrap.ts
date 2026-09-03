@@ -12,6 +12,7 @@ import type {
     RetosState,
     SpellEntry,
     TradeState,
+    TrainerState,
 } from "../lib/aowProtocol";
 import type { GraphicData } from "../types/game";
 
@@ -33,6 +34,7 @@ export type StartGameOptions = {
     onRetosState?: (state: RetosState | null) => void;
     onBailState?: (state: BailOffer | null) => void;
     onCraftingState?: (state: CraftingState | null) => void;
+    onTrainerState?: (state: TrainerState | null) => void;
     onNotice?: (notice: { text: string; durationMs: number }) => void;
     debug?: boolean;
 };
@@ -64,6 +66,10 @@ export type GameHandle = {
         profession: "carpentry" | "blacksmith" | "tailoring",
         itemId: number,
         amount: number,
+    ) => void;
+    trainerAction: (
+        action: "list" | "invoke",
+        payload?: Record<string, unknown>,
     ) => void;
     resolveIconGraphic: (grhIndex: number) => GraphicData | null;
     destroy: () => void;
@@ -99,6 +105,7 @@ export function startGame(options: StartGameOptions): GameHandle {
             onRetosState: options.onRetosState,
             onBailState: options.onBailState,
             onCraftingState: options.onCraftingState,
+            onTrainerState: options.onTrainerState,
             onNotice: options.onNotice,
         },
     });
@@ -125,6 +132,8 @@ export function startGame(options: StartGameOptions): GameHandle {
         retosAction: (action, payload) => client.retosAction(action, payload),
         craftItem: (profession, itemId, amount) =>
             client.craftItem(profession, itemId, amount),
+        trainerAction: (action, payload) =>
+            client.trainerAction(action, payload),
         resolveIconGraphic: (grhIndex) => client.resolveIconGraphic(grhIndex),
         destroy: () => client.destroy(),
     };

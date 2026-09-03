@@ -1039,6 +1039,7 @@ dictionaryServer[pkg.serverPacketID.toggleHiddenSkill] = toggleHiddenSkill;
 dictionaryServer[pkg.serverPacketID.useItemU] = useItemU;
 dictionaryServer[pkg.serverPacketID.craftItem] = craftItem;
 dictionaryServer[pkg.serverPacketID.assignAttributePoint] = assignAttributePoint;
+dictionaryServer[pkg.serverPacketID.trainerAction] = trainerAction;
 
 function Protocol(this: ProtocolApi) {
     try {
@@ -4546,6 +4547,34 @@ function closeTrade(ws: RuntimeClient) {
         }
 
         game.closeTradeSession(ws.id!);
+    } catch (err) {
+        funct.dumpError(err);
+    }
+}
+
+// Ventana del entrenador (VB6 frmEntrenador): {action:"list"} pide la lista,
+// {action:"invoke", index} equivale a /ENTRENAR <n>. Las validaciones viven
+// en commands (mismas del comando de consola).
+function trainerAction(ws: RuntimeClient) {
+    try {
+        if (!game.existPjOrClose(ws)) {
+            return;
+        }
+
+        if (!pkg.canReadBytes(2)) {
+            return;
+        }
+
+        const rawPayload = pkg.getString();
+        const payload = rawPayload ? (JSON.parse(rawPayload) as Record<string, unknown>) : {};
+        const action = typeof payload.action === "string" ? payload.action.trim().toLowerCase() : "list";
+
+        if (action === "invoke") {
+            command.trainerInvoke(ws, Number(payload.index ?? 0));
+            return;
+        }
+
+        command.trainerList(ws);
     } catch (err) {
         funct.dumpError(err);
     }

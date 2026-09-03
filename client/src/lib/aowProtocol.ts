@@ -78,6 +78,7 @@ export const CLIENT_PACKET_ID = {
     spellVisual: 80,
     entityVitalsDelta: 81,
     updateAtributos: 82,
+    trainerState: 83,
 } as const;
 
 export type PanelShare = {
@@ -203,6 +204,7 @@ export const SERVER_PACKET_ID = {
     marketAction: 239,
     retosAction: 248,
     assignAttributePoint: 250,
+    trainerAction: 251,
 } as const;
 
 export interface CharacterSnapshot {
@@ -440,6 +442,20 @@ export interface RetosState {
     challenges: RetoEntry[];
 }
 
+// Ventana del entrenador (VB6 frmEntrenador): espejo de TrainerStatePayload
+// del server (handleProtocol.openTrainer), serializado como JSON string.
+export interface TrainerCreatureEntry {
+    index: number;
+    name: string;
+}
+
+export interface TrainerState {
+    npcName: string;
+    criaturas: TrainerCreatureEntry[];
+    used: number;
+    max: number;
+}
+
 export interface PlayerHudState {
     id?: number;
     nameCharacter: string;
@@ -452,6 +468,7 @@ export interface PlayerHudState {
     navegando?: boolean;
     equitando?: boolean;
     monturaCounter?: number;
+    monturaCounterUpdatedAt?: number;
     dead?: boolean;
     deadWorldActive?: boolean;
     color?: string;
@@ -839,6 +856,7 @@ export type ParsedServerPacket =
     | { type: "openCrafting"; payload: CraftingState }
     | { type: "openMarket"; payload: MarketState }
     | { type: "openRetos"; payload: RetosState }
+    | { type: "trainerState"; payload: TrainerState }
     | { type: "closeBail"; payload: null }
     | { type: "openAdminIntervals"; payload: null }
     | { type: "panelSnapshot"; payload: PanelSnapshot }
@@ -1925,6 +1943,13 @@ function parseServerPacketById(
                 payload: JSON.parse(rawState) as RetosState,
             };
         }
+        case CLIENT_PACKET_ID.trainerState: {
+            const rawState = reader.getString();
+            return {
+                type: "trainerState",
+                payload: JSON.parse(rawState) as TrainerState,
+            };
+        }
         case CLIENT_PACKET_ID.closeTrade:
             return { type: "closeTrade", payload: null };
         case CLIENT_PACKET_ID.closeBail:
@@ -2327,6 +2352,15 @@ export function createRetosActionPacket(
     payload: Record<string, unknown> = {},
 ): ArrayBuffer {
     const writer = new PacketWriter(SERVER_PACKET_ID.retosAction);
+    writer.writeString(JSON.stringify({ action, ...payload }));
+    return writer.toArrayBuffer();
+}
+
+export function createTrainerActionPacket(
+    action: "list" | "invoke",
+    payload: Record<string, unknown> = {},
+): ArrayBuffer {
+    const writer = new PacketWriter(SERVER_PACKET_ID.trainerAction);
     writer.writeString(JSON.stringify({ action, ...payload }));
     return writer.toArrayBuffer();
 }

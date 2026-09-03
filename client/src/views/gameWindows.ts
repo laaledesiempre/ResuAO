@@ -11,6 +11,7 @@ import type {
     RetosState,
     TradeItem,
     TradeState,
+    TrainerState,
 } from "../lib/aowProtocol";
 import type { GameHandle } from "../game/bootstrap";
 import { inventoryIconLayout } from "../lib/inventoryIcons";
@@ -33,7 +34,7 @@ import {
 
 const ICON_SLOT_SIZE = 36;
 
-type WindowKind = "trade" | "market" | "bail" | "crafting" | "retos";
+type WindowKind = "trade" | "market" | "bail" | "crafting" | "retos" | "trainer";
 
 export type GameWindowsDeps = {
     host: HTMLElement;
@@ -49,6 +50,7 @@ export type GameWindows = {
     setBailState: (state: BailOffer | null) => void;
     setCraftingState: (state: CraftingState | null) => void;
     setRetosState: (state: RetosState | null) => void;
+    setTrainerState: (state: TrainerState | null) => void;
     closeAll: () => void;
     destroy: () => void;
 };
@@ -1104,8 +1106,72 @@ export function createGameWindows(deps: GameWindowsDeps): GameWindows {
         );
     };
 
-    // ---------------- public API ----------------
+    // Ventana del entrenador (VB6 frmEntrenador): una fila por criatura con
+    // su boton Invocar y el cupo usado/maximo. El server reenvia el estado
+    // actualizado tras cada invocacion.
+    const renderTrainer = (state: TrainerState): void => {
+        const list = el("div", { className: "gw-list" });
 
+        if (!state.criaturas.length) {
+            list.append(
+                el("div", { className: "panel-empty" }, "No hay criaturas."),
+            );
+        }
+
+        for (const criatura of state.criaturas) {
+            const invokeButton = el(
+                "button",
+                { type: "button", className: "gw-action" },
+                "Invocar",
+            );
+            invokeButton.addEventListener("click", () =>
+                deps
+                    .getGame()
+                    ?.trainerAction("invoke", { index: criatura.index }),
+            );
+            list.append(
+                el(
+                    "div",
+                    { className: "gw-row" },
+                    el(
+                        "div",
+                        { className: "gw-market-group-info" },
+                        el(
+                            "div",
+                            { className: "gw-detail-name" },
+                            `${criatura.index}) ${criatura.name}`,
+                        ),
+                    ),
+                    invokeButton,
+                ),
+            );
+        }
+
+        openWindow(
+            "trainer",
+            el(
+                "div",
+                {},
+                el(
+                    "div",
+                    { className: "gw-head" },
+                    el(
+                        "h2",
+                        { className: "gw-title" },
+                        state.npcName || "Entrenador",
+                    ),
+                    el(
+                        "div",
+                        { className: "gw-note" },
+                        `${state.used}/${state.max} criaturas`,
+                    ),
+                ),
+                list,
+            ),
+        );
+    };
+
+    // ---------------- public API ----------------
     return {
         setTradeState(state) {
             if (state) {
@@ -1139,6 +1205,13 @@ export function createGameWindows(deps: GameWindowsDeps): GameWindows {
             if (state) {
                 renderRetos(state);
             } else if (openKind === "retos") {
+                closeCurrent();
+            }
+        },
+        setTrainerState(state) {
+            if (state) {
+                renderTrainer(state);
+            } else if (openKind === "trainer") {
                 closeCurrent();
             }
         },

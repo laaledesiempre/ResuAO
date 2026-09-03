@@ -351,6 +351,10 @@ export async function handleIncomingWorldPacket({
             ctx.emitCraftingState(packet.payload);
             return true;
 
+        case "trainerState":
+            ctx.emitTrainerState(packet.payload);
+            return true;
+
         case "closeBail":
             ctx.emitBailState(null);
             return true;
@@ -413,7 +417,10 @@ export async function handleIncomingWorldPacket({
             ctx.mergeHud({
                 ...(hasMountedFlag ? { equitando: isMounted } : {}),
                 ...(typeof payload.monturaCounter !== "undefined"
-                    ? { monturaCounter: payload.monturaCounter }
+                    ? {
+                          monturaCounter: payload.monturaCounter,
+                          monturaCounterUpdatedAt: Date.now(),
+                      }
                     : {}),
             });
 

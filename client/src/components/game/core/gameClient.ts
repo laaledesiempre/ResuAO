@@ -14,6 +14,7 @@ import {
     type RetosState,
     type SpellEntry,
     type TradeState,
+    type TrainerState,
 } from "../../../lib/aowProtocol";
 import {
     VIEWPORT_PIXEL_HEIGHT,
@@ -149,6 +150,7 @@ export type GameClientCallbacks = {
     onRetosState?: (state: RetosState | null) => void;
     onBailState?: (state: BailOffer | null) => void;
     onCraftingState?: (state: CraftingState | null) => void;
+    onTrainerState?: (state: TrainerState | null) => void;
     onNotice?: (notice: { text: string; durationMs: number }) => void;
 };
 
@@ -1022,6 +1024,8 @@ export class GameClient {
             emitBailState: (state: any) => this.callbacks.onBailState?.(state),
             emitCraftingState: (state: any) =>
                 this.callbacks.onCraftingState?.(state),
+            emitTrainerState: (state: any) =>
+                this.callbacks.onTrainerState?.(state),
             onAdminIntervalsOpen: () => this.notifyStubbed("Admin", true),
             onAdminOverviewSnapshot: () => undefined,
             onCharacterStatsSnapshot: () =>
@@ -1284,6 +1288,13 @@ export class GameClient {
         amount: number,
     ): void {
         this.outgoingRequestsRef.current?.craft(profession, itemId, amount);
+    }
+
+    trainerAction(
+        action: "list" | "invoke",
+        payload?: Record<string, unknown>,
+    ): void {
+        this.outgoingRequestsRef.current?.trainerAction(action, payload);
     }
 
     // Sprite-sheet graphic for a grhIndex, used by the DOM HUD to build

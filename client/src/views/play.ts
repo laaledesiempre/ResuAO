@@ -376,9 +376,26 @@ export function renderPlay(
         spellsList,
     );
     const socialList = el("div", { className: "stats-list" });
+    // Botones para las UIs complejas (ventanas de gameWindows). El server
+    // valida cada accion; si no hay entrenador cerca responde por consola.
+    const trainerButton = el(
+        "button",
+        { type: "button", className: "gw-action" },
+        "Entrenador",
+    );
+    trainerButton.addEventListener("click", () =>
+        game?.trainerAction("list"),
+    );
+    const socialActions = el(
+        "div",
+        { className: "stats-list" },
+        el("div", { className: "stat-label social-section" }, "Acciones"),
+        el("div", { className: "stat-row" }, trainerButton),
+    );
     const socialPanel = el(
         "div",
         { className: "side-panel", "data-panel": "social" },
+        socialActions,
         socialList,
     );
     const statsList = el("div", { className: "stats-list" });
@@ -398,7 +415,7 @@ export function renderPlay(
         { id: "inventario", label: "Inventario", panel: inventoryPanel },
         { id: "hechizos", label: "Hechizos", panel: spellsPanel },
         { id: "stats", label: "Stats", panel: statsPanel },
-        { id: "social", label: "Social", panel: socialPanel },
+        { id: "social", label: "Misc.", panel: socialPanel },
         { id: "skills", label: "Skills", panel: skillsPanel },
     ] as const;
 
@@ -879,6 +896,11 @@ export function renderPlay(
         const buffs: Array<[string, number]> = [
             ["FUE", buffRemaining(hud.buffFuerzaSeconds, hud.buffFuerzaUpdatedAt)],
             ["AGI", buffRemaining(hud.buffAgilidadSeconds, hud.buffAgilidadUpdatedAt)],
+            // VB6 TileEngine.bas: "N segundos restantes para volver a montarte".
+            [
+                "Montura",
+                buffRemaining(hud.monturaCounter, hud.monturaCounterUpdatedAt),
+            ],
         ];
         for (const [label, remaining] of buffs) {
             if (remaining <= 0) continue;
@@ -1235,6 +1257,7 @@ export function renderPlay(
                 onRetosState: (state) => windows.setRetosState(state),
                 onBailState: (state) => windows.setBailState(state),
                 onCraftingState: (state) => windows.setCraftingState(state),
+                onTrainerState: (state) => windows.setTrainerState(state),
                 onNotice: (notice) => showToast(notice.text, notice.durationMs),
             });
             applyAudioSettings();

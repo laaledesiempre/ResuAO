@@ -225,6 +225,7 @@ const PACKET_TYPE_NAMES: Record<number, string> = {
     [pkg.serverPacketID.reorderBankItem]: "reorderBank",
     [pkg.serverPacketID.marketAction]: "marketAction",
     [pkg.serverPacketID.retosAction]: "retosAction",
+    [pkg.serverPacketID.trainerAction]: "trainerAction",
 };
 let nextPlayerStatusTickAt = Date.now() + vars.timing.playerStatusTickMs;
 let nextFloorItemSweepAt = Date.now() + FLOOR_ITEM_SWEEP_INTERVAL_MS;
