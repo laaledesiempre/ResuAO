@@ -147,14 +147,14 @@ del entrypoint. En este modo `/data` solo persiste los uploads.
 
 ## Flags del entrypoint unificado (desarrollo / self-host sin Docker)
 
-El proceso unificado (`api/src/unified.ts`, script `npm run unified` en `api/`)
-acepta flags que pisan a las variables de entorno:
+El proceso unificado (`api/src/unified.ts`) acepta flags que pisan a las
+variables de entorno (desde la raíz del monorepo npm-workspaces):
 
 ```bash
-npm run unified -- --port 3003 --game-port 7667   # puertos custom
-npm run unified -- --db /ruta/resu.sqlite        # setea SQLITE_PATH
-npm run unified -- --serve                        # sirve client/dist (SPA) en el puerto de la API
-npm run unified -- --help
+npm run unified -w api -- --port 3003 --game-port 7667   # puertos custom
+npm run unified -w api -- --db /ruta/resu.sqlite         # setea SQLITE_PATH
+npm run unified -w api -- --serve                        # sirve client/dist (SPA) en el puerto de la API
+npm run unified -w api -- --help
 ```
 
 Para el flujo de desarrollo local (API + game server + cliente por

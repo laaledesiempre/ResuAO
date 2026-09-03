@@ -18,8 +18,5 @@
   "dependencies": {
     "howler": "^2.2.4",
     "pixi.js": "^8.14.0"
-  },
-  "allowScripts": {
-    "esbuild@0.25.12": true
   }
 }

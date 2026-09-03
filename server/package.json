@@ -23,7 +23,7 @@
     },
     "scripts": {
         "clean": "rm -rf dist",
-        "build": "pnpm run clean && tsc && node scripts/copy-assets.cjs",
+        "build": "npm run clean && tsc && node scripts/copy-assets.cjs",
         "dev": "NODE_ENV=development tsx watch src/server.ts",
         "compact-objs": "tsx src/scripts/compactObjsJson.ts",
         "compact-npcs": "tsx src/scripts/compactNpcsJson.ts",
@@ -45,8 +45,5 @@
     "bugs": {
         "url": "https://github.com/dcatanzaro/argentumonlineweb-servidor/issues"
     },
-    "homepage": "https://github.com/dcatanzaro/argentumonlineweb-servidor/blob/master/README.md",
-    "allowScripts": {
-        "esbuild@0.28.2": true
-    }
+    "homepage": "https://github.com/dcatanzaro/argentumonlineweb-servidor/blob/master/README.md"
 }

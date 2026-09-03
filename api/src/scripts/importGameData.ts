@@ -102,7 +102,7 @@ async function main(): Promise<void> {
 
   if (!["all", "objs", "npcs", "crafting", "smelting"].includes(mode)) {
     throw new Error(
-      "Uso: pnpm import-game-data [all|objs|npcs|crafting|smelting] [--objects-path ruta] [--npcs-path ruta] [--crafting-path ruta] [--smelting-path ruta]",
+      "Uso: npm run import-game-data -w api -- [all|objs|npcs|crafting|smelting] [--objects-path ruta] [--npcs-path ruta] [--crafting-path ruta] [--smelting-path ruta]",
     );
   }
 

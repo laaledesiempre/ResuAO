@@ -9,17 +9,26 @@ Catanzaro). La hoja de ruta del proyecto está en [ROADMAP.md](ROADMAP.md).
 
 ## Requisitos
 
-- Node.js 22 o superior
-- pnpm (para `api/` y `server/`)
-- npm (para `client/`)
+- Node.js 22 o superior (con npm)
 - Docker, solo si querés Postgres o la imagen all-in-one
+
+El repo es un monorepo de **npm workspaces** (`client/`, `api/`, `server/`):
+una sola instalación desde la raíz deja todo listo, con las dependencias
+compartidas en un único `node_modules`. Cada paquete mantiene su propio
+`package.json`, así que se puede trabajar un paquete de forma aislada si hace
+falta.
+
+```bash
+npm install        # instala client + api + server desde la raíz
+npm run build      # buildea los tres paquetes
+```
 
 ## 1. Levantar todo (modo unificado, SQLite)
 
 ```bash
-cd api
-pnpm install
-pnpm run unified -- --serve   # API en :3001 + ws en :7666 + cliente estático
+npm run build                      # genera client/dist, api/dist, server/dist
+npm run dev                        # API en :3001 + ws en :7666 + cliente estático
+# equivalente: npm run unified -w api -- --serve
 ```
 
 La base SQLite se crea y se aplica el esquema automáticamente al arrancar
@@ -28,18 +37,10 @@ La base SQLite se crea y se aplica el esquema automáticamente al arrancar
 Flags disponibles (pisan a las variables de entorno):
 
 ```bash
-pnpm run unified -- --port 3003 --game-port 7667   # puertos custom
-pnpm run unified -- --db /ruta/resu.sqlite         # setea SQLITE_PATH
-pnpm run unified -- --serve                        # sirve client/dist (SPA)
-pnpm run unified -- --help
-```
-
-Para que `--serve` tenga algo que servir, buildear el cliente primero:
-
-```bash
-cd client
-npm install
-npm run build    # genera client/dist
+npm run unified -w api -- --port 3003 --game-port 7667   # puertos custom
+npm run unified -w api -- --db /ruta/resu.sqlite         # setea SQLITE_PATH
+npm run unified -w api -- --serve                        # sirve client/dist (SPA)
+npm run unified -w api -- --help
 ```
 
 Abrir `http://localhost:3001`.
@@ -49,25 +50,19 @@ Abrir `http://localhost:3001`.
 API (Hono, `tsx watch`):
 
 ```bash
-cd api
-pnpm install
-pnpm dev        # :3001
+npm run dev -w api        # :3001
 ```
 
 Game server WebSocket:
 
 ```bash
-cd server
-pnpm install
-pnpm dev        # ws://localhost:7666
+npm run dev -w server     # ws://localhost:7666
 ```
 
 Cliente vanilla (esbuild watch):
 
 ```bash
-cd client
-npm install
-npm run dev
+npm run dev -w client
 ```
 
 Variables de entorno: ver `api/.env.example` y `server/.env.example`. Las que
@@ -92,14 +87,15 @@ usar Postgres con `DB_BACKEND=postgres`:
 cd api
 docker compose -f docker-compose.postgres.yml up -d   # postgres en :5432
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/resu \
-DB_BACKEND=postgres pnpm run unified -- --serve
+DB_BACKEND=postgres npm run unified -- --serve
 ```
 
 ## 4. Tests
 
 ```bash
-cd api
-pnpm test       # vitest, corre contra ambos backends (sqlite y postgres)
+npm test -w client    # tests unitarios del cliente
+npm test -w api       # vitest; los de integración necesitan la API levantada
+                      # en :3001 (y Postgres para el backend postgres)
 ```
 
 ## 5. Producción (Docker all-in-one)

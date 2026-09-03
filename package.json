@@ -1,0 +1,23 @@
+{
+    "name": "resu",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Resu: fork unificado de Argentum Online Web (cliente + API + servidor de juego)",
+    "workspaces": [
+        "client",
+        "api",
+        "server"
+    ],
+    "scripts": {
+        "build": "npm run build -w client && npm run build -w api && npm run build -w server",
+        "dev": "npm run unified -w api -- --serve",
+        "test": "npm test -w api && npm test -w client"
+    },
+    "engines": {
+        "node": ">=22"
+    },
+    "allowScripts": {
+        "esbuild@0.25.12": true,
+        "esbuild@0.28.2": true
+    }
+}

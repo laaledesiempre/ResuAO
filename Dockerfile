@@ -11,37 +11,23 @@
 # forces a password change on first login). Override with -e SEED_ADMIN_NAME /
 # -e SEED_ADMIN_PASSWORD. TOKEN_AUTH is auto-generated per boot if unset.
 
-FROM node:24-bookworm-slim AS base
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+# ---- Build stage: install the npm workspaces root and build all packages ----
+FROM node:24-bookworm-slim AS build
+WORKDIR /app
 
-# ---- Stage 1: static client build ----
-FROM node:24-bookworm-slim AS client-build
-WORKDIR /client
-COPY client/package.json client/package-lock.json ./
+COPY package.json package-lock.json ./
+COPY client/package.json client/
+COPY api/package.json api/
+COPY server/package.json server/
 RUN npm ci
-COPY client/ ./
-RUN npm run build
 
-# ---- Stage 2: API build (tsc) ----
-FROM base AS api-build
-WORKDIR /app
-COPY api/package.json api/pnpm-lock.yaml api/pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
-COPY api/ ./
-RUN pnpm build
-
-# ---- Stage 3: game server build (tsc) ----
-FROM base AS server-build
-WORKDIR /app
-COPY server/package.json server/pnpm-lock.yaml server/pnpm-workspace.yaml ./
-RUN pnpm install --frozen-lockfile
-COPY server/ ./
-RUN pnpm build
+COPY client/ client/
+COPY api/ api/
+COPY server/ server/
+RUN npm run build && npm prune --omit=dev
 
 # ---- Runtime ----
-FROM base AS runtime
+FROM node:24-bookworm-slim AS runtime
 
 # Mirror the repo layout: unified.ts resolves ../client/dist and
 # ../server/dist relative to the API root.
@@ -54,23 +40,22 @@ ENV NODE_ENV=production \
     GAME_PORT=7666 \
     API_BASE_URL=http://127.0.0.1:3001
 
-# API production deps + compiled output. schema.sqlite.sql lives next to dist/
-# because src/sqliteDb.ts resolves it as ../schema.sqlite.sql at runtime.
-COPY api/package.json api/pnpm-lock.yaml api/pnpm-workspace.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-COPY --from=api-build /app/dist ./dist
-COPY api/schema.sqlite.sql ./schema.sqlite.sql
+# Hoisted production deps live in the root node_modules (no prod version
+# conflicts between workspaces, so nothing nested is needed at runtime).
+COPY --from=build /app/package.json /app/package.json
+COPY --from=build /app/node_modules /app/node_modules
 
-# Game server production deps + compiled output + data assets.
-WORKDIR /app/server
-COPY server/package.json server/pnpm-lock.yaml server/pnpm-workspace.yaml ./
-RUN pnpm install --prod --frozen-lockfile
-COPY --from=server-build /app/dist ./dist
-COPY --from=server-build /app/jsons ./jsons
-COPY --from=server-build /app/mapas_source ./mapas_source
+COPY --from=build /app/api/package.json /app/api/package.json
+COPY --from=build /app/api/dist /app/api/dist
+# schema.sqlite.sql lives next to dist/ because src/sqliteDb.ts resolves it
+# as ../schema.sqlite.sql at runtime.
+COPY --from=build /app/api/schema.sqlite.sql /app/api/schema.sqlite.sql
+
+COPY --from=build /app/server/package.json /app/server/package.json
+COPY --from=build /app/server/dist /app/server/dist
 
 # Static client (served by `unified --serve` on the API port).
-COPY --from=client-build /client/dist /app/client/dist
+COPY --from=build /app/client/dist /app/client/dist
 
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh && mkdir -p /data

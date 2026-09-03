@@ -21,14 +21,14 @@
         "remove-newbie-items:prod": "node dist/scripts/removeNewbieItemsFromHighLevelCharacters.js",
         "reset-spell-stats": "tsx src/scripts/resetSpellStats.ts",
         "reset-spell-stats:prod": "node dist/scripts/resetSpellStats.js",
-        "build": "pnpm run clean && tsc && mkdir -p dist/jsons dist/mapas_source && cp src/jsons/*.json dist/jsons/ && cp -R src/mapas_source/. dist/mapas_source/",
+        "build": "npm run clean && tsc && mkdir -p dist/jsons dist/mapas_source && cp src/jsons/*.json dist/jsons/ && cp -R src/mapas_source/. dist/mapas_source/",
         "dev": "tsx watch src/server.ts",
         "balance-csv": "tsx src/scripts/exportBalanceComparison.ts",
         "test": "vitest run",
         "test:watch": "vitest",
         "test:vaults": "vitest run src/tests/vaults.integration.test.ts",
         "migrate": "node dist/migrate.js",
-        "start": "pnpm run migrate && node dist/server.js",
+        "start": "npm run migrate && node dist/server.js",
         "unified": "tsx src/unified.ts"
     },
     "dependencies": {
@@ -45,9 +45,6 @@
         "tsx": "^4.22.1",
         "typescript": "^6.0.3",
         "vitest": "^4.1.6"
-    },
-    "allowScripts": {
-        "esbuild@0.28.2": true
     },
     "bin": {
         "resu": "dist/unified.js"
