@@ -765,6 +765,18 @@ export class SqlitePoolAdapter {
             );
         }
 
+        if (!characterColumns.some((column) => column.name === "skillpoints")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN skillpoints INTEGER NOT NULL DEFAULT 0",
+            );
+        }
+
+        if (!characterColumns.some((column) => column.name === "skills_asignados")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN skills_asignados INTEGER NOT NULL DEFAULT 0",
+            );
+        }
+
         // Correo entre jugadores (VB6 ModCorreo.bas / charfile [CORREO]).
         const correoTable = this.db
             .prepare(

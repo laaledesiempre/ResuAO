@@ -17,9 +17,8 @@ const WORK_STAMINA_COST_DEFAULT = 6;
 
 // VB6 Declares.bas: MAXATRIBUTOS = 40 / MINATRIBUTOS = 6.
 const MAX_ATRIBUTOS = 40;
-// El VB6 (ao-libre) no otorga puntos de atributo por nivel (solo skillpoints);
-// este valor es una decision de Resu, no un valor portado del VB6.
-const ATTRIBUTE_POINTS_PER_LEVEL = 5;
+// VB6 Modulo_UsUaRiOs.bas (CheckUserLevel): skillpoints otorgados por nivel.
+const SKILLPOINTS_PER_LEVEL = 5;
 
 const DEFAULT_CLASS_PROGRESS: Record<
     number,
@@ -114,7 +113,7 @@ module.exports = {
     MAX_LEVEL,
     MAX_EXP_LEVEL,
     MAX_ATRIBUTOS,
-    ATTRIBUTE_POINTS_PER_LEVEL,
+    SKILLPOINTS_PER_LEVEL,
     MAX_STAMINA,
     clampLevel,
     clampGold,

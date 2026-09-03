@@ -36,6 +36,8 @@ const smelting = require("./smelting");
 const taming = require("./taming");
 const challengeManager = require("./challengeManager");
 const correo = require("./correo");
+const skills = require("./skills");
+const { NUMSKILLS, MAXSKILLPOINTS } = skills;
 const LOGOUT_CANCELLED_MESSAGE = "[Servidor] La salida se canceló porque te moviste.";
 const MAX_PENDING_MOVE_QUEUE_LENGTH = 8;
 const REVIVE_CAST_MS = 10000;
@@ -1040,7 +1042,7 @@ dictionaryServer[pkg.serverPacketID.retosAction] = retosAction;
 dictionaryServer[pkg.serverPacketID.toggleHiddenSkill] = toggleHiddenSkill;
 dictionaryServer[pkg.serverPacketID.useItemU] = useItemU;
 dictionaryServer[pkg.serverPacketID.craftItem] = craftItem;
-dictionaryServer[pkg.serverPacketID.assignAttributePoint] = assignAttributePoint;
+dictionaryServer[pkg.serverPacketID.modifySkills] = modifySkills;
 dictionaryServer[pkg.serverPacketID.trainerAction] = trainerAction;
 dictionaryServer[pkg.serverPacketID.correoAction] = correoAction;
 
@@ -1261,32 +1263,17 @@ function toggleHiddenSkill(ws: RuntimeClient) {
     handleProtocol.console("Te ocultas entre las sombras.", "white", 0, 0, ws);
 }
 
-// El VB6 (ao-libre) no tiene asignacion de puntos de atributo (los dados son
-// fijos desde la creacion); este flujo es una decision de Resu. Los limites
-// MAXATRIBUTOS=40 si vienen del VB6 (Declares.bas).
-// IDs segun eAtributos del VB6 (Declares.bas): 1=Fuerza, 2=Agilidad,
-// 3=Inteligencia, 4=Carisma (no existe en Resu), 5=Constitucion.
-const ASSIGNABLE_ATTRIBUTES: Record<number, { field: string; label: string }> = {
-    1: { field: "attrFuerza", label: "Fuerza" },
-    2: { field: "attrAgilidad", label: "Agilidad" },
-    3: { field: "attrInteligencia", label: "Inteligencia" },
-    5: { field: "attrConstitucion", label: "Constitucion" },
-};
-
-function assignAttributePoint(ws: RuntimeClient) {
+// VB6 Protocol.bas HandleModifySkills: el cliente envia NUMSKILLS (20) bytes con
+// los puntos a asignar a cada skill. Validaciones del VB6: la suma no puede
+// superar los skillpoints libres y cada skill queda cappeado en 100
+// (MAXSKILLPOINTS, Declares.bas) devolviendo el excedente.
+function modifySkills(ws: RuntimeClient) {
     try {
         if (!game.existPjOrClose(ws)) {
             return;
         }
 
-        if (!pkg.canReadBytes(1)) {
-            return;
-        }
-
-        const attrId = pkg.getByte();
-        const attr = ASSIGNABLE_ATTRIBUTES[attrId];
-
-        if (!attr) {
+        if (!pkg.canReadBytes(NUMSKILLS)) {
             return;
         }
 
@@ -1296,31 +1283,48 @@ function assignAttributePoint(ws: RuntimeClient) {
             return;
         }
 
-        if ((user.puntosAtributo ?? 0) <= 0) {
-            handleProtocol.console("No tienes puntos de atributo disponibles.", "white", 0, 0, ws);
+        const points: number[] = [];
+        let count = 0;
+
+        for (let index = 0; index < NUMSKILLS; index++) {
+            const value = Math.max(0, Math.floor(pkg.getByte()));
+            points.push(value);
+            count += value;
+        }
+
+        if (count <= 0) {
             return;
         }
 
-        if ((user[attr.field] ?? 0) >= balance.MAX_ATRIBUTOS) {
-            handleProtocol.console("No puedes tener mas de " + balance.MAX_ATRIBUTOS + " puntos en " + attr.label + ".", "white", 0, 0, ws);
+        if (count > (user.skillpoints ?? 0)) {
+            handleProtocol.console("No tienes suficientes skillpoints.", "white", 0, 0, ws);
             return;
         }
 
-        user[attr.field] = (user[attr.field] ?? 0) + 1;
-        user.puntosAtributo = (user.puntosAtributo ?? 0) - 1;
+        // VB6: Counters.AsignedSkills = MinimoInt(10, AsignedSkills + Count).
+        user.skillsAsignados = Math.min(10, (user.skillsAsignados ?? 0) + count);
 
-        // Si hay un buff de fuerza/agilidad activo, el backup tambien sube para
-        // que al expirar el buff no se pierda el punto asignado.
-        if (attr.field === "attrFuerza" && (user.cooldownFuerza ?? 0) > 0) {
-            user.bkAttrFuerza = (user.bkAttrFuerza ?? 0) + 1;
+        const userSkills = skills.normalizeSkills(user.skills);
+
+        for (let index = 0; index < NUMSKILLS; index++) {
+            if (points[index] <= 0) {
+                continue;
+            }
+
+            user.skillpoints -= points[index];
+            userSkills[index] += points[index];
+
+            // El cliente deberia prevenirlo, pero por las dudas (VB6).
+            if (userSkills[index] > MAXSKILLPOINTS) {
+                user.skillpoints += userSkills[index] - MAXSKILLPOINTS;
+                userSkills[index] = MAXSKILLPOINTS;
+            }
         }
 
-        if (attr.field === "attrAgilidad" && (user.cooldownAgilidad ?? 0) > 0) {
-            user.bkAttrAgilidad = (user.bkAttrAgilidad ?? 0) + 1;
-        }
+        user.skills = userSkills;
+        user.skillExp = skills.normalizeSkillExp(user.skillExp);
 
-        handleProtocol.console("Has asignado 1 punto a " + attr.label + ".", "white", 0, 0, ws);
-        handleProtocol.updateAtributos(user, ws);
+        handleProtocol.updateSkillpoints(user, ws);
     } catch (err) {
         funct.dumpError(err);
     }

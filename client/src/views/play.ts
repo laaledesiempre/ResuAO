@@ -807,47 +807,19 @@ export function renderPlay(
     };
 
     // Atributos del personaje (nombres segun ListaAtributos del VB6,
-    // General.bas) con botones "+" cuando hay puntos de atributo disponibles.
-    // IDs segun eAtributos del VB6 (Declares.bas): 1=Fuerza, 2=Agilidad,
-    // 3=Inteligencia, 5=Constitucion (Carisma no existe en Resu).
+    // General.bas). Solo lectura: el VB6 clasico no tiene puntos de atributo,
+    // los dados quedan fijos desde la creacion.
     const ATTRIBUTE_ROWS = [
-        { id: 1, label: "Fuerza", value: (hud: PlayerHudState) => hud.attrFuerza },
-        { id: 2, label: "Agilidad", value: (hud: PlayerHudState) => hud.attrAgilidad },
-        { id: 3, label: "Inteligencia", value: (hud: PlayerHudState) => hud.attrInteligencia },
-        { id: 5, label: "Constitucion", value: (hud: PlayerHudState) => hud.attrConstitucion },
+        { label: "Fuerza", value: (hud: PlayerHudState) => hud.attrFuerza },
+        { label: "Agilidad", value: (hud: PlayerHudState) => hud.attrAgilidad },
+        { label: "Inteligencia", value: (hud: PlayerHudState) => hud.attrInteligencia },
+        { label: "Constitucion", value: (hud: PlayerHudState) => hud.attrConstitucion },
     ] as const;
 
     const renderStats = (hud: PlayerHudState) => {
         statsList.replaceChildren();
-        const puntos = hud.puntosAtributo ?? 0;
-        statsList.append(statRow("Puntos de atributo", `${puntos}`));
         for (const attr of ATTRIBUTE_ROWS) {
-            const row = el(
-                "div",
-                { className: "stat-row" },
-                el("span", { className: "stat-label" }, attr.label),
-                el(
-                    "span",
-                    { className: "stat-value" },
-                    `${attr.value(hud) ?? "--"}`,
-                ),
-            );
-            if (puntos > 0) {
-                const addButton = el(
-                    "button",
-                    {
-                        type: "button",
-                        className: "stat-attr-add",
-                        title: `Asignar 1 punto a ${attr.label}`,
-                    },
-                    "+",
-                ) as HTMLButtonElement;
-                addButton.addEventListener("click", () =>
-                    game?.assignAttributePoint(attr.id),
-                );
-                row.append(addButton);
-            }
-            statsList.append(row);
+            statsList.append(statRow(attr.label, `${attr.value(hud) ?? "--"}`));
         }
     };
 
@@ -874,13 +846,38 @@ export function renderPlay(
         );
     };
 
-    // Listado de skills (0..100) con los nombres del VB6.
+    // Listado de skills (0..100) con los nombres del VB6, contador de
+    // skillpoints libres y botones "+" para asignarlos (VB6 frmSkills).
     const renderSkills = (hud: PlayerHudState) => {
         skillsList.replaceChildren();
+        const skillpoints = hud.skillpoints ?? 0;
+        skillsList.append(statRow("Skillpoints", `${skillpoints}`));
         const values = hud.skills ?? [];
         for (let index = 0; index < SKILL_NAMES.length; index++) {
             const value = Math.max(0, Math.min(100, Math.round(values[index] ?? 0)));
-            skillsList.append(statRow(SKILL_NAMES[index], `${value}/100`));
+            const row = el(
+                "div",
+                { className: "stat-row" },
+                el("span", { className: "stat-label" }, SKILL_NAMES[index]),
+                el("span", { className: "stat-value" }, `${value}/100`),
+            );
+            if (skillpoints > 0 && value < 100) {
+                const addButton = el(
+                    "button",
+                    {
+                        type: "button",
+                        className: "stat-attr-add",
+                        title: `Asignar 1 skillpoint a ${SKILL_NAMES[index]}`,
+                    },
+                    "+",
+                ) as HTMLButtonElement;
+                const skillId = index + 1;
+                addButton.addEventListener("click", () =>
+                    game?.modifySkills(skillId),
+                );
+                row.append(addButton);
+            }
+            skillsList.append(row);
         }
     };
 

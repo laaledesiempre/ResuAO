@@ -6931,6 +6931,10 @@ function Game(this: GameApi) {
                 return;
             }
 
+            // VB6 Modulo_UsUaRiOs.bas (CheckUserLevel): se acumulan los
+            // skillpoints de todos los niveles ganados y se avisa una sola vez.
+            let skillpointsGanados = 0;
+
             while (user.exp >= user.expNextLevel) {
                 if (user.level >= balance.MAX_EXP_LEVEL) {
                     break;
@@ -6940,10 +6944,9 @@ function Game(this: GameApi) {
                 leveledUp = true;
                 user.exp -= user.expNextLevel;
 
-                // Nota: el VB6 clasico (ao-libre) no otorga puntos de atributo por
-                // nivel (solo skillpoints); los puntos por nivel son una decision de Resu.
-                const puntosAtributoGanados = balance.ATTRIBUTE_POINTS_PER_LEVEL;
-                user.puntosAtributo = (user.puntosAtributo ?? 0) + puntosAtributoGanados;
+                // VB6 CheckUserLevel: Pts = Pts + 5 por nivel (igual para todas
+                // las clases); no hay puntos de atributo en el VB6 clasico.
+                skillpointsGanados += balance.SKILLPOINTS_PER_LEVEL;
 
                 user.expNextLevel = balance.getLegacyExpNextLevelForLevel(user.level);
 
@@ -6982,11 +6985,21 @@ function Game(this: GameApi) {
                 handleProtocol.console("¡Tu golpe máximo aumento en " + aumentoHIT + " puntos!", "red", 1, 0, client);
                 handleProtocol.console("¡Tu golpe mínimo aumento en " + aumentoHIT + " puntos!", "red", 1, 0, client);
 
-                handleProtocol.console("¡Has ganado " + puntosAtributoGanados + " puntos de atributo!", "red", 1, 0, client);
-
                 handleProtocol.actMyLevel(idUser, client);
-                handleProtocol.updateAtributos(user, client);
                 unequipRestrictedNewbieItems(user, client);
+            }
+
+            // VB6 CheckUserLevel: SkillPts = SkillPts + Pts y mensaje unico.
+            if (skillpointsGanados > 0) {
+                user.skillpoints = (user.skillpoints ?? 0) + skillpointsGanados;
+                handleProtocol.console(
+                    "Has ganado un total de " + skillpointsGanados + " skillpoints.",
+                    "white",
+                    0,
+                    0,
+                    client,
+                );
+                handleProtocol.updateSkillpoints(user, client);
             }
 
             if (leveledUp) {

@@ -1241,13 +1241,13 @@ export function createGameWindows(deps: GameWindowsDeps): GameWindows {
             type: "text",
             className: "gw-input",
             placeholder: "Destinatario",
-            maxLength: 50,
+            maxLength: "50",
         }) as HTMLInputElement;
         const mensajeInput = el("textarea", {
             className: "gw-input gw-correo-compose-text",
             placeholder: "Mensaje",
-            maxLength: 600,
-            rows: 4,
+            maxLength: "600",
+            rows: "4",
         }) as HTMLTextAreaElement;
         const sendButton = el(
             "button",

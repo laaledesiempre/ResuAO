@@ -75,7 +75,10 @@ CREATE TABLE IF NOT EXISTS characters (
     attr_inteligencia INTEGER NOT NULL DEFAULT 0,
     attr_carisma INTEGER NOT NULL DEFAULT 0,
     attr_constitucion INTEGER NOT NULL DEFAULT 0,
+    -- Legacy sin uso: el VB6 clasico no tiene puntos de atributo por nivel.
     puntos_atributo INTEGER NOT NULL DEFAULT 0,
+    skillpoints INTEGER NOT NULL DEFAULT 0,
+    skills_asignados INTEGER NOT NULL DEFAULT 0,
     privileges INTEGER NOT NULL DEFAULT 0,
     count_killed INTEGER NOT NULL DEFAULT 0,
     count_die INTEGER NOT NULL DEFAULT 0,
@@ -282,6 +285,12 @@ ALTER TABLE characters
 
 ALTER TABLE characters
     ADD COLUMN IF NOT EXISTS attr_carisma INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE characters
+    ADD COLUMN IF NOT EXISTS skillpoints INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE characters
+    ADD COLUMN IF NOT EXISTS skills_asignados INTEGER NOT NULL DEFAULT 0;
 
 ALTER TABLE characters
     ALTER COLUMN gold TYPE INTEGER USING LEAST(GREATEST(gold, 0), 2147483647)::INTEGER;
