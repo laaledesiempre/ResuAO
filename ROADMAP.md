@@ -19,9 +19,6 @@ Rol de cada etapa:
 - **M3/M4 — la base definitiva.** Reescritura en Rust con excelencia de
   ingeniería como requisito, no como deseo (ver "Principios de arquitectura").
 
-Restricción legal: el repo upstream no tiene licencia. Uso privado/fork local OK;
-distribuir builds públicos requiere permiso de Damián Catanzaro.
-
 ## Decisiones técnicas (cerradas)
 
 - **DB: SQLite** (no RocksDB). Motivos:
@@ -112,22 +109,32 @@ sin cumplir el criterio de salida del anterior. Una branch por milestone.
 ### M1 — Backend único JS (single stack)
 
 1. **Baseline**: levantar el stack original (Docker Postgres) y verificar que el
-   juego funciona. Sin esto no hay referencia para comparar.
-2. **Port Postgres → SQLite**: HECHO (ver "Estado M1" abajo).
-3. **Unificación de backend en Hono**: HECHO.
+   juego funciona. Sin esto no hay referencia para comparar. ✅
+2. **Port Postgres → SQLite**: ✅ HECHO (ver "Estado M1" abajo).
+3. **Unificación de backend en Hono**: ✅ HECHO.
    - Endpoints de Express → Hono. API routes de Next absorbidas en `/api/*`
      con sesión por cookie httpOnly. Game server ws en el mismo proceso.
-4. **Cliente vanilla** (EN CURSO):
-   - Pantallas mínimas: login, registro, crear/seleccionar personaje, jugar.
-     Nada de wiki/ranking/SEO/arenas (queda fuera, "nada fancy").
+4. **Cliente vanilla**: ✅ HECHO.
+   - Pantallas: login, registro, crear/seleccionar personaje, jugar.
    - Motor Pixi portado (`components/game/*` sin los .tsx de React), bootstrap
      y HUD con DOM vanilla.
    - Auth: cookie de sesión contra `/api/*` del backend Hono.
-5. **CLI**: HECHO. `api/src/unified.ts` con `--serve`, `--port`, `--game-port`,
-   `--db`.
+   - Ventanas de juego (trade/mercado/banco/crafting/retos) y admin web con
+     branding configurable + gestión de cuentas.
+5. **CLI**: ✅ HECHO. `api/src/unified.ts` con `--serve`, `--port`,
+   `--game-port`, `--db`.
+6. **Distribución**: ✅ HECHO. Imagen Docker all-in-one (`Dockerfile` en raíz,
+   SQLite en `/data`, mapas y assets incluidos) con CI que buildea y publica
+   en el registry de Forgejo. Cliente con API/WS host parametrizable en
+   runtime (`RESU_API_URL`/`RESU_WS_URL` vía `/runtime-config.js`).
+7. **Toolchain**: ✅ HECHO. Monorepo npm workspaces (un solo lockfile, un solo
+   `node_modules`, cero pnpm), deps actualizadas (TypeScript 7), paquetes
+   muertos eliminados (axios/https/lodash), 0 vulnerabilidades.
 
 **Criterio de salida**: `resu --serve` levanta todo con un solo archivo SQLite,
 sin Docker ni Postgres, y dos clientes en LAN se ven, caminan y combaten.
+✅ Cumplido a nivel sistema (E2E headless verificado); pendiente solo la
+validación humana de una partida LAN real con dos navegadores.
 
 #### Estado M1 — avances (2026-09-01/02)
 
@@ -159,6 +166,21 @@ sin Docker ni Postgres, y dos clientes en LAN se ven, caminan y combaten.
   Ullathorpe, snapshots de área (NPCs/items), movimiento confirmado, chat
   round-trip.
 - **Pendiente de validación humana**: partida LAN real con dos navegadores.
+- **Operación y admin (HECHO, 2026-09-03)**:
+  - Admin web: página Cuentas con alta de cuentas desde el panel
+    (`POST /api/admin/accounts`), búsqueda, reset de password,
+    habilitar/deshabilitar, toggle admin, eliminar.
+  - Branding configurable desde el admin (nombre, colores, fuentes); TODA la
+    UI deriva de la paleta vía `color-mix` (botones, inputs, bordes,
+    scrollbar, overlays) — no quedan colores hardcodeados fuera de los
+    semánticos (danger/ok).
+  - Sidebar del juego: tab "Social" con miembros de party (líder marcado) y
+    clan (online/mapa), reemplazando al viejo tab de Stats.
+- **Infra (HECHO, 2026-09-03)**: imagen Docker all-in-one con CI en Forgejo
+  (build + push al registry); fix de assets 404 y WS same-origin `/ws` detrás
+  de proxy; monorepo npm workspaces; dump SQL legacy eliminado; auditoría de
+  deps (axios/https/lodash fuera, todo a última versión, 0 vulnerabilidades).
+  Remotos espejo: Forgejo (CI) y GitHub.
 - **Divergencias conocidas del backend SQLite**:
   - Reloj: SQLite usa el clock del proceso, PG el del server (irrelevante en
     single-host).
@@ -238,8 +260,7 @@ es jugable. Acá M2 queda deprecado.
 
 ## Estimaciones honestas
 
-- M1: semanas. El riesgo grande es el cliente vanilla (cuánto glue React hay
-  que rehacer), no el port de DB.
+- M1: ✅ terminado (a falta solo de la validación humana de una partida LAN).
 - M2: días sobre M1 terminado (empaquetado, no features).
 - M3: meses de laburo hobby (34k LOC de lógica de juego + la disciplina de
   arquitectura). Es el corazón del proyecto.
@@ -247,7 +268,8 @@ es jugable. Acá M2 queda deprecado.
 
 ## Gestión
 
-- Repo local en `~/src/resu`, upstream como remoto de solo referencia.
+- Repo local en `~/src/resu`, espejado en Forgejo (CI + registry de imágenes)
+  y GitHub; upstream como remoto de solo referencia.
 - Una branch por milestone, PR/merge local al terminar cada uno.
 - No refactors fuera de scope: cada cambio persigue el criterio de salida del
   milestone activo.
