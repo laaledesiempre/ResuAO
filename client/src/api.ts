@@ -191,6 +191,21 @@ export async function fetchAdminAccounts(q = ""): Promise<AdminAccount[]> {
     return Array.isArray(data) ? data : (data.accounts ?? []);
 }
 
+export async function createAdminAccount(payload: {
+    name: string;
+    email: string;
+    password: string;
+    is_admin?: boolean;
+}): Promise<AdminAccount> {
+    const data = await request<{ account?: AdminAccount } | AdminAccount>(
+        "/api/admin/accounts",
+        { method: "POST", body: payload },
+    );
+    return "account" in data && data.account
+        ? data.account
+        : (data as AdminAccount);
+}
+
 export async function updateAdminAccount(
     id: string,
     patch: { disabled?: boolean; is_admin?: boolean },

@@ -46,12 +46,15 @@
     --bg-panel: var(--brand-panel, #1d1712);
     --text: var(--brand-text, #e8dcc0);
 
-    /* Fixed skin tones */
+    /* Derived skin tones: mixed from the configured palette so themes carry
+       through to inputs, borders and muted text. --bg-deep stays fixed. */
     --bg-deep: #0d0a07;
-    --bg-input: #171009;
-    --border: #6b5a3a;
-    --border-bright: #a98c4f;
-    --text-dim: #a89578;
+    --bg-input: color-mix(in srgb, var(--bg-panel) 80%, black);
+    --border: color-mix(in srgb, var(--accent) 45%, var(--bg-panel));
+    --border-bright: color-mix(in srgb, var(--accent) 50%, var(--border));
+    --text-dim: color-mix(in srgb, var(--text) 70%, var(--bg-panel));
+    /* Creamy highlight text derived from the accent (buttons, HUD values) */
+    --text-gold: color-mix(in srgb, var(--accent) 35%, #fff);
     /* Brand-driven glow tones (accent color wins when configured) */
     --gold-soft: color-mix(in srgb, var(--accent) 35%, transparent);
     --danger: #e0654f;
@@ -141,7 +144,7 @@ button {
     letter-spacing: 0.12em;
     text-transform: uppercase;
     cursor: pointer;
-    color: #f4e3b2;
+    color: var(--text-gold);
     background:
         linear-gradient(180deg, color-mix(in srgb, var(--accent) 22%, transparent), color-mix(in srgb, var(--accent) 6%, transparent) 45%, rgba(0, 0, 0, 0.25)),
         linear-gradient(180deg, #3a2d17, #241a0e);
@@ -213,7 +216,7 @@ select {
 }
 
 input::placeholder {
-    color: #6f5f45;
+    color: color-mix(in srgb, var(--text-dim) 65%, transparent);
     font-style: italic;
 }
 
@@ -1122,7 +1125,7 @@ body.side-resizing {
     font-family: var(--brand-font-display, Cinzel), Georgia, serif;
     font-size: 10px;
     font-weight: 700;
-    color: #f4e3b2;
+    color: var(--text-gold);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
 }
 
@@ -1265,7 +1268,7 @@ body.side-resizing {
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.04em;
-    color: #f4ead2;
+    color: var(--text-gold);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
     pointer-events: none;
 }
@@ -1400,6 +1403,19 @@ body.side-resizing {
     display: flex;
     justify-content: center;
     gap: 10px;
+}
+
+.exit-modal-panel > input {
+    margin-bottom: 10px;
+}
+
+.exit-modal-panel .admin-create-admin-flag {
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.exit-modal-panel .form-error {
+    margin-bottom: 10px;
 }
 
 /* ---------- Play floating stack: world map + cheatsheet (left gutter, outside the game square) ---------- */
@@ -2435,6 +2451,30 @@ body.side-resizing {
 .danger-confirm {
     border-color: var(--danger) !important;
     color: var(--danger) !important;
+}
+
+.admin-accounts-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.admin-accounts-toolbar .admin-accounts-search {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.admin-create-admin-flag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: var(--text-dim);
+}
+
+.admin-create-admin-flag input {
+    width: auto;
 }
 
 .admin-accounts-search {

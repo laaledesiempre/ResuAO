@@ -1,6 +1,11 @@
 import { z } from "zod";
 import pool from "../db";
 import { hashPassword } from "../lib/passwords";
+import {
+    DISPLAY_NAME_MAX_LENGTH,
+    isValidDisplayName,
+    sanitizeName,
+} from "../lib/text";
 
 export type AdminAccountSummary = {
     id: string;
@@ -131,6 +136,65 @@ export async function resetAccountPasswordAdmin(
     }
 
     return account;
+}
+
+const createAccountAdminSchema = z
+    .object({
+        name: z
+            .string()
+            .trim()
+            .min(3)
+            .max(DISPLAY_NAME_MAX_LENGTH)
+            .refine(isValidDisplayName, {
+                message:
+                    "El nombre solo puede contener letras de la A a la Z y espacios",
+            }),
+        email: z.string().trim().email(),
+        password: z.string().min(8).max(100),
+        is_admin: z.boolean().optional(),
+    })
+    .strict();
+
+export async function createAccountAdmin(
+    payload: unknown,
+): Promise<AdminAccountSummary> {
+    const parsed = createAccountAdminSchema.parse(payload);
+    const nameSanitized = sanitizeName(parsed.name);
+    const normalizedEmail = parsed.email.trim().toLowerCase();
+
+    const existingAccount = await pool.query<{ id: string }>(
+        `
+          SELECT id
+          FROM accounts
+          WHERE LOWER(email) = $1
+             OR name_sanitized = $2
+          LIMIT 1
+        `,
+        [normalizedEmail, nameSanitized],
+    );
+
+    if (existingAccount.rowCount) {
+        throw new Error("Ya existe una cuenta con ese email o nombre");
+    }
+
+    const hashedPassword = await hashPassword(parsed.password);
+
+    const result = await pool.query<AdminAccountSummary>(
+        `
+      INSERT INTO accounts (name, name_sanitized, email, password, is_admin, must_change_password)
+      VALUES ($1, $2, $3, $4, $5, TRUE)
+      RETURNING id, name, email, is_admin, disabled_at, created_at
+    `,
+        [
+            parsed.name.trim(),
+            nameSanitized,
+            normalizedEmail,
+            hashedPassword,
+            parsed.is_admin === true,
+        ],
+    );
+
+    return result.rows[0];
 }
 
 export async function deleteAccountAdmin(accountId: string): Promise<void> {

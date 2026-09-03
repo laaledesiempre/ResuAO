@@ -33,6 +33,7 @@ import {
     selectSessionCharacter,
 } from "./repositories/auth";
 import {
+    createAccountAdmin,
     deleteAccountAdmin,
     listAdminAccounts,
     resetAccountPasswordAdmin,
@@ -1100,6 +1101,22 @@ app.get("/api/admin/accounts", async (c) => {
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unexpected error";
         return json(c, { error: message }, 500);
+    }
+});
+
+app.post("/api/admin/accounts", async (c) => {
+    try {
+        const authorized = await requireAdminSession(c);
+        if (authorized instanceof Response) {
+            return authorized;
+        }
+
+        const account = await createAccountAdmin(await readBody(c));
+        return json(c, { account });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Unexpected error";
+        const status = message.includes("Ya existe") ? 409 : 400;
+        return json(c, normalizeErrorPayload({ error: message }), status);
     }
 });
 

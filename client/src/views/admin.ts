@@ -3,6 +3,7 @@ import {
     saveSiteConfig,
     uploadBrandAsset,
     fetchAdminAccounts,
+    createAdminAccount,
     updateAdminAccount,
     resetAdminAccountPassword,
     deleteAdminAccount,
@@ -739,6 +740,116 @@ export function renderAdmin(root: HTMLElement, navigate: Navigate): void {
             });
     });
 
+    // ---------- create account modal (reusa el estilo .exit-modal) ----------
+    const createName = el("input", {
+        type: "text",
+        placeholder: "Nombre de usuario",
+        autocomplete: "off",
+    }) as HTMLInputElement;
+    const createEmail = el("input", {
+        type: "email",
+        placeholder: "Email",
+        autocomplete: "off",
+    }) as HTMLInputElement;
+    const createPassword = el("input", {
+        type: "password",
+        placeholder: "Contraseña temporal",
+        autocomplete: "new-password",
+    }) as HTMLInputElement;
+    const createAdmin = el("input", { type: "checkbox" }) as HTMLInputElement;
+    const createError = el("div", { className: "form-error" });
+    const createCancel = el(
+        "button",
+        { type: "button", className: "secondary" },
+        "Cancelar",
+    ) as HTMLButtonElement;
+    const createConfirm = el(
+        "button",
+        { type: "button" },
+        "Crear cuenta",
+    ) as HTMLButtonElement;
+    const createModal = el(
+        "div",
+        { className: "exit-modal", role: "dialog", "aria-modal": "true" },
+        el(
+            "div",
+            { className: "exit-modal-panel" },
+            el("div", { className: "exit-modal-title" }, "Crear cuenta"),
+            el(
+                "div",
+                { className: "exit-modal-text" },
+                "La cuenta debera cambiar la contraseña en su primer login.",
+            ),
+            createName,
+            createEmail,
+            createPassword,
+            el(
+                "label",
+                { className: "admin-create-admin-flag" },
+                createAdmin,
+                " Es administrador",
+            ),
+            createError,
+            el(
+                "div",
+                { className: "exit-modal-actions" },
+                createCancel,
+                createConfirm,
+            ),
+        ),
+    );
+    const closeCreateModal = () => {
+        createModal.classList.remove("open");
+    };
+    const openCreateModal = () => {
+        createName.value = "";
+        createEmail.value = "";
+        createPassword.value = "";
+        createAdmin.checked = false;
+        createError.textContent = "";
+        createModal.classList.add("open");
+        createName.focus();
+    };
+    createCancel.addEventListener("click", closeCreateModal);
+    createModal.addEventListener("click", (event) => {
+        if (event.target === createModal) closeCreateModal();
+    });
+    createConfirm.addEventListener("click", () => {
+        const name = createName.value.trim();
+        const email = createEmail.value.trim();
+        const password = createPassword.value;
+        if (!name || !email) {
+            createError.textContent = "Nombre y email son obligatorios.";
+            return;
+        }
+        if (password.length < 8) {
+            createError.textContent = "Contraseña: minimo 8 caracteres.";
+            return;
+        }
+        createConfirm.disabled = true;
+        createError.textContent = "";
+        createAdminAccount({
+            name,
+            email,
+            password,
+            is_admin: createAdmin.checked,
+        })
+            .then(() => {
+                showToast("Cuenta creada");
+                closeCreateModal();
+                loadAccounts();
+            })
+            .catch((error: unknown) => {
+                createError.textContent =
+                    error instanceof ApiError
+                        ? error.message
+                        : "No se pudo crear la cuenta.";
+            })
+            .finally(() => {
+                createConfirm.disabled = false;
+            });
+    });
+
     function renderAccounts(accounts: AdminAccount[]): void {
         accountsBody.textContent = "";
         if (!accounts.length) {
@@ -945,8 +1056,21 @@ export function renderAdmin(root: HTMLElement, navigate: Navigate): void {
         { className: "admin-page", "data-page": "cuentas" },
         el(
             "div",
-            { className: "form-field admin-accounts-search" },
-            accountsSearch,
+            { className: "admin-accounts-toolbar" },
+            el(
+                "div",
+                { className: "form-field admin-accounts-search" },
+                accountsSearch,
+            ),
+            (() => {
+                const createButton = el(
+                    "button",
+                    { type: "button", className: "secondary" },
+                    "Crear cuenta",
+                ) as HTMLButtonElement;
+                createButton.addEventListener("click", openCreateModal);
+                return createButton;
+            })(),
         ),
         accountsError,
         el(
@@ -972,6 +1096,7 @@ export function renderAdmin(root: HTMLElement, navigate: Navigate): void {
             ),
         ),
         resetModal,
+        createModal,
     );
 
     const pages: Array<{ id: string; label: string; page: HTMLElement }> = [
