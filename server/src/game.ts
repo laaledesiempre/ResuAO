@@ -1358,6 +1358,38 @@ function getPvpMapChangeDeniedMessage(
 }
 
 function dismountUser(user: GameCharacter) {
+    // VB6 TCP.bas CloseSocket: UnmountMontura antes de cerrar.
+    if (user.equitando) {
+        user.monturaObjIndex = 0;
+        user.monturaEqpSlot = 0;
+        user.equitando = 0;
+        // VB6 UnmountMontura: Counters.MonturaCounter = 10.
+        user.monturaCooldownUntil = Date.now() + 10000;
+
+        withUserClient(user.id, (userClient) => {
+            handleProtocol.selfMapMetaDelta(
+                {
+                    equitando: 0,
+                    monturaCounter: 10,
+                },
+                userClient,
+            );
+        });
+
+        if (!user.navegando) {
+            if (user.dead) {
+                user.idBody = 8;
+                user.idHead = 500;
+            } else {
+                user.idBody = user.idLastBody;
+                user.idHead = user.idLastHead;
+            }
+            user.idWeapon = user.idLastWeapon;
+            user.idHelmet = user.idLastHelmet;
+            user.idShield = user.idLastShield;
+        }
+    }
+
     if (!user.navegando) {
         return;
     }
@@ -2596,6 +2628,8 @@ export type GameApi = {
     markNpcAggressor: (idNpc: EntityId, idAttacker: EntityId) => void;
     forceDismount: (idUser: EntityId) => void;
     navegar: (idUser: EntityId, idBarco?: number) => void;
+    equita: (idUser: EntityId, idItem: number, slot: number | string) => void;
+    desmontarMontura: (idUser: EntityId) => void;
     deleteUserToAllNpcs: (idUser: EntityId) => void;
     isGuardNpc: (npc: { npcType?: number } | undefined) => boolean;
     isNpcAiTracked: (npc: { npcType?: number; movement?: number } | undefined) => boolean;
@@ -4155,7 +4189,7 @@ function Game(this: GameApi) {
                 return;
             }
 
-            if (user.dead && obj.objType !== vars.objType.barcos) {
+            if (user.dead && obj.objType !== vars.objType.barcos && obj.objType !== vars.objType.monturas) {
                 handleProtocol.console("Los muertos no pueden usar items.", "white", 0, 0, ws);
                 return;
             }
@@ -4384,6 +4418,9 @@ function Game(this: GameApi) {
                     break;
                 case vars.objType.barcos:
                     game.navegar(clientId, idItem);
+                    break;
+                case vars.objType.monturas:
+                    game.equita(clientId, idItem, idPos);
                     break;
                 case vars.objType.teleport: {
                     const mapChangeDeniedMessage = getPvpMapChangeDeniedMessage(user);
@@ -6446,6 +6483,28 @@ function Game(this: GameApi) {
             harvesting.cancelHarvesting(idUser);
             smelting.cancelSmelting(idUser);
             crafting.cancelPendingTarget(idUser);
+
+            // VB6 Modulo_UsUaRiOs UserDie: UnmountMontura + WriteEquitandoToggle al morir.
+            if (user.equitando) {
+                user.monturaObjIndex = 0;
+                user.monturaEqpSlot = 0;
+                user.equitando = 0;
+                // VB6 UnmountMontura: Counters.MonturaCounter = 10.
+                user.monturaCooldownUntil = Date.now() + 10000;
+
+                if (userClient) {
+                    handleProtocol.selfMapMetaDelta(
+                        {
+                            equitando: 0,
+                            monturaCounter: Math.max(
+                                0,
+                                Math.ceil((Number(user.monturaCooldownUntil ?? 0) - Date.now()) / 1000),
+                            ),
+                        },
+                        userClient,
+                    );
+                }
+            }
 
             if (!user.navegando) {
                 user.idLastHead = JSON.parse(user.idHead);
@@ -9313,6 +9372,26 @@ function Game(this: GameApi) {
                     return;
                 }
 
+                // VB6 Protocol.bas (vender) y modBanco.bas (depositar): montura en uso no se vende ni deposita.
+                if (
+                    user.equitando &&
+                    Number(user.monturaEqpSlot) === Number(idPos) &&
+                    vars.datObj[itemUser.idItem].objType === vars.objType.monturas
+                ) {
+                    withUserClient(idUser, (userClient) => {
+                        handleProtocol.console(
+                            user.tradeMode === "bank"
+                                ? "No podes depositar tu montura mientras la estes usando."
+                                : "No podes vender tu montura mientras lo estes usando.",
+                            "white",
+                            0,
+                            0,
+                            userClient,
+                        );
+                    });
+                    return;
+                }
+
                 let cantSell = cant;
 
                 if (cantSell > itemUser.cant) {
@@ -9476,6 +9555,20 @@ function Game(this: GameApi) {
             if (user.dead) {
                 withUserClient(idUser, (userClient) => {
                     handleProtocol.console("Los muertos no pueden meditar.", "white", 0, 0, userClient);
+                });
+                return;
+            }
+
+            // VB6 Protocol.bas HandleMeditate: no se puede meditar montado.
+            if (user.equitando) {
+                withUserClient(idUser, (userClient) => {
+                    handleProtocol.console(
+                        "No puedes meditar mientras si estas montado.",
+                        "white",
+                        0,
+                        0,
+                        userClient,
+                    );
                 });
                 return;
             }
@@ -9722,6 +9815,203 @@ function Game(this: GameApi) {
     };
 
     /**
+     * Monturas (VB6 ao-libre: eOBJType.otMonturas = 25, Trabajo.bas DoEquita/UnmountMontura).
+     * VB6 UnmountMontura: Counters.MonturaCounter = 10 (segundos para volver a montar).
+     */
+    const MONTURA_COOLDOWN_MS = 10000;
+
+    const getMonturaCounterSeconds = (user: GameCharacter): number =>
+        Math.max(0, Math.ceil((Number(user.monturaCooldownUntil ?? 0) - Date.now()) / 1000));
+
+    const sendEquitandoDelta = (idUser: EntityId, user: GameCharacter) => {
+        // VB6 Protocol.bas WriteEquitandoToggle (flag + MonturaCounter).
+        withUserClient(idUser, (userClient) => {
+            handleProtocol.selfMapMetaDelta(
+                {
+                    equitando: Number(user.equitando ?? 0),
+                    monturaCounter: getMonturaCounterSeconds(user),
+                },
+                userClient,
+            );
+        });
+    };
+
+    const broadcastMonturaBody = (idUser: EntityId) => {
+        loopAreaByUserId(idUser, function (client: AreaTarget) {
+            if (!client.isNpc) {
+                const targetClient = getClientById(client.id);
+
+                if (targetClient) {
+                    handleProtocol.changeBody(idUser, targetClient);
+                }
+            }
+        });
+    };
+
+    // VB6 Trabajo.bas UnmountMontura.
+    const unmountMontura = (idUser: EntityId, user: GameCharacter) => {
+        user.monturaObjIndex = 0;
+        user.monturaEqpSlot = 0;
+
+        if (user.dead) {
+            user.idBody = 8;
+            user.idHead = 500;
+        } else {
+            user.idBody = user.idLastBody;
+            user.idHead = user.idLastHead;
+        }
+        user.idWeapon = user.idLastWeapon;
+        user.idHelmet = user.idLastHelmet;
+        user.idShield = user.idLastShield;
+
+        user.equitando = 0;
+        user.monturaCooldownUntil = Date.now() + MONTURA_COOLDOWN_MS;
+
+        sendEquitandoDelta(idUser, user);
+        broadcastMonturaBody(idUser);
+    };
+
+    this.desmontarMontura = function (idUser: EntityId) {
+        try {
+            const user = getCharacterById(idUser);
+
+            if (!user || !user.equitando) {
+                return;
+            }
+
+            unmountMontura(idUser, user);
+        } catch (err) {
+            funct.dumpError(err);
+        }
+    };
+
+    // VB6 InvUsuario.bas (UseInvItem, case otMonturas) + Trabajo.bas DoEquita.
+    this.equita = function (idUser: EntityId, idItem: number, slot: number | string) {
+        try {
+            const user = getCharacterById(idUser);
+
+            if (!user) {
+                return;
+            }
+
+            if (user.invisibleSpell) {
+                withUserClient(idUser, (userClient) => {
+                    handleProtocol.console(
+                        "Estas invisible, no puedes montarte ni desmontarte en este estado!!",
+                        "white",
+                        0,
+                        0,
+                        userClient,
+                    );
+                });
+                return;
+            }
+
+            if (user.dead) {
+                withUserClient(idUser, (userClient) => {
+                    handleProtocol.console(
+                        "Estas muerto, no puedes montarte ni desmontarte en este estado!!",
+                        "white",
+                        0,
+                        0,
+                        userClient,
+                    );
+                });
+                return;
+            }
+
+            if (user.navegando) {
+                withUserClient(idUser, (userClient) => {
+                    handleProtocol.console(
+                        "Estas navegando, no puedes montarte ni desmontarte en este estado!!",
+                        "white",
+                        0,
+                        0,
+                        userClient,
+                    );
+                });
+                return;
+            }
+
+            // VB6 eTrigger: BAJOTECHO = 1, CASA = 2. Zona DUNGEON (Declares.bas).
+            const trigger = Number(vars.mapa[user.map]?.[user.pos.y]?.[user.pos.x]?.trigger ?? 0);
+            const zona = String(vars.mapData[user.map]?.zona ?? "");
+
+            if (!user.equitando && (zona === "DUNGEON" || trigger === 1 || trigger === 2)) {
+                withUserClient(idUser, (userClient) => {
+                    handleProtocol.console(
+                        "No puedes utilizar la montura bajo techo o dungeons!",
+                        "white",
+                        0,
+                        0,
+                        userClient,
+                    );
+                });
+                return;
+            }
+
+            if (!user.equitando) {
+                const remainingSeconds = getMonturaCounterSeconds(user);
+
+                if (remainingSeconds > 0) {
+                    withUserClient(idUser, (userClient) => {
+                        handleProtocol.console(
+                            "Debe esperar " + remainingSeconds + " segundos para volver a usar tu montura",
+                            "white",
+                            0,
+                            0,
+                            userClient,
+                        );
+                    });
+                    return;
+                }
+
+                const montura = vars.datObj[idItem];
+
+                user.monturaObjIndex = idItem;
+                user.monturaEqpSlot = Number(slot);
+
+                if (Number(user.idHead) != 500) {
+                    user.idLastHead = Number(user.idHead);
+                }
+                if (Number(user.idBody) != 8) {
+                    user.idLastBody = Number(user.idBody);
+                }
+                user.idLastHelmet = Number(user.idHelmet);
+                user.idLastWeapon = Number(user.idWeapon);
+                user.idLastShield = Number(user.idShield);
+
+                // VB6 ToggleMonturaBody: body = NumRopaje de la montura, sin arma ni escudo
+                // (cabeza y casco se conservan, ChangeUserChar con NingunArma/NingunEscudo).
+                const ropaje = Number(montura?.ropaje ?? 0);
+                if (ropaje > 0) {
+                    user.idBody = ropaje;
+                }
+                user.idWeapon = 0;
+                user.idShield = 0;
+
+                // VB6 SetVisibleStateForUserAfterNavigateOrEquitate: pierde el ocultar.
+                if (user.hiddenSkill) {
+                    setHiddenSkillState(idUser, false);
+
+                    withUserClient(idUser, (userClient) => {
+                        handleProtocol.console("Has vuelto a ser visible!", "white", 0, 0, userClient);
+                    });
+                }
+
+                user.equitando = 1;
+
+                sendEquitandoDelta(idUser, user);
+                broadcastMonturaBody(idUser);
+            } else {
+                unmountMontura(idUser, user);
+            }
+        } catch (err) {
+            funct.dumpError(err);
+        }
+    };
+
+    /**
      * [navegar description]
      * @param  {[type]} idUser [description]
      * @return {[type]}        [description]
@@ -9731,6 +10021,20 @@ function Game(this: GameApi) {
             const user = getCharacterById(idUser);
 
             if (!user) {
+                return;
+            }
+
+            // VB6 Trabajo.bas DoNavega: no se puede navegar estando montado.
+            if (user.equitando) {
+                withUserClient(idUser, (userClient) => {
+                    handleProtocol.console(
+                        "No puedes navegar mientras estas en tu montura!!",
+                        "white",
+                        0,
+                        0,
+                        userClient,
+                    );
+                });
                 return;
             }
 

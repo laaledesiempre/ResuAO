@@ -144,6 +144,8 @@ type SelfMapMetaDeltaPayload = {
     map?: number;
     name?: string | null;
     navegando?: NumericFlag;
+    equitando?: NumericFlag;
+    monturaCounter?: number;
 };
 
 const vars = require("./vars");
@@ -707,6 +709,14 @@ function writeSelfMapMetaDeltaPayload(payload: SelfMapMetaDeltaPayload) {
         flags |= 1 << 2;
     }
 
+    if (typeof payload.equitando !== "undefined") {
+        flags |= 1 << 3;
+    }
+
+    if (typeof payload.monturaCounter !== "undefined") {
+        flags |= 1 << 4;
+    }
+
     pkg.writeByte(flags);
 
     if (flags & 1) {
@@ -719,6 +729,15 @@ function writeSelfMapMetaDeltaPayload(payload: SelfMapMetaDeltaPayload) {
 
     if (flags & (1 << 2)) {
         pkg.writeByte(payload.navegando ?? 0);
+    }
+
+    if (flags & (1 << 3)) {
+        pkg.writeByte(payload.equitando ?? 0);
+    }
+
+    if (flags & (1 << 4)) {
+        // VB6 WriteEquitandoToggle: WriteLong(.Counters.MonturaCounter)
+        pkg.writeInt(Math.max(0, Math.floor(payload.monturaCounter ?? 0)));
     }
 }
 

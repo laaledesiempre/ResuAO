@@ -618,6 +618,11 @@ function Login(this: LoginApi) {
                 // VB6 (TCP.bas): los skills y su experiencia se cargan desde el charfile.
                 personaje.skills = skills.normalizeSkills(personaje.skills);
                 personaje.skillExp = skills.normalizeSkillExp(personaje.skillExp);
+                // VB6 TCP.bas: flags.Equitando = 0 al loguear (la montura no persiste equipada).
+                personaje.equitando = 0;
+                personaje.monturaObjIndex = 0;
+                personaje.monturaEqpSlot = 0;
+                personaje.monturaCooldownUntil = 0;
 
                 if (!personaje.posX) {
                     personaje.posX = 50;
@@ -1144,6 +1149,10 @@ function Login(this: LoginApi) {
             skillExp: skills.createDefaultSkillExp(),
             faction: "none",
             navegando: 0,
+            equitando: 0,
+            monturaObjIndex: 0,
+            monturaEqpSlot: 0,
+            monturaCooldownUntil: 0,
             npcMatados: 0,
             ciudadanosMatados: 0,
             criminalesMatados: 0,

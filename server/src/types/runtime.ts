@@ -333,6 +333,10 @@ export type RuntimeCharacter = {
     inmovilizado?: NumericFlag;
     zonaSegura?: NumericFlag;
     navegando?: NumericFlag;
+    equitando?: NumericFlag;
+    monturaObjIndex?: number;
+    monturaEqpSlot?: number;
+    monturaCooldownUntil?: number;
     seguroActivado?: boolean;
     seguroClanActivado?: boolean;
     logoutRequestedAt?: number;

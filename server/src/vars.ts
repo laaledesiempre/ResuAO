@@ -220,7 +220,8 @@ function Vars(this: any) {
         yacimientos: 22,
         metales: 23,
         pergaminos: 24,
-        aura: 25,
+        // VB6 eOBJType: otMonturas = 25 (Dat/obj.dat: "25: Monturas")
+        monturas: 25,
         instrumentosMusicales: 26,
         yunque: 27,
         fraguas: 28,
