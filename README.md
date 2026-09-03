@@ -95,9 +95,6 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/resu \
 DB_BACKEND=postgres pnpm run unified -- --serve
 ```
 
-También hay un dump inicial en `database/resu.sql` (ver instrucciones de
-restauración en ese archivo / documentación de postgres).
-
 ## 4. Tests
 
 ```bash
