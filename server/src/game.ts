@@ -6942,9 +6942,16 @@ function Game(this: GameApi) {
                 user.minHit = newMinHit;
                 user.maxHit = newMaxHit;
 
+                // VB6 Modulo_UsUaRiOs.bas (UserLevelUp): AumentoSTA por nivel, cap STAT_MAXSTA=999.
+                const aumentoStamina = balance.getStaminaPerLevel(user.idClase);
+                user.maxStamina = Math.min(balance.MAX_STAMINA, Number(user.maxStamina ?? 0) + aumentoStamina);
+                user.stamina = user.maxStamina;
+
                 handleProtocol.console("¡Has subido a nivel " + user.level + "!", "red", 1, 0, client);
 
                 handleProtocol.console("¡Has ganado " + aumentoHP + " puntos de vida!", "red", 1, 0, client);
+
+                handleProtocol.console("¡Has ganado " + aumentoStamina + " puntos de energia!", "red", 1, 0, client);
 
                 if (aumentoMana) {
                     handleProtocol.console("¡Has ganado " + aumentoMana + " puntos de maná!", "red", 1, 0, client);

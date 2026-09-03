@@ -134,6 +134,8 @@ type SelfVitalsDeltaPayload = {
     maxMana: number;
     hunger?: number;
     thirst?: number;
+    stamina?: number;
+    maxStamina?: number;
     envenenado?: number;
 };
 
@@ -1041,6 +1043,8 @@ const handleServer: HandleProtocolApi = {
         pkg.writeShort(character.maxMana);
         pkg.writeShort(character.hunger ?? 100);
         pkg.writeShort(character.thirst ?? 100);
+        pkg.writeShort(character.stamina ?? character.maxStamina ?? 100);
+        pkg.writeShort(character.maxStamina ?? 100);
         pkg.writeByte(character.envenenado ? 1 : 0);
         pkg.writeByte(character.privileges);
         pkg.writeDouble(character.exp);
@@ -1215,6 +1219,11 @@ const handleServer: HandleProtocolApi = {
         if (payload.hunger !== undefined && payload.thirst !== undefined) {
             pkg.writeShort(payload.hunger);
             pkg.writeShort(payload.thirst);
+        }
+
+        if (payload.stamina !== undefined && payload.maxStamina !== undefined) {
+            pkg.writeShort(payload.stamina);
+            pkg.writeShort(payload.maxStamina);
         }
 
         if (payload.envenenado !== undefined) {

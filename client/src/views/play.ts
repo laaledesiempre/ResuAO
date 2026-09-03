@@ -140,6 +140,7 @@ export function renderPlay(
     };
     const hungerBar = makeMiniBar("hunger", "Hambre");
     const thirstBar = makeMiniBar("thirst", "Sed");
+    const staminaBar = makeMiniBar("stamina", "Energía");
 
     // Gold/level under the portrait: coin icon + value, "Lv" prefix + value.
     const goldValue = el("span", { className: "hud-stat-value" }, "--");
@@ -214,6 +215,7 @@ export function renderPlay(
                     { className: "player-mini-bars" },
                     hungerBar.node,
                     thirstBar.node,
+                    staminaBar.node,
                 ),
                 statusRow,
                 posStat,
@@ -865,6 +867,12 @@ export function renderPlay(
         };
         setMiniBar(hungerBar, hud.hunger);
         setMiniBar(thirstBar, hud.thirst);
+        // Stamina no es 0-100: se muestra como porcentaje de maxStamina.
+        const staminaMax = Math.max(0, Math.round(hud.maxStamina ?? 100));
+        const staminaValue = Math.max(0, Math.round(hud.stamina ?? staminaMax));
+        const staminaPct = staminaMax > 0 ? Math.min(100, Math.round((staminaValue / staminaMax) * 100)) : 0;
+        staminaBar.fill.style.width = `${staminaPct}%`;
+        staminaBar.node.title = `${staminaBar.label}: ${staminaValue}/${staminaMax}`;
         goldValue.textContent = `${hud.gold ?? 0}`;
         goldStat.title = `Oro: ${hud.gold ?? 0}`;
         levelValue.textContent = `${hud.level ?? "--"}`;

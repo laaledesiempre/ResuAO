@@ -16,6 +16,7 @@ export {};
 
 const funct = require("./functions");
 const vars = require("./vars");
+const balance = require("./balance");
 const handleProtocol = require("./handleProtocol") as HandleProtocolApi;
 const socket = require("./socket") as SocketApi;
 const workingLock = require("./workingLock");
@@ -477,6 +478,31 @@ const harvesting: HarvestingApi = {
             }
 
             state.nextTickAt = now + vars.timing.fishingTickMs;
+
+            // VB6 Trabajo.bas: cada trabajo consume energia (2 clase Trabajador,
+            // 6 el resto); si no alcanza, no trabaja.
+            const staminaCost = balance.getWorkStaminaCost(Number(user.idClase ?? 0));
+            const currentStamina = Number(user.stamina ?? 0);
+
+            if (currentStamina < staminaCost) {
+                this.cancelHarvesting(idUser, "No tienes suficiente energia.");
+                continue;
+            }
+
+            user.stamina = currentStamina - staminaCost;
+            withUserClient(idUser, (userClient) => {
+                handleProtocol.selfVitalsDelta(
+                    {
+                        hp: Number(user.hp ?? 0),
+                        maxHp: Number(user.maxHp ?? 0),
+                        mana: Number(user.mana ?? 0),
+                        maxMana: Number(user.maxMana ?? 0),
+                        stamina: Number(user.stamina ?? 0),
+                        maxStamina: Number(user.maxStamina ?? 100),
+                    },
+                    userClient,
+                );
+            });
 
             if (!rollHarvestSuccess(user, state.skill)) {
                 continue;

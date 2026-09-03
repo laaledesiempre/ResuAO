@@ -239,6 +239,8 @@ export interface CharacterSnapshot {
     maxMana?: number;
     hunger?: number;
     thirst?: number;
+    stamina?: number;
+    maxStamina?: number;
     envenenado?: number;
     adminSummonedBot?: boolean;
     exp?: number;
@@ -466,6 +468,8 @@ export interface PlayerHudState {
     maxMana?: number;
     hunger?: number;
     thirst?: number;
+    stamina?: number;
+    maxStamina?: number;
     envenenado?: number;
     attrAgilidad?: number;
     attrFuerza?: number;
@@ -596,6 +600,8 @@ export interface SelfVitalsDelta {
     maxMana: number;
     hunger?: number;
     thirst?: number;
+    stamina?: number;
+    maxStamina?: number;
     envenenado?: number;
 }
 
@@ -1075,6 +1081,10 @@ function parseCharacter(
             snapshot.hunger = reader.getShort();
             snapshot.thirst = reader.getShort();
         }
+        if (reader.canReadBytes(4)) {
+            snapshot.stamina = reader.getShort();
+            snapshot.maxStamina = reader.getShort();
+        }
         if (reader.canReadBytes(1)) {
             snapshot.envenenado = reader.getByte();
         }
@@ -1317,6 +1327,12 @@ function parseServerPacketById(
                         ? reader.getShort()
                         : undefined,
                     thirst: reader.canReadBytes(2)
+                        ? reader.getShort()
+                        : undefined,
+                    stamina: reader.canReadBytes(4)
+                        ? reader.getShort()
+                        : undefined,
+                    maxStamina: reader.canReadBytes(2)
                         ? reader.getShort()
                         : undefined,
                     envenenado: reader.canReadBytes(1)
@@ -2283,6 +2299,8 @@ export function toPlayerHudState(snapshot: CharacterSnapshot): PlayerHudState {
         maxMana: snapshot.maxMana,
         hunger: snapshot.hunger,
         thirst: snapshot.thirst,
+        stamina: snapshot.stamina,
+        maxStamina: snapshot.maxStamina,
         envenenado: snapshot.envenenado,
         attrAgilidad: snapshot.attrAgilidad,
         attrFuerza: snapshot.attrFuerza,

@@ -116,6 +116,8 @@ export type CharacterRecord = {
     max_mana: number;
     hunger: number;
     thirst: number;
+    stamina: number;
+    max_stamina: number;
     envenenado: number;
     id_raza: number;
     id_genero: number;
@@ -255,6 +257,8 @@ export type CharacterApiResponse = {
     maxMana: number;
     hunger: number;
     thirst: number;
+    stamina: number;
+    maxStamina: number;
     envenenado: number;
     idRaza: number;
     idGenero: number;

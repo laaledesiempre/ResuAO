@@ -599,6 +599,18 @@ function Login(this: LoginApi) {
                 personaje.clan = personaje.clanName ? `<${personaje.clanName}>` : "";
                 personaje.hunger = Math.min(100, Math.max(0, Number(personaje.hunger ?? 100)));
                 personaje.thirst = Math.min(100, Math.max(0, Number(personaje.thirst ?? 100)));
+                // VB6 TCP.bas: MaxSta = 20 * RandomNumber(1, Agilidad \ 6), con minimo 2.
+                // Para personajes previos a stamina se deriva un default deterministico.
+                if (!personaje.maxStamina) {
+                    personaje.maxStamina = Math.min(
+                        balance.MAX_STAMINA,
+                        20 * Math.max(2, Math.floor(Number(personaje.attrAgilidad ?? 18) / 6)),
+                    );
+                }
+                personaje.stamina = Math.min(
+                    personaje.maxStamina,
+                    Math.max(0, Number(personaje.stamina ?? personaje.maxStamina)),
+                );
                 // VB6: el flag Envenenado se resetea a 0 al loguear.
                 personaje.envenenado = 0;
 
@@ -1029,6 +1041,9 @@ function Login(this: LoginApi) {
         const baseAttrInteligencia = 18 + vars.balanceRazas[character.idRaza].inteligencia;
         const baseAttrConstitucion = 18 + vars.balanceRazas[character.idRaza].constitucion;
         const maxHp = balance.getMaxHpForLevel(character.idClase, baseAttrConstitucion, targetLevel);
+        // VB6 TCP.bas: MaxSta = 20 * RandomNumber(1, Agilidad \ 6), con minimo 2.
+        const staRoll = Math.max(2, funct.randomIntFromInterval(1, Math.max(1, Math.floor(baseAttrAgilidad / 6))));
+        const maxStamina = Math.min(balance.MAX_STAMINA, 20 * staRoll);
         const baseMaxMana = balance.getMaxManaForLevel(character.idClase, baseAttrInteligencia, targetLevel);
         const maxMana = options?.markAsBot ? Math.max(baseMaxMana, LOAD_BOT_MIN_MANA) : baseMaxMana;
         const minHit = balance.getMinHitForLevel(character.idClase, targetLevel);
@@ -1106,6 +1121,8 @@ function Login(this: LoginApi) {
             criminal: 0,
             hunger: 100,
             thirst: 100,
+            stamina: maxStamina,
+            maxStamina,
             envenenado: 0,
             faction: "none",
             navegando: 0,
