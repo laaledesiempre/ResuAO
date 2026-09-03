@@ -1220,8 +1220,8 @@ export class GameClient {
         this.outgoingRequestsRef.current?.useItemClick(slot);
     }
 
-    assignAttributePoint(attrId: number): void {
-        this.outgoingRequestsRef.current?.assignAttributePoint(attrId);
+    modifySkills(skillId: number): void {
+        this.outgoingRequestsRef.current?.modifySkills(skillId);
     }
 
     castSpell(spell: SpellEntry): void {

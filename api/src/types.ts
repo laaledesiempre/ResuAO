@@ -130,7 +130,10 @@ export type CharacterRecord = {
     attr_agilidad: number;
     attr_inteligencia: number;
     attr_constitucion: number;
+    // Legacy sin uso: el VB6 clasico no tiene puntos de atributo por nivel.
     puntos_atributo: number;
+    skillpoints: number;
+    skills_asignados: number;
     privileges: number;
     count_killed: number;
     count_die: number;
@@ -274,7 +277,8 @@ export type CharacterApiResponse = {
     attrAgilidad: number;
     attrInteligencia: number;
     attrConstitucion: number;
-    puntosAtributo: number;
+    skillpoints: number;
+    skillsAsignados: number;
     privileges: number;
     countKilled: number;
     countDie: number;

@@ -752,6 +752,18 @@ export class SqlitePoolAdapter {
                 "ALTER TABLE characters ADD COLUMN skill_exp TEXT NOT NULL DEFAULT '[]'",
             );
         }
+
+        if (!characterColumns.some((column) => column.name === "skillpoints")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN skillpoints INTEGER NOT NULL DEFAULT 0",
+            );
+        }
+
+        if (!characterColumns.some((column) => column.name === "skills_asignados")) {
+            this.db.exec(
+                "ALTER TABLE characters ADD COLUMN skills_asignados INTEGER NOT NULL DEFAULT 0",
+            );
+        }
     }
 }
 

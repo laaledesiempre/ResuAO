@@ -77,7 +77,7 @@ export const CLIENT_PACKET_ID = {
     selfMapMetaDelta: 79,
     spellVisual: 80,
     entityVitalsDelta: 81,
-    updateAtributos: 82,
+    updateSkillpoints: 82,
     trainerState: 83,
 } as const;
 
@@ -203,7 +203,7 @@ export const SERVER_PACKET_ID = {
     closeTrade: 190,
     marketAction: 239,
     retosAction: 248,
-    assignAttributePoint: 250,
+    modifySkills: 250,
     trainerAction: 251,
 } as const;
 
@@ -257,7 +257,7 @@ export interface CharacterSnapshot {
     attrFuerza?: number;
     attrInteligencia?: number;
     attrConstitucion?: number;
-    puntosAtributo?: number;
+    skillpoints?: number;
     minHit?: number;
     maxHit?: number;
     buffAgilidadSeconds?: number;
@@ -499,7 +499,7 @@ export interface PlayerHudState {
     attrFuerza?: number;
     attrInteligencia?: number;
     attrConstitucion?: number;
-    puntosAtributo?: number;
+    skillpoints?: number;
     minHit?: number;
     maxHit?: number;
     buffAgilidadSeconds?: number;
@@ -843,13 +843,10 @@ export type ParsedServerPacket =
           payload: { fuerza: number; buffSecondsRemaining: number };
       }
     | {
-          type: "updateAtributos";
+          type: "updateSkillpoints";
           payload: {
-              puntosAtributo: number;
-              attrFuerza: number;
-              attrAgilidad: number;
-              attrInteligencia: number;
-              attrConstitucion: number;
+              skillpoints: number;
+              skills: number[];
           };
       }
     | { type: "openBail"; payload: BailOffer }
@@ -1208,7 +1205,7 @@ function parseCharacter(
         snapshot.invisibleSpellRemainingMs = reader.canReadBytes(4)
             ? reader.getInt()
             : undefined;
-        snapshot.puntosAtributo = reader.canReadBytes(1)
+        snapshot.skillpoints = reader.canReadBytes(1)
             ? reader.getByte()
             : 0;
 
@@ -1899,17 +1896,17 @@ function parseServerPacketById(
                     buffSecondsRemaining: reader.getShort(),
                 },
             };
-        case CLIENT_PACKET_ID.updateAtributos:
+        case CLIENT_PACKET_ID.updateSkillpoints: {
+            const skillpoints = reader.getByte();
+            const skills: number[] = [];
+            for (let index = 0; index < 20; index++) {
+                skills.push(reader.getByte());
+            }
             return {
-                type: "updateAtributos",
-                payload: {
-                    puntosAtributo: reader.getByte(),
-                    attrFuerza: reader.getByte(),
-                    attrAgilidad: reader.getByte(),
-                    attrInteligencia: reader.getByte(),
-                    attrConstitucion: reader.getByte(),
-                },
+                type: "updateSkillpoints",
+                payload: { skillpoints, skills },
             };
+        }
         case CLIENT_PACKET_ID.openBail:
             return {
                 type: "openBail",
@@ -2370,11 +2367,13 @@ export function createToggleHiddenSkillPacket(): ArrayBuffer {
     return writer.toArrayBuffer();
 }
 
-// IDs segun eAtributos del VB6 (Declares.bas): 1=Fuerza, 2=Agilidad,
-// 3=Inteligencia, 4=Carisma (no existe en Resu), 5=Constitucion.
-export function createAssignAttributePointPacket(attrId: number): ArrayBuffer {
-    const writer = new PacketWriter(SERVER_PACKET_ID.assignAttributePoint);
-    writer.writeByte(attrId);
+// VB6 Protocol.bas ModifySkills ('SKSE', ClientPacketID 39): el cliente envia
+// NUMSKILLS (20) bytes, uno por skill, con los puntos a asignar.
+export function createModifySkillsPacket(skillId: number): ArrayBuffer {
+    const writer = new PacketWriter(SERVER_PACKET_ID.modifySkills);
+    for (let index = 1; index <= 20; index++) {
+        writer.writeByte(index === skillId ? 1 : 0);
+    }
     return writer.toArrayBuffer();
 }
 
@@ -2439,7 +2438,7 @@ export function toPlayerHudState(snapshot: CharacterSnapshot): PlayerHudState {
         attrFuerza: snapshot.attrFuerza,
         attrInteligencia: snapshot.attrInteligencia,
         attrConstitucion: snapshot.attrConstitucion,
-        puntosAtributo: snapshot.puntosAtributo,
+        skillpoints: snapshot.skillpoints,
         minHit: snapshot.minHit,
         maxHit: snapshot.maxHit,
         buffAgilidadSeconds: snapshot.buffAgilidadSeconds,

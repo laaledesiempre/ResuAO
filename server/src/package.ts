@@ -114,7 +114,7 @@ const clientPacketID = {
     selfMapMetaDelta: 79,
     spellVisual: 80,
     entityVitalsDelta: 81,
-    updateAtributos: 82,
+    updateSkillpoints: 82,
     trainerState: 83,
 } as const;
 
@@ -149,7 +149,7 @@ const serverPacketID = {
     closeTrade: 190,
     marketAction: 239,
     retosAction: 248,
-    assignAttributePoint: 250,
+    modifySkills: 250,
     trainerAction: 251,
 } as const;
 

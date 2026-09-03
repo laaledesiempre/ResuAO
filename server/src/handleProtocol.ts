@@ -389,7 +389,7 @@ export type HandleProtocolApi = {
         maxMana: number,
         client: RuntimeClient,
     ) => void;
-    updateAtributos: (character: ProtocolCharacter, client: RuntimeClient) => void;
+    updateSkillpoints: (character: ProtocolCharacter, client: RuntimeClient) => void;
     actMyLevel: (idUser: EntityId, client: RuntimeClient) => void;
     actExp: (exp: number, client: RuntimeClient) => void;
     actGold: (gold: number, client: RuntimeClient) => void;
@@ -1149,7 +1149,7 @@ const handleServer: HandleProtocolApi = {
         }
 
         pkg.writeInt(invisibilitySpellRemainingMs);
-        pkg.writeByte(character.puntosAtributo ?? 0);
+        pkg.writeByte(character.skillpoints ?? 0);
 
         // VB6 (Declares.bas): NUMSKILLS = 20 valores de skill (0..100).
         const characterSkills = Array.isArray(character.skills) ? character.skills : [];
@@ -1288,13 +1288,17 @@ const handleServer: HandleProtocolApi = {
         socket.send(client);
     },
 
-    updateAtributos(character, client) {
-        pkg.setPackageID(pkg.clientPacketID.updateAtributos);
-        pkg.writeByte(character.puntosAtributo ?? 0);
-        pkg.writeByte(character.attrFuerza);
-        pkg.writeByte(character.attrAgilidad);
-        pkg.writeByte(character.attrInteligencia);
-        pkg.writeByte(character.attrConstitucion);
+    updateSkillpoints(character, client) {
+        pkg.setPackageID(pkg.clientPacketID.updateSkillpoints);
+        pkg.writeByte(character.skillpoints ?? 0);
+
+        // VB6 (Declares.bas): NUMSKILLS = 20 valores de skill (0..100).
+        const characterSkills = Array.isArray(character.skills) ? character.skills : [];
+
+        for (let index = 0; index < 20; index++) {
+            pkg.writeByte(Math.min(100, Math.max(0, Math.floor(Number(characterSkills[index]) || 0))));
+        }
+
         socket.send(client);
     },
 

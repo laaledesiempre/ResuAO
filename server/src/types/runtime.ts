@@ -325,7 +325,9 @@ export type RuntimeCharacter = {
     attrAgilidad?: number;
     attrInteligencia?: number;
     attrConstitucion?: number;
-    puntosAtributo?: number;
+    skillpoints?: number;
+    skillsAsignados?: number;
+    ultimoMensaje?: number;
     bkAttrFuerza?: number;
     bkAttrAgilidad?: number;
     cooldownFuerza?: number;

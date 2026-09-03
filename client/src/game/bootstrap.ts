@@ -43,7 +43,7 @@ export type GameHandle = {
     sendChat: (message: string) => boolean;
     setMasterVolume: (volume: number) => void;
     castSpell: (spell: SpellEntry) => void;
-    assignAttributePoint: (attrId: number) => void;
+    modifySkills: (skillId: number) => void;
     useItem: (slot: number) => void;
     equipItem: (slot: number) => void;
     dropItem: (slot: number, amount: number) => void;
@@ -116,7 +116,7 @@ export function startGame(options: StartGameOptions): GameHandle {
         sendChat: (message) => client.sendChat(message),
         setMasterVolume: (volume) => client.setMasterVolume(volume),
         castSpell: (spell) => client.castSpell(spell),
-        assignAttributePoint: (attrId) => client.assignAttributePoint(attrId),
+        modifySkills: (skillId) => client.modifySkills(skillId),
         useItem: (slot) => client.useInventoryItem(slot),
         equipItem: (slot) => client.equipInventoryItem(slot),
         dropItem: (slot, amount) => client.dropInventoryItem(slot, amount),

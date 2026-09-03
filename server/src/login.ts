@@ -614,7 +614,10 @@ function Login(this: LoginApi) {
                 );
                 // VB6: el flag Envenenado se resetea a 0 al loguear.
                 personaje.envenenado = 0;
-                personaje.puntosAtributo = Math.max(0, Math.floor(Number(personaje.puntosAtributo ?? 0)));
+                // VB6 (TCP.bas/FileIO.bas): los skillpoints libres y la cantidad
+                // de skills iniciales asignados se cargan desde el charfile.
+                personaje.skillpoints = Math.max(0, Math.floor(Number(personaje.skillpoints ?? 0)));
+                personaje.skillsAsignados = Math.min(10, Math.max(0, Math.floor(Number(personaje.skillsAsignados ?? 0))));
                 // VB6 (TCP.bas): los skills y su experiencia se cargan desde el charfile.
                 personaje.skills = skills.normalizeSkills(personaje.skills);
                 personaje.skillExp = skills.normalizeSkillExp(personaje.skillExp);
@@ -1128,7 +1131,9 @@ function Login(this: LoginApi) {
             attrAgilidad: initialAgility,
             attrInteligencia: baseAttrInteligencia,
             attrConstitucion: baseAttrConstitucion,
-            puntosAtributo: 0,
+            // VB6 (TCP.bas SetAttributesToNewUser): SkillPts = 10 al crear.
+            skillpoints: 10,
+            skillsAsignados: 0,
             privileges: 0,
             countKilled: 0,
             countDie: 0,

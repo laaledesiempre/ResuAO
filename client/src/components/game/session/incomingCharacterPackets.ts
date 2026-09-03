@@ -861,32 +861,23 @@ export async function handleIncomingCharacterPacket({
             });
             return true;
 
-        case "updateAtributos":
+        case "updateSkillpoints":
             if (ctx.pendingUserSnapshotRef.current) {
                 ctx.pendingUserSnapshotRef.current = {
                     ...ctx.pendingUserSnapshotRef.current,
-                    puntosAtributo: packet.payload.puntosAtributo,
-                    attrFuerza: packet.payload.attrFuerza,
-                    attrAgilidad: packet.payload.attrAgilidad,
-                    attrInteligencia: packet.payload.attrInteligencia,
-                    attrConstitucion: packet.payload.attrConstitucion,
+                    skillpoints: packet.payload.skillpoints,
+                    skills: packet.payload.skills,
                 };
             }
 
             if (engine?.user) {
-                engine.user.puntosAtributo = packet.payload.puntosAtributo;
-                engine.user.attrFuerza = packet.payload.attrFuerza;
-                engine.user.attrAgilidad = packet.payload.attrAgilidad;
-                engine.user.attrInteligencia = packet.payload.attrInteligencia;
-                engine.user.attrConstitucion = packet.payload.attrConstitucion;
+                engine.user.skillpoints = packet.payload.skillpoints;
+                engine.user.skills = packet.payload.skills;
             }
 
             ctx.mergeHud({
-                puntosAtributo: packet.payload.puntosAtributo,
-                attrFuerza: packet.payload.attrFuerza,
-                attrAgilidad: packet.payload.attrAgilidad,
-                attrInteligencia: packet.payload.attrInteligencia,
-                attrConstitucion: packet.payload.attrConstitucion,
+                skillpoints: packet.payload.skillpoints,
+                skills: packet.payload.skills,
             });
             return true;
 

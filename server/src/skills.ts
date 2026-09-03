@@ -139,9 +139,7 @@ function withUserClient(idUser: EntityId, callback: (client: RuntimeClient) => v
 }
 
 // Modulo_UsUaRiOs.bas Sub SubirSkill(Userindex, Skill, Acerto).
-// Desviaciones respecto al VB6 (ver reporte):
-// - El VB6 exige haber asignado los 10 skillpoints iniciales; resu no tiene
-//   asignacion de skillpoints, asi que ese gate no aplica.
+// Desviacion respecto al VB6 (ver reporte):
 // - El VB6 exige Hambre=0 y Sed=0 (totalmente alimentado); en resu el hambre/sed
 //   valen 100 cuando el personaje esta saciado.
 export function subirSkill(idUser: EntityId, skill: SkillId, acerto: boolean): void {
@@ -152,6 +150,26 @@ export function subirSkill(idUser: EntityId, skill: SkillId, acerto: boolean): v
     }
 
     if (Number(user.hunger ?? 100) < 100 || Number(user.thirst ?? 100) < 100) {
+        return;
+    }
+
+    // VB6 SubirSkill: hasta no asignar los 10 skillpoints iniciales
+    // (Counters.AsignedSkills) no se puede entrenar ningun skill.
+    if ((user.skillsAsignados ?? 0) < 10) {
+        // VB6 flags.UltimoMensaje = 7: evita spamear el mensaje.
+        if (user.ultimoMensaje !== 7) {
+            withUserClient(idUser, (client) => {
+                handleProtocol.console(
+                    "Para poder entrenar un skill debes asignar los 10 skills iniciales.",
+                    "white",
+                    0,
+                    0,
+                    client,
+                );
+            });
+            user.ultimoMensaje = 7;
+        }
+
         return;
     }
 
