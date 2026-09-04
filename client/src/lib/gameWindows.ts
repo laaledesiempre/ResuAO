@@ -188,3 +188,71 @@ export function parseAmountInput(raw: string, max = 9999): number {
 export function tradeItemPriceLabel(item: Pick<TradeItem, "value">): string {
     return String(Math.max(0, Math.floor(item.value)));
 }
+
+// Descripcion breve de cada skill para el boton "?" del modal de stats,
+// en el mismo orden que SKILL_NAMES (mecanicas del AO clasico).
+export const SKILL_DESCRIPTIONS = [
+    "Permite lanzar hechizos. Cuanto mas alta, mas hechizos podes aprender y menos probabilidad hay de que fallen.",
+    "Permite robar oro y objetos a otros personajes y a criaturas, sin que se den cuenta.",
+    "Aumenta la probabilidad de esquivar los golpes fisicos del enemigo.",
+    "Mejora la punteria y el danio al pelear cuerpo a cuerpo con armas.",
+    "Con /meditar recuperas mana. A mas skill, mas mana recuperas en cada intervalo.",
+    "Permite apunalar con dagas: golpes de danio multiplicado, ideales atacando oculto.",
+    "Te vuelve invisible para jugadores y criaturas mientras no ataques. Se rompe al actuar.",
+    "Permite sobrevivir en el campo: comer carne cruda y resistir mejor el hambre y la sed.",
+    "Permite extraer lenia de los arboles con un hacha. Materia prima de la carpinteria.",
+    "Mejora los precios al comprar y vender con los mercaderes NPC.",
+    "Aumenta la probabilidad de bloquear ataques con el escudo equipado.",
+    "Permite pescar en costas y rios con una cania. Fuente de alimento y algo de oro.",
+    "Permite extraer minerales de los yacimientos con un piquete. Materia prima de la herreria.",
+    "Permite fabricar arcos, flechas y otros objetos de madera a partir de lenia.",
+    "Permite forjar armas y armaduras a partir de lingotes, junto a un yunque.",
+    "Necesario para fundar y liderar clanes y organizar grupos de aventureros.",
+    "Permite domar criaturas para que peleen a tu lado. A mas skill, mejores mascotas.",
+    "Mejora la punteria y el danio con arcos y otras armas arrojadizas.",
+    "Mejora el danio y la punteria peleando a punio limpio, sin armas.",
+    "Permite navegar: usar barcas y barcos para cruzar el mar. A mas skill, mejores naves.",
+] as const;
+
+// Textos de ayuda para los botones "?" del panel Misc. y del modal de stats.
+export type HelpTopic = {
+    title: string;
+    paragraphs: string[];
+};
+
+export const HELP_TOPICS: Record<
+    "party" | "clan" | "acciones" | "skillpoints",
+    HelpTopic
+> = {
+    party: {
+        title: "Party",
+        paragraphs: [
+            "Una party es un grupo temporal de aventureros: la experiencia de las criaturas derrotadas se reparte entre los miembros cercanos.",
+            "Para invitar a alguien escribi en el chat /party {nombre} (el objetivo debe estar online). Si no tenes party, se crea una nueva y quedas como lider (★).",
+            "Para abandonarla usa /salirparty. Los miembros de tu party aparecen listados en este panel.",
+        ],
+    },
+    clan: {
+        title: "Clan",
+        paragraphs: [
+            "Un clan (o guild) es una agrupacion permanente de personajes, con nombre propio y nivel minimo de ingreso.",
+            "Se funda con /clancrear nombre|nivelMin. Para unirte a uno existente usa /clanpostular clanId|mensaje y espera a que el lider te acepte con /clanaceptar.",
+            "El lider puede expulsar (/clanexpulsar), nombrar co-lideres (/clancolider) o disolver el clan (/claneliminar). Escribi /clan para ver todos los comandos.",
+        ],
+    },
+    acciones: {
+        title: "Acciones",
+        paragraphs: [
+            "Entrenador: acercate a un NPC entrenador y abri su ventana para invocar criaturas domadas que peleen a tu lado, hasta el cupo que permita tu skill de Domar animales.",
+            "Correo: permite enviar y recibir mensajes con otros personajes, incluso si estan offline. El boton se resalta cuando tenes mensajes nuevos.",
+        ],
+    },
+    skillpoints: {
+        title: "Atributos y skillpoints",
+        paragraphs: [
+            "Los atributos (Fuerza, Agilidad, Inteligencia, Constitucion) quedan fijos desde la creacion del personaje y definen danio, vida, mana y energia.",
+            "Al subir de nivel ganas skillpoints: usalos con el boton + de cada skill para subirla (0 a 100). Los puntos sin asignar se acumulan.",
+            "Cada skill tiene un boton ? que explica para que sirve.",
+        ],
+    },
+};

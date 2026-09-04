@@ -14,7 +14,10 @@ import {
     isOwnChallenge,
     parseAmountInput,
     parseItemDetails,
+    HELP_TOPICS,
+    SKILL_DESCRIPTIONS,
 } from "../src/lib/gameWindows";
+import { SKILL_NAMES } from "../src/lib/aowProtocol";
 import type { CraftingRecipe } from "../src/lib/aowProtocol";
 
 test("buildTradeSlots pads empty list to minimum", () => {
@@ -141,4 +144,21 @@ test("parseAmountInput clamps to [1, max]", () => {
     assert.equal(parseAmountInput("0"), 1);
     assert.equal(parseAmountInput("5"), 5);
     assert.equal(parseAmountInput("99999"), 9999);
+});
+
+test("SKILL_DESCRIPTIONS covers every skill with a non-empty text", () => {
+    assert.equal(SKILL_DESCRIPTIONS.length, SKILL_NAMES.length);
+    for (const description of SKILL_DESCRIPTIONS) {
+        assert.ok(description.trim().length > 0);
+    }
+});
+
+test("HELP_TOPICS have title and non-empty paragraphs", () => {
+    for (const topic of Object.values(HELP_TOPICS)) {
+        assert.ok(topic.title.trim().length > 0);
+        assert.ok(topic.paragraphs.length > 0);
+        for (const paragraph of topic.paragraphs) {
+            assert.ok(paragraph.trim().length > 0);
+        }
+    }
 });

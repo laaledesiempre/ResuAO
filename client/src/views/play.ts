@@ -8,7 +8,8 @@ import { isDebugEnabled } from "../lib/siteConfig";
 import { inventoryIconLayout, zoomIconLayout } from "../lib/inventoryIcons";
 import { deriveHudEvents } from "../lib/hudEvents";
 import { resolveHeadPortrait } from "../lib/portrait";
-import { OBJECT_TYPE, SKILL_NAMES, type PlayerHudState } from "../lib/aowProtocol";
+import { OBJECT_TYPE, type PlayerHudState } from "../lib/aowProtocol";
+import { HELP_TOPICS } from "../lib/gameWindows";
 import {
     HOTKEYS_STORAGE_KEY,
     isHotkeyMatch,
@@ -377,6 +378,35 @@ export function renderPlay(
         spellsList,
     );
     const socialList = el("div", { className: "stats-list" });
+    // Titulo de seccion del panel Misc., con "?" opcional que abre el modal
+    // de ayuda correspondiente (gameWindows).
+    const sectionLabel = (
+        text: string,
+        topic?: keyof typeof HELP_TOPICS,
+    ): HTMLElement => {
+        const label = el(
+            "div",
+            { className: "stat-label social-section" },
+            text,
+        );
+        if (topic) {
+            const info = HELP_TOPICS[topic];
+            const help = el(
+                "button",
+                {
+                    type: "button",
+                    className: "gw-help-btn",
+                    title: `Ayuda: ${info.title}`,
+                },
+                "?",
+            );
+            help.addEventListener("click", () =>
+                windows.openInfo(info.title, info.paragraphs),
+            );
+            label.append(help);
+        }
+        return label;
+    };
     // Botones para las UIs complejas (ventanas de gameWindows). El server
     // valida cada accion; si no hay entrenador cerca responde por consola.
     const trainerButton = el(
@@ -401,10 +431,18 @@ export function renderPlay(
         clearCorreoNotify();
         game?.correoAction("list");
     });
+    // Stats y skills viven en un modal (antes pestañas del sidebar).
+    const statsButton = el(
+        "button",
+        { type: "button", className: "gw-action" },
+        "Stats y skills",
+    );
+    statsButton.addEventListener("click", () => windows.openStats());
     const socialActions = el(
         "div",
         { className: "stats-list" },
-        el("div", { className: "stat-label social-section" }, "Acciones"),
+        sectionLabel("Acciones", "acciones"),
+        el("div", { className: "stat-row" }, statsButton),
         el("div", { className: "stat-row" }, trainerButton),
         el("div", { className: "stat-row" }, correoButton),
     );
@@ -414,25 +452,11 @@ export function renderPlay(
         socialActions,
         socialList,
     );
-    const statsList = el("div", { className: "stats-list" });
-    const statsPanel = el(
-        "div",
-        { className: "side-panel", "data-panel": "stats" },
-        statsList,
-    );
-    const skillsList = el("div", { className: "stats-list" });
-    const skillsPanel = el(
-        "div",
-        { className: "side-panel", "data-panel": "skills" },
-        skillsList,
-    );
 
     const tabDefs = [
         { id: "inventario", label: "Inventario", panel: inventoryPanel },
         { id: "hechizos", label: "Hechizos", panel: spellsPanel },
-        { id: "stats", label: "Stats", panel: statsPanel },
         { id: "social", label: "Misc.", panel: socialPanel },
-        { id: "skills", label: "Skills", panel: skillsPanel },
     ] as const;
 
     const tabButtons = tabDefs.map((def) => {
@@ -484,9 +508,7 @@ export function renderPlay(
             { className: "side-panels" },
             inventoryPanel,
             spellsPanel,
-            statsPanel,
             socialPanel,
-            skillsPanel,
         ),
     );
 
@@ -806,23 +828,6 @@ export function renderPlay(
         }
     };
 
-    // Atributos del personaje (nombres segun ListaAtributos del VB6,
-    // General.bas). Solo lectura: el VB6 clasico no tiene puntos de atributo,
-    // los dados quedan fijos desde la creacion.
-    const ATTRIBUTE_ROWS = [
-        { label: "Fuerza", value: (hud: PlayerHudState) => hud.attrFuerza },
-        { label: "Agilidad", value: (hud: PlayerHudState) => hud.attrAgilidad },
-        { label: "Inteligencia", value: (hud: PlayerHudState) => hud.attrInteligencia },
-        { label: "Constitucion", value: (hud: PlayerHudState) => hud.attrConstitucion },
-    ] as const;
-
-    const renderStats = (hud: PlayerHudState) => {
-        statsList.replaceChildren();
-        for (const attr of ATTRIBUTE_ROWS) {
-            statsList.append(statRow(attr.label, `${attr.value(hud) ?? "--"}`));
-        }
-    };
-
     const renderSocial = (hud: PlayerHudState) => {
         const memberRow = (
             member: { nameCharacter: string; map: number; online: boolean },
@@ -835,50 +840,15 @@ export function renderPlay(
         const partyMembers = hud.partyMembers ?? [];
         const clanMembers = hud.clanMembers ?? [];
         socialList.replaceChildren(
-            el("div", { className: "stat-label social-section" }, "Party"),
+            sectionLabel("Party", "party"),
             ...(partyMembers.length
                 ? partyMembers.map((m) => memberRow(m, m.isLeader ? " ★" : ""))
                 : [statRow("Sin party", "")]),
-            el("div", { className: "stat-label social-section" }, "Clan"),
+            sectionLabel("Clan", "clan"),
             ...(clanMembers.length
                 ? clanMembers.map((m) => memberRow(m))
                 : [statRow("Sin clan", "")]),
         );
-    };
-
-    // Listado de skills (0..100) con los nombres del VB6, contador de
-    // skillpoints libres y botones "+" para asignarlos (VB6 frmSkills).
-    const renderSkills = (hud: PlayerHudState) => {
-        skillsList.replaceChildren();
-        const skillpoints = hud.skillpoints ?? 0;
-        skillsList.append(statRow("Skillpoints", `${skillpoints}`));
-        const values = hud.skills ?? [];
-        for (let index = 0; index < SKILL_NAMES.length; index++) {
-            const value = Math.max(0, Math.min(100, Math.round(values[index] ?? 0)));
-            const row = el(
-                "div",
-                { className: "stat-row" },
-                el("span", { className: "stat-label" }, SKILL_NAMES[index]),
-                el("span", { className: "stat-value" }, `${value}/100`),
-            );
-            if (skillpoints > 0 && value < 100) {
-                const addButton = el(
-                    "button",
-                    {
-                        type: "button",
-                        className: "stat-attr-add",
-                        title: `Asignar 1 skillpoint a ${SKILL_NAMES[index]}`,
-                    },
-                    "+",
-                ) as HTMLButtonElement;
-                const skillId = index + 1;
-                addButton.addEventListener("click", () =>
-                    game?.modifySkills(skillId),
-                );
-                row.append(addButton);
-            }
-            skillsList.append(row);
-        }
     };
 
     // Status effects: static badges for paralysis states and live countdowns
@@ -999,9 +969,9 @@ export function renderPlay(
         }
         renderInventory(hud);
         renderSpells(hud);
-        renderStats(hud);
         renderSocial(hud);
-        renderSkills(hud);
+        // El modal de stats/skills se redibuja solo si esta abierto.
+        windows.setStatsState(hud);
         renderStatus(hud);
     };
 
@@ -1350,7 +1320,16 @@ export function renderPlay(
                     fpsStat.textContent = `FPS: ${fps ?? "--"}`;
                 },
                 onDisconnect: (reason) => {
-                    appendChat(reason ?? "Conexion cerrada.", "#f87171");
+                    // Solo se dispara cuando el server cierra la conexion
+                    // (closeForce, packet error) o el websocket cae de forma
+                    // inesperada: la salida manual destruye la sesion sin
+                    // error, asi que no llega aca. Volvemos a personajes.
+                    if (destroyed) return;
+                    cleanup();
+                    showToast(
+                        reason ?? "Se perdio la conexion con el servidor.",
+                    );
+                    navigate("/characters");
                 },
                 onTradeState: (state) => windows.setTradeState(state),
                 onMarketState: (state) => windows.setMarketState(state),

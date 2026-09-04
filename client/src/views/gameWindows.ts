@@ -8,12 +8,14 @@ import type {
     InventoryItem,
     MarketListingEntry,
     MarketState,
+    PlayerHudState,
     RetosState,
     TradeItem,
     TradeState,
     TrainerState,
     CorreoState,
 } from "../lib/aowProtocol";
+import { SKILL_NAMES } from "../lib/aowProtocol";
 import type { GameHandle } from "../game/bootstrap";
 import { inventoryIconLayout } from "../lib/inventoryIcons";
 import { formatNumber } from "../lib/number-format";
@@ -29,6 +31,8 @@ import {
     isOwnChallenge,
     parseAmountInput,
     parseItemDetails,
+    HELP_TOPICS,
+    SKILL_DESCRIPTIONS,
     MARKET_PAGE_SIZE,
     type MarketBrowsePayload,
 } from "../lib/gameWindows";
@@ -42,7 +46,9 @@ type WindowKind =
     | "crafting"
     | "retos"
     | "trainer"
-    | "correo";
+    | "correo"
+    | "stats"
+    | "info";
 
 export type GameWindowsDeps = {
     host: HTMLElement;
@@ -60,6 +66,9 @@ export type GameWindows = {
     setRetosState: (state: RetosState | null) => void;
     setTrainerState: (state: TrainerState | null) => void;
     setCorreoState: (state: CorreoState | null) => void;
+    setStatsState: (state: PlayerHudState | null) => void;
+    openStats: () => void;
+    openInfo: (title: string, paragraphs: string[]) => void;
     closeAll: () => void;
     destroy: () => void;
 };
@@ -1291,10 +1300,163 @@ export function createGameWindows(deps: GameWindowsDeps): GameWindows {
         );
     };
 
+    // Modal informativo generico (botones "?"): titulo + parrafos, con boton
+    // "Volver" opcional para regresar a la ventana de origen (p.ej. stats).
+    const renderInfo = (
+        title: string,
+        paragraphs: string[],
+        back?: () => void,
+    ): void => {
+        const content = el(
+            "div",
+            {},
+            el(
+                "div",
+                { className: "gw-head" },
+                el("h2", { className: "gw-title" }, title),
+            ),
+            ...paragraphs.map((text) =>
+                el("p", { className: "gw-note" }, text),
+            ),
+        );
+        if (back) {
+            const backButton = el(
+                "button",
+                { type: "button", className: "gw-action" },
+                "Volver",
+            );
+            backButton.addEventListener("click", back);
+            content.append(el("div", { className: "gw-toolbar" }, backButton));
+        }
+        openWindow("info", content);
+    };
+
+    // Boton "?" reutilizable: abre el modal informativo correspondiente.
+    const helpButton = (
+        title: string,
+        paragraphs: string[],
+        back?: () => void,
+    ): HTMLElement => {
+        const button = el(
+            "button",
+            {
+                type: "button",
+                className: "gw-help-btn",
+                title: `Ayuda: ${title}`,
+            },
+            "?",
+        );
+        button.addEventListener("click", (event) => {
+            event.stopPropagation();
+            renderInfo(title, paragraphs, back);
+        });
+        return button;
+    };
+
+    // Ultimo HUD recibido, para reabrir/redibujar la ventana de stats.
+    let lastStatsHud: PlayerHudState | null = null;
+
+    // Ventana de atributos y skills (movida desde las pestañas del sidebar):
+    // atributos de solo lectura, skillpoints libres y botones "+" para
+    // asignarlos (VB6 frmSkills). Cada skill tiene su "?" explicativo.
+    const renderStats = (hud: PlayerHudState): void => {
+        const statRow = (label: string, value: string, extra?: HTMLElement) =>
+            el(
+                "div",
+                { className: "stat-row" },
+                el("span", { className: "stat-label" }, label),
+                el("span", { className: "stat-value" }, value),
+                ...(extra ? [extra] : []),
+            );
+
+        const attrList = el(
+            "div",
+            { className: "stats-list" },
+            el("div", { className: "stat-label social-section" }, "Atributos"),
+        );
+        // Atributos: solo lectura, los dados quedan fijos desde la creacion.
+        const attributeRows = [
+            { label: "Fuerza", value: hud.attrFuerza },
+            { label: "Agilidad", value: hud.attrAgilidad },
+            { label: "Inteligencia", value: hud.attrInteligencia },
+            { label: "Constitucion", value: hud.attrConstitucion },
+        ];
+        for (const attr of attributeRows) {
+            attrList.append(statRow(attr.label, `${attr.value ?? "--"}`));
+        }
+
+        const skillpoints = hud.skillpoints ?? 0;
+        const back = () => renderStats(hud);
+        const skillsHeader = el(
+            "div",
+            { className: "stat-label social-section" },
+            "Skills",
+            helpButton(
+                HELP_TOPICS.skillpoints.title,
+                HELP_TOPICS.skillpoints.paragraphs,
+                back,
+            ),
+        );
+        const skillList = el(
+            "div",
+            { className: "stats-list" },
+            skillsHeader,
+            statRow("Skillpoints", `${skillpoints}`),
+        );
+        const values = hud.skills ?? [];
+        for (let index = 0; index < SKILL_NAMES.length; index++) {
+            const value = Math.max(
+                0,
+                Math.min(100, Math.round(values[index] ?? 0)),
+            );
+            const controls = el("span", { className: "gw-skill-controls" });
+            if (skillpoints > 0 && value < 100) {
+                const addButton = el(
+                    "button",
+                    {
+                        type: "button",
+                        className: "stat-attr-add",
+                        title: `Asignar 1 skillpoint a ${SKILL_NAMES[index]}`,
+                    },
+                    "+",
+                ) as HTMLButtonElement;
+                const skillId = index + 1;
+                addButton.addEventListener("click", () =>
+                    deps.getGame()?.modifySkills(skillId),
+                );
+                controls.append(addButton);
+            }
+            controls.append(
+                helpButton(
+                    SKILL_NAMES[index],
+                    [SKILL_DESCRIPTIONS[index] ?? SKILL_NAMES[index]],
+                    back,
+                ),
+            );
+            skillList.append(
+                statRow(SKILL_NAMES[index], `${value}/100`, controls),
+            );
+        }
+
+        openWindow(
+            "stats",
+            el(
+                "div",
+                {},
+                el(
+                    "div",
+                    { className: "gw-head" },
+                    el("h2", { className: "gw-title" }, "Stats y skills"),
+                ),
+                attrList,
+                skillList,
+            ),
+        );
+    };
+
     // ---------------- public API ----------------
     return {
-        setTradeState(state) {
-            if (state) {
+        setTradeState(state) {            if (state) {
                 renderTrade(state);
             } else if (openKind === "trade") {
                 closeCurrent();
@@ -1341,6 +1503,23 @@ export function createGameWindows(deps: GameWindowsDeps): GameWindows {
             } else if (openKind === "correo") {
                 closeCurrent();
             }
+        },
+        // A diferencia de correo/trainer el HUD llega todo el tiempo: solo
+        // se redibuja si la ventana ya esta abierta (se abre con openStats).
+        setStatsState(state) {
+            if (!state) return;
+            lastStatsHud = state;
+            if (openKind === "stats") {
+                renderStats(state);
+            }
+        },
+        openStats() {
+            if (lastStatsHud) {
+                renderStats(lastStatsHud);
+            }
+        },
+        openInfo(title, paragraphs) {
+            renderInfo(title, paragraphs);
         },
         closeAll: closeCurrent,
         destroy() {

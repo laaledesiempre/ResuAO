@@ -1195,6 +1195,9 @@ body.side-resizing {
 }
 
 .social-section {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     padding: 6px 8px 0;
 }
 
@@ -2041,6 +2044,129 @@ body.side-resizing {
 
 .gw-row.missing {
     border-color: color-mix(in srgb, var(--danger) 45%, transparent);
+}
+
+/* ---------- Correo, stats/skills modal y botones de ayuda "?" ---------- */
+
+.gw-input {
+    width: 100%;
+}
+
+/* El textarea no entra en la regla global de inputs: mismo look oscuro. */
+textarea.gw-input {
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text);
+    background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.15)),
+        var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 11px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.6);
+    resize: vertical;
+    min-height: 72px;
+}
+
+textarea.gw-input::placeholder {
+    color: color-mix(in srgb, var(--text-dim) 65%, transparent);
+    font-style: italic;
+}
+
+textarea.gw-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow:
+        inset 0 2px 5px rgba(0, 0, 0, 0.6),
+        0 0 0 1px var(--gold-soft),
+        0 0 12px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.gw-correo-compose {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
+}
+
+.gw-correo-compose .gw-action {
+    flex: none;
+    align-self: flex-end;
+    min-width: 110px;
+}
+
+.gw-correo-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.gw-correo-item > .gw-row {
+    cursor: pointer;
+}
+
+.gw-correo-body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--bg-input);
+    border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+    border-radius: 4px;
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.gw-correo-body .gw-action {
+    flex: none;
+}
+
+.gw-correo-text {
+    font-size: 13px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.gw-stats {
+    width: min(460px, 100%);
+}
+
+.gw-info {
+    width: min(460px, 100%);
+}
+
+.gw-skill-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+    flex: none;
+}
+
+.gw-skill-controls .stat-attr-add {
+    margin-left: 0;
+}
+
+.gw-help-btn {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--bg-input);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.gw-help-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent-hover);
 }
 
 .gw-price {
