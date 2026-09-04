@@ -112,6 +112,7 @@ import {
     getGameNpcById,
     listGameNpcChangesSince,
     listGameNpcs,
+    reseedGameNpcs,
     upsertGameNpc,
 } from "./repositories/gameNpcs";
 import {
@@ -1093,6 +1094,20 @@ app.put("/api/admin/site-config", async (c) => {
         const message = error instanceof Error ? error.message : "Unexpected error";
         const status = message === "La configuracion debe ser un objeto" ? 400 : 500;
         return json(c, { error: message }, status);
+    }
+});
+
+app.post("/api/admin/game-data/npcs/reseed", async (c) => {
+    try {
+        const authorized = await requireAdminSession(c);
+        if (authorized instanceof Response) {
+            return authorized;
+        }
+
+        return json(c, await reseedGameNpcs());
+    } catch (error) {
+        const message = error instanceof Error ? error.message : "Unexpected error";
+        return json(c, { error: message }, 500);
     }
 });
 

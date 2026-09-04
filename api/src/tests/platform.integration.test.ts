@@ -77,6 +77,15 @@ test("admin game-data endpoints are forbidden without admin proxy auth", async (
     assert.equal(userSession.status, 403);
 });
 
+test("admin npcs reseed endpoint requires admin session", async () => {
+    const noSession = await requestJson<{ error?: string }>(
+        "/api/admin/game-data/npcs/reseed",
+        { method: "POST" },
+    );
+
+    assert.equal(noSession.status, 401);
+});
+
 test("internal game-data endpoints require auth and validate ids", async () => {
     const noAuth = await requestJson<{ error?: string }>(
         "/internal/game-data/crafting-recipes/1",

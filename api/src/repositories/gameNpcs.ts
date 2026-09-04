@@ -480,6 +480,32 @@ export async function upsertGameNpc(
     return { unchanged: false, npc: next };
 }
 
+export async function importGameNpcs(
+    rows: Array<{ id: number; data: GameNpcRecordData }>,
+): Promise<{ total: number; changed: number; unchanged: number }> {
+    let changed = 0;
+    let unchanged = 0;
+
+    for (const row of rows) {
+        const result = await upsertGameNpc(row.id, row.data);
+        if (result.unchanged) {
+            unchanged += 1;
+        } else {
+            changed += 1;
+        }
+    }
+
+    return { total: rows.length, changed, unchanged };
+}
+
+export async function reseedGameNpcs(): Promise<{
+    total: number;
+    changed: number;
+    unchanged: number;
+}> {
+    return importGameNpcs(loadSeedNpcsJson());
+}
+
 export async function listGameNpcChangesSince(sinceVersion: number) {
     await ensureSeeded();
     const result = await pool.query<GameNpcRow>(

@@ -7,6 +7,7 @@ import {
     updateAdminAccount,
     resetAdminAccountPassword,
     deleteAdminAccount,
+    reseedGameNpcs,
     ApiError,
     type AdminAccount,
 } from "../api";
@@ -1022,6 +1023,26 @@ export function renderAdmin(root: HTMLElement, navigate: Navigate): void {
         ),
     );
 
+    const reseedNpcsButton = confirmButton("Reiniciar NPCs (seed)", () => {
+        reseedNpcsButton.disabled = true;
+        reseedGameNpcs()
+            .then((result) => {
+                showToast(
+                    `NPCs recargados: ${result.changed} actualizados de ${result.total} (${result.unchanged} sin cambios).`,
+                );
+            })
+            .catch((error: unknown) => {
+                showToast(
+                    error instanceof ApiError
+                        ? error.message
+                        : "No se pudieron recargar los NPCs.",
+                );
+            })
+            .finally(() => {
+                reseedNpcsButton.disabled = false;
+            });
+    });
+
     const pageInstancia = el(
         "div",
         { className: "admin-page", "data-page": "instancia" },
@@ -1036,6 +1057,15 @@ export function renderAdmin(root: HTMLElement, navigate: Navigate): void {
                     "div",
                     { className: "admin-hint" },
                     "El servidor aplica estas reglas al registrar cuentas.",
+                ),
+            ),
+            section(
+                "NPCs",
+                reseedNpcsButton,
+                el(
+                    "div",
+                    { className: "admin-hint" },
+                    "Recarga los templates de NPCs desde el seed y deshace las modificaciones manuales.",
                 ),
             ),
             section(

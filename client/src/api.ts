@@ -237,3 +237,15 @@ export async function deleteAdminAccount(id: string): Promise<void> {
         method: "DELETE",
     });
 }
+
+export type ReseedGameNpcsResult = {
+    total: number;
+    changed: number;
+    unchanged: number;
+};
+
+export async function reseedGameNpcs(): Promise<ReseedGameNpcsResult> {
+    return request<ReseedGameNpcsResult>("/api/admin/game-data/npcs/reseed", {
+        method: "POST",
+    });
+}

@@ -12,7 +12,7 @@ import {
   loadSmeltingRecipesJsonFromFile,
 } from "../lib/gameData";
 import { upsertGameCraftingRecipe } from "../repositories/gameCraftingRecipes";
-import { upsertGameNpc } from "../repositories/gameNpcs";
+import { importGameNpcs } from "../repositories/gameNpcs";
 import { upsertGameObject } from "../repositories/gameObjects";
 import { upsertGameSmeltingRecipe } from "../repositories/gameSmeltingRecipes";
 
@@ -49,19 +49,7 @@ async function importObjects(filePath?: string | null): Promise<{ total: number;
 
 async function importNpcs(filePath?: string | null): Promise<{ total: number; changed: number; unchanged: number }> {
   const rows = filePath ? loadNpcsJsonFromFile(filePath) : loadSeedNpcsJson();
-  let changed = 0;
-  let unchanged = 0;
-
-  for (const row of rows) {
-    const result = await upsertGameNpc(row.id, row.data);
-    if (result.unchanged) {
-      unchanged += 1;
-    } else {
-      changed += 1;
-    }
-  }
-
-  return { total: rows.length, changed, unchanged };
+  return importGameNpcs(rows);
 }
 
 async function importCraftingRecipes(filePath?: string | null): Promise<{ total: number; changed: number; unchanged: number }> {
