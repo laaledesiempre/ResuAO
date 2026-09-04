@@ -510,6 +510,24 @@ function itemValidUser(idUser: EntityId, idItem: number) {
     return 1;
 }
 
+// Mirrors itemValidUser's class check so trade/inventory details show the same
+// restriction the server enforces when equipping. Returns "" when the item has
+// no class restriction.
+function classRestrictionDetail(obj: DataObject) {
+    const excluded = (obj.clasesNoPermitidas ?? []).filter((idClase) => Boolean(vars.nameClases[idClase]));
+
+    if (excluded.length === 0) {
+        return "";
+    }
+
+    const allowedNames = vars.nameClases.filter((_: string, idClase: number) => !excluded.includes(idClase));
+    const excludedNames = excluded.map((idClase) => vars.nameClases[idClase]);
+
+    return allowedNames.length <= excludedNames.length
+        ? `Clases: ${allowedNames.join(", ")}`
+        : `No apto: ${excludedNames.join(", ")}`;
+}
+
 function dataObj(idItem: number) {
     try {
         const obj = getObject(idItem);
@@ -586,6 +604,12 @@ function dataObj(idItem: number) {
                 }
                 break;
             }
+        }
+
+        const classRestriction = classRestrictionDetail(obj);
+
+        if (classRestriction) {
+            data += data ? ` | ${classRestriction}` : classRestriction;
         }
 
         if (itemTier > 0) {
